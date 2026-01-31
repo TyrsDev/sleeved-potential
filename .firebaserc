@@ -1,5 +1,18 @@
 {
   "projects": {
     "default": "sleeved-potential"
-  }
+  },
+  "targets": {
+    "sleeved-potential": {
+      "hosting": {
+        "game": [
+          "sleeved-potential"
+        ],
+        "admin": [
+          "sleeved-potential-admin"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
