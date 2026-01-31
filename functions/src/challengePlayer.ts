@@ -2,8 +2,6 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import type { Challenge } from "@sleeved-potential/shared";
 
-const db = getFirestore();
-
 interface ChallengePlayerRequest {
   opponentId: string;
 }
@@ -21,6 +19,7 @@ export const challengePlayer = onCall<ChallengePlayerRequest, Promise<ChallengeP
       throw new HttpsError("unauthenticated", "Must be signed in to challenge a player");
     }
 
+    const db = getFirestore();
     const { opponentId } = request.data;
     const userId = request.auth.uid;
 

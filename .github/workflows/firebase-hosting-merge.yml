@@ -1,4 +1,4 @@
-name: Deploy to Firebase Hosting on merge
+name: Deploy to Firebase on merge
 on:
   push:
     branches:
@@ -22,3 +22,8 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SLEEVED_POTENTIAL }}
           channelId: live
           projectId: sleeved-potential
+      - name: Deploy Functions
+        run: |
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_SLEEVED_POTENTIAL }}' > /tmp/sa.json
+          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa.json
+          npx firebase-tools deploy --only functions --project sleeved-potential

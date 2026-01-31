@@ -2,8 +2,6 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore } from "firebase-admin/firestore";
 import type { Challenge } from "@sleeved-potential/shared";
 
-const db = getFirestore();
-
 interface DeclineChallengeRequest {
   challengeId: string;
 }
@@ -21,6 +19,7 @@ export const declineChallenge = onCall<DeclineChallengeRequest, Promise<DeclineC
       throw new HttpsError("unauthenticated", "Must be signed in to decline a challenge");
     }
 
+    const db = getFirestore();
     const { challengeId } = request.data;
     const userId = request.auth.uid;
 

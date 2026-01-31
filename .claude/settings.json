@@ -3,7 +3,8 @@
     "allow": [
       "Bash(pnpm install:*)",
       "Bash(pnpm build:shared:*)",
-      "Bash(pnpm build:*)"
+      "Bash(pnpm build:*)",
+      "Bash(pnpm --filter functions build:*)"
     ]
   }
 }

@@ -2,8 +2,6 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import type { Challenge, Game } from "@sleeved-potential/shared";
 
-const db = getFirestore();
-
 interface JoinGameResult {
   type: "matched" | "waiting";
   gameId?: string;
@@ -21,6 +19,7 @@ export const joinGame = onCall<void, Promise<JoinGameResult>>(async (request) =>
     throw new HttpsError("unauthenticated", "Must be signed in to join a game");
   }
 
+  const db = getFirestore();
   const userId = request.auth.uid;
 
   // Look for an existing matchmaking challenge
