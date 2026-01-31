@@ -946,3 +946,621 @@ legend {
   padding: 0.25rem 0.5rem;
   font-size: 0.75rem;
 }
+
+/* Card Stats Fallback (when no image) */
+.card-stats-fallback {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+  border: 1px solid #333;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.fallback-label {
+  padding: 0.5rem;
+  text-align: center;
+  font-size: 0.65rem;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  color: #666;
+  background: #222;
+  border-bottom: 1px solid #333;
+}
+
+.fallback-sleeve .fallback-label {
+  background: linear-gradient(90deg, #663399 0%, #442266 100%);
+  color: #fff;
+}
+
+.fallback-animal .fallback-label {
+  background: linear-gradient(90deg, #339966 0%, #226644 100%);
+  color: #fff;
+}
+
+.fallback-equipment .fallback-label {
+  background: linear-gradient(90deg, #996633 0%, #664422 100%);
+  color: #fff;
+}
+
+/* Grid-based fallback layout */
+.fallback-grid {
+  flex: 1;
+  display: grid;
+  grid-template-rows: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  padding: 0.5rem;
+}
+
+.fallback-empty-grid {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+  font-size: 0.75rem;
+  font-style: italic;
+}
+
+/* Grid areas: top spans full width, middle spans full width, bottom is split */
+.grid-top {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  background: linear-gradient(135deg, #1a2a3a 0%, #0a1a2a 100%);
+  border: 1px solid #2a4a6a;
+  border-radius: 4px;
+  padding: 0.5rem;
+}
+
+.grid-top.empty-cell {
+  background: transparent;
+  border: 1px dashed #333;
+}
+
+.grid-middle {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #2a2a1a 0%, #1a1a0a 100%);
+  border: 1px solid #4a4a2a;
+  border-radius: 4px;
+  padding: 0.5rem;
+}
+
+.grid-middle.empty-cell {
+  background: transparent;
+  border: 1px dashed #333;
+}
+
+.grid-bottom-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  background: linear-gradient(135deg, #3a2020 0%, #2a1010 100%);
+  border-radius: 4px;
+  padding: 0.5rem;
+}
+
+.grid-bottom-left.empty-cell {
+  background: transparent;
+  border: 1px dashed #333;
+}
+
+.grid-bottom-right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  background: linear-gradient(135deg, #203a20 0%, #102a10 100%);
+  border-radius: 4px;
+  padding: 0.5rem;
+}
+
+.grid-bottom-right.empty-cell {
+  background: transparent;
+  border: 1px dashed #333;
+}
+
+/* Special Effect styling (grid-top) */
+.grid-top .effect-trigger {
+  font-size: 0.6rem;
+  color: #4a8acc;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+}
+
+.grid-top .effect-action {
+  font-size: 0.7rem;
+  color: #8ac;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* Modifier / Initiative styling (grid-middle) */
+.modifier-display {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #cc8;
+}
+
+.initiative-display {
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: #c8c;
+}
+
+/* Damage / Health styling (grid-bottom) */
+.grid-bottom-left .stat-value,
+.grid-bottom-right .stat-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.grid-bottom-left .stat-value {
+  color: #f66;
+}
+
+.grid-bottom-right .stat-value {
+  color: #6f6;
+}
+
+.grid-bottom-left .stat-label,
+.grid-bottom-right .stat-label {
+  font-size: 0.55rem;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  color: #888;
+}
+
+/* Sleeve stat color coding - bg stats are dimmer, fg stats are brighter */
+.bg-stat {
+  opacity: 0.7;
+  border-style: dashed !important;
+  border-color: rgba(102, 51, 153, 0.4) !important;
+}
+
+.fg-stat {
+  opacity: 1;
+  outline: 2px solid rgba(153, 102, 204, 0.6);
+  outline-offset: -2px;
+  box-shadow: inset 0 0 8px rgba(153, 102, 204, 0.2);
+}
+
+/* Selection grid (smaller) */
+.selection-fallback {
+  font-size: 0.8em;
+}
+
+.selection-fallback .fallback-label {
+  padding: 0.2rem;
+  font-size: 0.5rem;
+}
+
+.selection-fallback .fallback-grid {
+  padding: 0.15rem;
+  gap: 1px;
+}
+
+.selection-fallback .grid-top,
+.selection-fallback .grid-middle,
+.selection-fallback .grid-bottom-left,
+.selection-fallback .grid-bottom-right {
+  padding: 0.15rem;
+  border-width: 1px;
+}
+
+.selection-fallback .grid-top .effect-trigger,
+.selection-fallback .grid-top .effect-action {
+  font-size: 0.45rem;
+}
+
+.selection-fallback .modifier-display,
+.selection-fallback .initiative-display {
+  font-size: 0.55rem;
+}
+
+.selection-fallback .grid-bottom-left .stat-value,
+.selection-fallback .grid-bottom-right .stat-value {
+  font-size: 0.75rem;
+}
+
+.selection-fallback .grid-bottom-left .stat-label,
+.selection-fallback .grid-bottom-right .stat-label {
+  display: none;
+}
+
+/* Tighter outline for selection fallback */
+.selection-fallback .fg-stat {
+  outline-width: 1px;
+  outline-offset: -1px;
+}
+
+.selection-fallback .bg-stat {
+  border-width: 1px !important;
+}
+
+/* Composite layer stack */
+.composite-layer .card-stats-fallback {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  border: none;
+}
+
+/* Resolved Stats Overlay (unified overlay for composite view) */
+.resolved-stats-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 200;
+  display: grid;
+  grid-template-rows: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
+  padding: 1rem;
+  gap: 4px;
+}
+
+.resolved-stats-overlay .overlay-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.resolved-stats-overlay .overlay-top {
+  grid-row: 1;
+  grid-column: 1 / -1;
+  align-items: flex-start;
+  padding-top: 0.5rem;
+}
+
+.resolved-stats-overlay .overlay-middle {
+  grid-row: 2;
+  grid-column: 1 / -1;
+}
+
+.resolved-stats-overlay .overlay-bottom-left {
+  grid-row: 3;
+  grid-column: 1;
+  align-items: flex-end;
+  justify-content: flex-start;
+  padding-bottom: 0.5rem;
+  padding-left: 0.5rem;
+}
+
+.resolved-stats-overlay .overlay-bottom-right {
+  grid-row: 3;
+  grid-column: 2;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding-bottom: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+.resolved-stats-overlay .overlay-effect {
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: #8cf;
+  text-shadow: 0 0 6px #000, 0 0 12px #000, 2px 2px 4px #000;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.resolved-stats-overlay .overlay-modifier {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #fc8;
+  text-shadow: 0 0 6px #000, 0 0 12px #000, 2px 2px 4px #000;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.resolved-stats-overlay .overlay-initiative {
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #c8f;
+  text-shadow: 0 0 6px #000, 0 0 12px #000, 2px 2px 4px #000;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.resolved-stats-overlay .overlay-damage {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #f66;
+  text-shadow: 0 0 8px #000, 0 0 16px #000, 2px 2px 6px #000;
+}
+
+.resolved-stats-overlay .overlay-health {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #6f6;
+  text-shadow: 0 0 8px #000, 0 0 16px #000, 2px 2px 6px #000;
+}
+
+/* Card Stats Overlay (for individual cards in card list) */
+.stats-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  display: grid;
+  grid-template-rows: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
+  padding: 0.5rem;
+  gap: 2px;
+}
+
+.overlay-top {
+  grid-row: 1;
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 0.25rem;
+}
+
+.overlay-middle {
+  grid-row: 2;
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.overlay-bottom-left {
+  grid-row: 3;
+  grid-column: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  padding-bottom: 0.25rem;
+  padding-left: 0.25rem;
+}
+
+.overlay-bottom-right {
+  grid-row: 3;
+  grid-column: 2;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding-bottom: 0.25rem;
+  padding-right: 0.25rem;
+}
+
+/* Overlay text styling with text shadow for readability */
+.overlay-effect {
+  font-size: 0.65rem;
+  font-weight: bold;
+  color: #8cf;
+  text-shadow: 0 0 4px #000, 0 0 8px #000, 1px 1px 2px #000;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 0.15rem 0.35rem;
+  border-radius: 3px;
+}
+
+.overlay-modifier {
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: #fc8;
+  text-shadow: 0 0 4px #000, 0 0 8px #000, 1px 1px 2px #000;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 0.15rem 0.35rem;
+  border-radius: 3px;
+}
+
+.overlay-initiative {
+  font-size: 0.7rem;
+  font-weight: bold;
+  color: #c8f;
+  text-shadow: 0 0 4px #000, 0 0 8px #000, 1px 1px 2px #000;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 0.15rem 0.35rem;
+  border-radius: 3px;
+}
+
+.overlay-damage {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #f66;
+  text-shadow: 0 0 6px #000, 0 0 12px #000, 2px 2px 4px #000;
+}
+
+.overlay-health {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #6f6;
+  text-shadow: 0 0 6px #000, 0 0 12px #000, 2px 2px 4px #000;
+}
+
+/* Sleeve bg/fg text differentiation */
+.stats-overlay .bg-text {
+  opacity: 0.7;
+}
+
+.stats-overlay .fg-text {
+  opacity: 1;
+}
+
+.stats-overlay .fg-text .overlay-damage,
+.stats-overlay .fg-text .overlay-health {
+  filter: drop-shadow(0 0 3px rgba(153, 102, 204, 0.8));
+}
+
+/* Card item needs position relative for overlay */
+.card-item {
+  position: relative;
+}
+
+.card-item .card-image {
+  display: block;
+}
+
+/* Selection item overlay (smaller) */
+.selection-item {
+  position: relative;
+}
+
+.selection-item .stats-overlay {
+  padding: 0.25rem;
+}
+
+.selection-item .overlay-effect {
+  font-size: 0.45rem;
+  padding: 0.1rem 0.2rem;
+}
+
+.selection-item .overlay-modifier,
+.selection-item .overlay-initiative {
+  font-size: 0.5rem;
+  padding: 0.1rem 0.2rem;
+}
+
+.selection-item .overlay-damage,
+.selection-item .overlay-health {
+  font-size: 0.9rem;
+}
+
+/* Sleeve Layer Fallback (for composite view - separate bg/fg layers) */
+.sleeve-layer-fallback {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.sleeve-layer-grid {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-rows: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 1rem;
+}
+
+.sleeve-layer-fallback .layer-grid-top {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  border-radius: 6px;
+}
+
+.sleeve-layer-fallback .layer-grid-middle {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: 6px;
+}
+
+.sleeve-layer-fallback .layer-grid-bottom-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  border-radius: 6px;
+}
+
+.sleeve-layer-fallback .layer-grid-bottom-right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  border-radius: 6px;
+}
+
+/* Empty cells - invisible but maintain grid structure */
+.sleeve-layer-fallback .empty-cell {
+  background: transparent;
+  border: none;
+}
+
+/* Background layer styling - dimmer, dashed borders */
+.sleeve-layer-fallback.bg-layer .has-content {
+  background: rgba(30, 30, 30, 0.8);
+  border: 1px dashed rgba(102, 51, 153, 0.4);
+  opacity: 0.7;
+}
+
+/* Foreground layer styling - brighter, solid borders */
+.sleeve-layer-fallback.fg-layer .has-content {
+  background: rgba(20, 10, 30, 0.85);
+  border: 2px solid rgba(153, 102, 204, 0.7);
+  box-shadow: 0 0 10px rgba(153, 102, 204, 0.3);
+}
+
+/* Sleeve layer text styling */
+.sleeve-layer-fallback .effect-trigger {
+  font-size: 0.7rem;
+  color: #4a8acc;
+  font-weight: bold;
+}
+
+.sleeve-layer-fallback .effect-action {
+  font-size: 0.8rem;
+  color: #8ac;
+}
+
+.sleeve-layer-fallback .modifier-display {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #cc8;
+}
+
+.sleeve-layer-fallback .initiative-display {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #c8c;
+}
+
+.sleeve-layer-fallback .stat-value {
+  font-size: 1.75rem;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.sleeve-layer-fallback .layer-grid-bottom-left .stat-value {
+  color: #f66;
+}
+
+.sleeve-layer-fallback .layer-grid-bottom-right .stat-value {
+  color: #6f6;
+}
+
+.sleeve-layer-fallback .stat-label {
+  font-size: 0.6rem;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  color: #888;
+}

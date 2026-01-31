@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useData } from "../contexts/DataContext";
+import { useData } from "../hooks/useData";
 
 export function Dashboard() {
   const { stats, cardCounts, loading } = useData();

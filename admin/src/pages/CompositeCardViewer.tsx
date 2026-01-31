@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase";
+import { CardStatsFallback } from "../components/CardStatsFallback";
 import type { CardDefinition, CardStats, ResolvedStats } from "@sleeved-potential/shared";
 
 /**
@@ -83,6 +84,81 @@ function resolveCompositeStats(
     modifier,
     specialEffect,
   };
+}
+
+/**
+ * Unified stats overlay that displays the final resolved values.
+ * Shows on top of all image layers.
+ */
+function ResolvedStatsOverlay({ stats }: { stats: ResolvedStats }) {
+  const hasEffect = stats.specialEffect !== null;
+  const hasModifier = stats.modifier !== null;
+  const hasDamage = stats.damage > 0;
+  const hasHealth = stats.health > 0;
+  const hasInit = stats.initiative !== 0;
+
+  return (
+    <div className="resolved-stats-overlay">
+      {/* Top: Special Effect */}
+      <div className="overlay-cell overlay-top">
+        {hasEffect && (
+          <span className="overlay-effect">
+            {formatTriggerShort(stats.specialEffect!.trigger)}: {formatActionShort(stats.specialEffect!.effect)}
+          </span>
+        )}
+      </div>
+
+      {/* Middle: Modifier or Initiative */}
+      <div className="overlay-cell overlay-middle">
+        {hasModifier && (
+          <span className="overlay-modifier">
+            {stats.modifier!.amount > 0 ? "+" : ""}{stats.modifier!.amount} {stats.modifier!.type.toUpperCase()}
+          </span>
+        )}
+        {hasInit && !hasModifier && (
+          <span className="overlay-initiative">INIT {stats.initiative}</span>
+        )}
+      </div>
+
+      {/* Bottom Left: Damage */}
+      <div className="overlay-cell overlay-bottom-left">
+        {hasDamage && (
+          <span className="overlay-damage">{stats.damage}</span>
+        )}
+      </div>
+
+      {/* Bottom Right: Health */}
+      <div className="overlay-cell overlay-bottom-right">
+        {hasHealth && (
+          <span className="overlay-health">{stats.health}</span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function formatTriggerShort(trigger: string): string {
+  const triggerMap: Record<string, string> = {
+    on_play: "PLAY",
+    if_survives: "SURV",
+    if_destroyed: "DEAD",
+    if_defeats: "KILL",
+    if_doesnt_defeat: "MISS",
+  };
+  return triggerMap[trigger] || trigger.slice(0, 4).toUpperCase();
+}
+
+function formatActionShort(effect: { type: string; count?: number; amount?: number; stat?: string }): string {
+  switch (effect.type) {
+    case "draw_cards":
+      return `+${effect.count} CARD`;
+    case "modify_initiative":
+      return `${effect.amount! > 0 ? "+" : ""}${effect.amount} SPD`;
+    case "add_persistent_modifier":
+      return `${effect.amount! > 0 ? "+" : ""}${effect.amount} ${effect.stat === "damage" ? "DMG" : "HP"}`;
+    default:
+      return effect.type.slice(0, 8);
+  }
 }
 
 export function CompositeCardViewer() {
@@ -168,50 +244,54 @@ export function CompositeCardViewer() {
         <div className="composite-preview-panel">
           <h3>Composition Preview</h3>
           <div className="composite-preview-container">
-            {/* Layer stack - absolutely positioned for overlap */}
+            {/* Layer stack - images only, then one unified stats overlay */}
             <div className="composite-layer-stack">
-              {/* Sleeve Background (bottom) */}
+              {/* Layer 1: Sleeve image (renders at both bottom and top for transparency effect) */}
               {selectedSleeve?.imageUrl && (
                 <img
                   src={selectedSleeve.imageUrl}
                   alt={selectedSleeve.name}
-                  className="composite-layer layer-sleeve-bg"
-                  title={`Sleeve Background: ${selectedSleeve.name}`}
+                  className="composite-layer"
+                  style={{ zIndex: 1 }}
                 />
               )}
 
-              {/* Animal */}
+              {/* Layer 2: Animal image */}
               {selectedAnimal?.imageUrl && (
                 <img
                   src={selectedAnimal.imageUrl}
                   alt={selectedAnimal.name}
-                  className="composite-layer layer-animal"
-                  title={`Animal: ${selectedAnimal.name}`}
+                  className="composite-layer"
+                  style={{ zIndex: 10 }}
                 />
               )}
 
-              {/* Equipment (in order) */}
+              {/* Layer 3+: Equipment images (in order) */}
               {sortedEquipment.map((equip, index) => (
                 equip.card.imageUrl && (
                   <img
                     key={equip.order}
                     src={equip.card.imageUrl}
                     alt={equip.card.name}
-                    className="composite-layer layer-equipment"
+                    className="composite-layer"
                     style={{ zIndex: 20 + index }}
-                    title={`Equipment ${index + 1}: ${equip.card.name}`}
                   />
                 )
               ))}
 
-              {/* Sleeve Foreground (top) - same image but rendered last */}
+              {/* Layer top: Sleeve image again (for foreground transparency) */}
               {selectedSleeve?.imageUrl && (
                 <img
                   src={selectedSleeve.imageUrl}
                   alt={selectedSleeve.name}
-                  className="composite-layer layer-sleeve-fg"
-                  title={`Sleeve Foreground: ${selectedSleeve.name}`}
+                  className="composite-layer"
+                  style={{ zIndex: 100 }}
                 />
+              )}
+
+              {/* Final layer: Unified stats overlay showing resolved values */}
+              {(selectedSleeve || selectedAnimal || selectedEquipment.length > 0) && (
+                <ResolvedStatsOverlay stats={resolvedStats} />
               )}
 
               {/* Placeholder when nothing selected */}
@@ -309,7 +389,7 @@ export function CompositeCardViewer() {
                   {card.imageUrl ? (
                     <img src={card.imageUrl} alt={card.name} />
                   ) : (
-                    <div className="selection-no-image">No image</div>
+                    <CardStatsFallback card={card} className="selection-fallback" />
                   )}
                   <span className="selection-name">{card.name}</span>
                 </div>
@@ -333,7 +413,7 @@ export function CompositeCardViewer() {
                   {card.imageUrl ? (
                     <img src={card.imageUrl} alt={card.name} />
                   ) : (
-                    <div className="selection-no-image">No image</div>
+                    <CardStatsFallback card={card} className="selection-fallback" />
                   )}
                   <span className="selection-name">{card.name}</span>
                 </div>
@@ -368,7 +448,7 @@ export function CompositeCardViewer() {
                     {card.imageUrl ? (
                       <img src={card.imageUrl} alt={card.name} />
                     ) : (
-                      <div className="selection-no-image">No image</div>
+                      <CardStatsFallback card={card} className="selection-fallback" />
                     )}
                     <span className="selection-name">{card.name}</span>
                     {count > 0 && <span className="selection-count">{count}</span>}

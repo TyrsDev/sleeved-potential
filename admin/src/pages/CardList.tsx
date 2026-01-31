@@ -1,5 +1,7 @@
 import { Link, useSearchParams } from "react-router-dom";
-import { useData } from "../contexts/DataContext";
+import { useData } from "../hooks/useData";
+import { CardStatsFallback } from "../components/CardStatsFallback";
+import { CardStatsOverlay } from "../components/CardStatsOverlay";
 import type { CardType } from "@sleeved-potential/shared";
 
 export function CardList() {
@@ -83,9 +85,12 @@ export function CardList() {
           {filteredCards.map((card) => (
             <Link key={card.id} to={`/cards/${card.id}`} className="card-item">
               {card.imageUrl ? (
-                <img src={card.imageUrl} alt={card.name} className="card-image" />
+                <>
+                  <img src={card.imageUrl} alt={card.name} className="card-image" />
+                  <CardStatsOverlay card={card} />
+                </>
               ) : (
-                <div className="card-image-placeholder">No image</div>
+                <CardStatsFallback card={card} />
               )}
               <div className="card-info">
                 <h3>{card.name}</h3>

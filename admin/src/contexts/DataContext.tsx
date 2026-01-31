@@ -1,38 +1,8 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "../firebase";
 import type { CardDefinition, User, Game } from "@sleeved-potential/shared";
-
-interface DataContextValue {
-  // Stats
-  stats: {
-    users: number;
-    cards: number;
-    games: number;
-    activeGames: number;
-  };
-
-  // Data lists
-  users: User[];
-  cards: CardDefinition[];
-  games: Game[];
-
-  // Loading states
-  loading: {
-    users: boolean;
-    cards: boolean;
-    games: boolean;
-  };
-
-  // Filtered card counts
-  cardCounts: {
-    sleeves: number;
-    animals: number;
-    equipment: number;
-  };
-}
-
-const DataContext = createContext<DataContextValue | null>(null);
+import { DataContext, type DataContextValue } from "./DataContextValue";
 
 export function DataProvider({ children }: { children: ReactNode }) {
   const [users, setUsers] = useState<User[]>([]);
@@ -130,12 +100,4 @@ export function DataProvider({ children }: { children: ReactNode }) {
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
-}
-
-export function useData() {
-  const context = useContext(DataContext);
-  if (!context) {
-    throw new Error("useData must be used within a DataProvider");
-  }
-  return context;
 }

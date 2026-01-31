@@ -24,7 +24,9 @@ pnpm dev:admin        # Start admin frontend dev server (Vite)
 
 The CI pipeline runs: `pnpm run ci && pnpm run build`
 
-The `ci` script runs: `pnpm install --frozen-lockfile && pnpm lint && pnpm typecheck`
+The `ci` script runs: `pnpm install --frozen-lockfile && pnpm build:shared && pnpm lint && pnpm typecheck`
+
+**IMPORTANT:** Before declaring any code edits as finished, always run `pnpm lint && pnpm typecheck` to verify the changes pass the same checks as the CI pipeline. Do not skip this step.
 
 ## Firebase Deployment
 
