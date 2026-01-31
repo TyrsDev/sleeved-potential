@@ -13,10 +13,14 @@ export { setUsername } from "./setUsername.js";
 // Matchmaking
 export { joinGame } from "./joinGame.js";
 export { challengePlayer } from "./challengePlayer.js";
+export { challengeByUsername } from "./challengeByUsername.js";
 
 // Challenge management
 export { acceptChallenge } from "./acceptChallenge.js";
 export { declineChallenge } from "./declineChallenge.js";
+
+// Game actions
+export { commitCard } from "./commitCard.js";
 
 // Admin functions (ADMIN role required)
 export { createCard } from "./createCard.js";

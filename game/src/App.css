@@ -372,14 +372,14 @@ body {
 
 .card-image {
   width: 100%;
-  aspect-ratio: 5 / 7;
+  aspect-ratio: 2 / 3;
   object-fit: cover;
   background: #0a0a0f;
 }
 
 .card-image-placeholder {
   width: 100%;
-  aspect-ratio: 5 / 7;
+  aspect-ratio: 2 / 3;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -389,7 +389,7 @@ body {
 }
 
 .card-image-placeholder.large {
-  aspect-ratio: 5 / 7;
+  aspect-ratio: 2 / 3;
   min-height: 300px;
   font-size: 1rem;
 }
@@ -491,7 +491,7 @@ body {
 
 .card-detail-image img {
   width: 100%;
-  aspect-ratio: 5 / 7;
+  aspect-ratio: 2 / 3;
   object-fit: cover;
   border-radius: 8px;
 }
