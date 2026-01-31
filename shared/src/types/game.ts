@@ -111,6 +111,9 @@ export interface PlayerGameState {
   // Persistent modifiers from special effects
   persistentModifiers: PersistentModifier[];
 
+  // Temporary initiative modifier (from modify_initiative effect, applies to next round only)
+  initiativeModifier: number;
+
   // Current round commit
   currentCommit: CommittedCard | null;
   hasCommitted: boolean;

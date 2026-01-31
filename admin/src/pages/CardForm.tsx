@@ -3,7 +3,267 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db, createCard, updateCard, deleteCard, uploadCardImage } from "../firebase";
 import { ImageSelector } from "../components/ImageSelector";
-import type { CardDefinition, CardType, CardStats, CreateCardData } from "@sleeved-potential/shared";
+import type {
+  CardDefinition,
+  CardType,
+  CardStats,
+  CreateCardData,
+  SpecialEffectTrigger,
+  EffectTiming,
+  SpecialEffectAction,
+  Modifier,
+  SpecialEffect,
+} from "@sleeved-potential/shared";
+
+type EffectActionType = "draw_cards" | "modify_initiative" | "add_persistent_modifier";
+
+/**
+ * Component for editing stats (damage, health, initiative, modifier, special effect)
+ * Used for both animal/equipment stats and sleeve background/foreground stats
+ */
+function StatsEditor({
+  prefix,
+  damage,
+  setDamage,
+  health,
+  setHealth,
+  initiative,
+  setInitiative,
+  hasModifier,
+  setHasModifier,
+  modifierType,
+  setModifierType,
+  modifierAmount,
+  setModifierAmount,
+  hasSpecialEffect,
+  setHasSpecialEffect,
+  effectTrigger,
+  setEffectTrigger,
+  effectActionType,
+  setEffectActionType,
+  effectCount,
+  setEffectCount,
+  effectAmount,
+  setEffectAmount,
+  effectStat,
+  setEffectStat,
+  effectTiming,
+  setEffectTiming,
+}: {
+  prefix: string;
+  damage: string;
+  setDamage: (v: string) => void;
+  health: string;
+  setHealth: (v: string) => void;
+  initiative: string;
+  setInitiative: (v: string) => void;
+  hasModifier: boolean;
+  setHasModifier: (v: boolean) => void;
+  modifierType: "damage" | "health";
+  setModifierType: (v: "damage" | "health") => void;
+  modifierAmount: string;
+  setModifierAmount: (v: string) => void;
+  hasSpecialEffect: boolean;
+  setHasSpecialEffect: (v: boolean) => void;
+  effectTrigger: SpecialEffectTrigger;
+  setEffectTrigger: (v: SpecialEffectTrigger) => void;
+  effectActionType: EffectActionType;
+  setEffectActionType: (v: EffectActionType) => void;
+  effectCount: string;
+  setEffectCount: (v: string) => void;
+  effectAmount: string;
+  setEffectAmount: (v: string) => void;
+  effectStat: "damage" | "health";
+  setEffectStat: (v: "damage" | "health") => void;
+  effectTiming: EffectTiming;
+  setEffectTiming: (v: EffectTiming) => void;
+}) {
+  return (
+    <>
+      {/* Basic Stats Row */}
+      <div className="form-row">
+        <div className="form-group">
+          <label htmlFor={`${prefix}Damage`}>Damage</label>
+          <input
+            id={`${prefix}Damage`}
+            type="number"
+            value={damage}
+            onChange={(e) => setDamage(e.target.value)}
+            min="0"
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor={`${prefix}Health`}>Health</label>
+          <input
+            id={`${prefix}Health`}
+            type="number"
+            value={health}
+            onChange={(e) => setHealth(e.target.value)}
+            min="0"
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor={`${prefix}Initiative`}>Initiative</label>
+          <input
+            id={`${prefix}Initiative`}
+            type="number"
+            value={initiative}
+            onChange={(e) => setInitiative(e.target.value)}
+            placeholder="0"
+          />
+        </div>
+      </div>
+
+      {/* Modifier Section */}
+      <div className="form-group checkbox-group">
+        <label>
+          <input
+            type="checkbox"
+            checked={hasModifier}
+            onChange={(e) => setHasModifier(e.target.checked)}
+          />
+          Has Modifier
+        </label>
+      </div>
+      {hasModifier && (
+        <div className="form-row indented">
+          <div className="form-group">
+            <label htmlFor={`${prefix}ModifierType`}>Modifier Type</label>
+            <select
+              id={`${prefix}ModifierType`}
+              value={modifierType}
+              onChange={(e) => setModifierType(e.target.value as "damage" | "health")}
+            >
+              <option value="damage">Damage</option>
+              <option value="health">Health</option>
+            </select>
+          </div>
+          <div className="form-group">
+            <label htmlFor={`${prefix}ModifierAmount`}>Amount (+/-)</label>
+            <input
+              id={`${prefix}ModifierAmount`}
+              type="number"
+              value={modifierAmount}
+              onChange={(e) => setModifierAmount(e.target.value)}
+              placeholder="e.g. +2 or -1"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Special Effect Section */}
+      <div className="form-group checkbox-group">
+        <label>
+          <input
+            type="checkbox"
+            checked={hasSpecialEffect}
+            onChange={(e) => setHasSpecialEffect(e.target.checked)}
+          />
+          Has Special Effect
+        </label>
+      </div>
+      {hasSpecialEffect && (
+        <div className="special-effect-editor indented">
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor={`${prefix}EffectTrigger`}>Trigger</label>
+              <select
+                id={`${prefix}EffectTrigger`}
+                value={effectTrigger}
+                onChange={(e) => setEffectTrigger(e.target.value as SpecialEffectTrigger)}
+              >
+                <option value="on_play">On Play</option>
+                <option value="if_survives">If Survives</option>
+                <option value="if_destroyed">If Destroyed</option>
+                <option value="if_defeats">If Defeats</option>
+                <option value="if_doesnt_defeat">If Doesn't Defeat</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label htmlFor={`${prefix}EffectTiming`}>Timing</label>
+              <select
+                id={`${prefix}EffectTiming`}
+                value={effectTiming}
+                onChange={(e) => setEffectTiming(e.target.value as EffectTiming)}
+              >
+                <option value="on_play">On Play</option>
+                <option value="post_combat">Post Combat</option>
+                <option value="end_of_round">End of Round</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor={`${prefix}EffectAction`}>Effect Action</label>
+            <select
+              id={`${prefix}EffectAction`}
+              value={effectActionType}
+              onChange={(e) => setEffectActionType(e.target.value as EffectActionType)}
+            >
+              <option value="draw_cards">Draw Cards</option>
+              <option value="modify_initiative">Modify Initiative</option>
+              <option value="add_persistent_modifier">Add Persistent Modifier</option>
+            </select>
+          </div>
+
+          {/* Conditional inputs based on effect action type */}
+          {effectActionType === "draw_cards" && (
+            <div className="form-group">
+              <label htmlFor={`${prefix}EffectCount`}>Cards to Draw</label>
+              <input
+                id={`${prefix}EffectCount`}
+                type="number"
+                min="1"
+                max="5"
+                value={effectCount}
+                onChange={(e) => setEffectCount(e.target.value)}
+              />
+            </div>
+          )}
+
+          {effectActionType === "modify_initiative" && (
+            <div className="form-group">
+              <label htmlFor={`${prefix}EffectAmount`}>Initiative Change (+/-)</label>
+              <input
+                id={`${prefix}EffectAmount`}
+                type="number"
+                value={effectAmount}
+                onChange={(e) => setEffectAmount(e.target.value)}
+                placeholder="e.g. +1 or -1"
+              />
+            </div>
+          )}
+
+          {effectActionType === "add_persistent_modifier" && (
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor={`${prefix}EffectStat`}>Stat</label>
+                <select
+                  id={`${prefix}EffectStat`}
+                  value={effectStat}
+                  onChange={(e) => setEffectStat(e.target.value as "damage" | "health")}
+                >
+                  <option value="damage">Damage</option>
+                  <option value="health">Health</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label htmlFor={`${prefix}EffectModAmount`}>Amount (+/-)</label>
+                <input
+                  id={`${prefix}EffectModAmount`}
+                  type="number"
+                  value={effectAmount}
+                  onChange={(e) => setEffectAmount(e.target.value)}
+                  placeholder="e.g. +1 or -1"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </>
+  );
+}
 
 export function CardForm() {
   const { cardId } = useParams<{ cardId: string }>();
@@ -14,21 +274,136 @@ export function CardForm() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Form state
+  // Form state - basic
   const [type, setType] = useState<CardType>("animal");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
-  // Stats (for animal/equipment)
+  // Stats for animal/equipment
   const [damage, setDamage] = useState<string>("");
   const [health, setHealth] = useState<string>("");
+  const [initiative, setInitiative] = useState<string>("");
+  const [hasModifier, setHasModifier] = useState(false);
+  const [modifierType, setModifierType] = useState<"damage" | "health">("damage");
+  const [modifierAmount, setModifierAmount] = useState<string>("");
+  const [hasSpecialEffect, setHasSpecialEffect] = useState(false);
+  const [effectTrigger, setEffectTrigger] = useState<SpecialEffectTrigger>("on_play");
+  const [effectActionType, setEffectActionType] = useState<EffectActionType>("draw_cards");
+  const [effectCount, setEffectCount] = useState<string>("1");
+  const [effectAmount, setEffectAmount] = useState<string>("1");
+  const [effectStat, setEffectStat] = useState<"damage" | "health">("damage");
+  const [effectTiming, setEffectTiming] = useState<EffectTiming>("post_combat");
 
-  // Sleeve stats
+  // Sleeve background stats
   const [bgDamage, setBgDamage] = useState<string>("");
   const [bgHealth, setBgHealth] = useState<string>("");
+  const [bgInitiative, setBgInitiative] = useState<string>("");
+  const [bgHasModifier, setBgHasModifier] = useState(false);
+  const [bgModifierType, setBgModifierType] = useState<"damage" | "health">("damage");
+  const [bgModifierAmount, setBgModifierAmount] = useState<string>("");
+  const [bgHasSpecialEffect, setBgHasSpecialEffect] = useState(false);
+  const [bgEffectTrigger, setBgEffectTrigger] = useState<SpecialEffectTrigger>("on_play");
+  const [bgEffectActionType, setBgEffectActionType] = useState<EffectActionType>("draw_cards");
+  const [bgEffectCount, setBgEffectCount] = useState<string>("1");
+  const [bgEffectAmount, setBgEffectAmount] = useState<string>("1");
+  const [bgEffectStat, setBgEffectStat] = useState<"damage" | "health">("damage");
+  const [bgEffectTiming, setBgEffectTiming] = useState<EffectTiming>("post_combat");
+
+  // Sleeve foreground stats
   const [fgDamage, setFgDamage] = useState<string>("");
   const [fgHealth, setFgHealth] = useState<string>("");
+  const [fgInitiative, setFgInitiative] = useState<string>("");
+  const [fgHasModifier, setFgHasModifier] = useState(false);
+  const [fgModifierType, setFgModifierType] = useState<"damage" | "health">("damage");
+  const [fgModifierAmount, setFgModifierAmount] = useState<string>("");
+  const [fgHasSpecialEffect, setFgHasSpecialEffect] = useState(false);
+  const [fgEffectTrigger, setFgEffectTrigger] = useState<SpecialEffectTrigger>("on_play");
+  const [fgEffectActionType, setFgEffectActionType] = useState<EffectActionType>("draw_cards");
+  const [fgEffectCount, setFgEffectCount] = useState<string>("1");
+  const [fgEffectAmount, setFgEffectAmount] = useState<string>("1");
+  const [fgEffectStat, setFgEffectStat] = useState<"damage" | "health">("damage");
+  const [fgEffectTiming, setFgEffectTiming] = useState<EffectTiming>("post_combat");
+
+  // Helper to parse stats from a CardStats object
+  const parseStatsIntoState = useCallback(
+    (
+      stats: CardStats | undefined,
+      setters: {
+        setDamage: (v: string) => void;
+        setHealth: (v: string) => void;
+        setInitiative: (v: string) => void;
+        setHasModifier: (v: boolean) => void;
+        setModifierType: (v: "damage" | "health") => void;
+        setModifierAmount: (v: string) => void;
+        setHasSpecialEffect: (v: boolean) => void;
+        setEffectTrigger: (v: SpecialEffectTrigger) => void;
+        setEffectActionType: (v: EffectActionType) => void;
+        setEffectCount: (v: string) => void;
+        setEffectAmount: (v: string) => void;
+        setEffectStat: (v: "damage" | "health") => void;
+        setEffectTiming: (v: EffectTiming) => void;
+      }
+    ) => {
+      if (!stats) {
+        setters.setDamage("");
+        setters.setHealth("");
+        setters.setInitiative("");
+        setters.setHasModifier(false);
+        setters.setModifierType("damage");
+        setters.setModifierAmount("");
+        setters.setHasSpecialEffect(false);
+        setters.setEffectTrigger("on_play");
+        setters.setEffectActionType("draw_cards");
+        setters.setEffectCount("1");
+        setters.setEffectAmount("1");
+        setters.setEffectStat("damage");
+        setters.setEffectTiming("post_combat");
+        return;
+      }
+
+      setters.setDamage(stats.damage?.toString() ?? "");
+      setters.setHealth(stats.health?.toString() ?? "");
+      setters.setInitiative(stats.initiative?.toString() ?? "");
+
+      if (stats.modifier) {
+        setters.setHasModifier(true);
+        setters.setModifierType(stats.modifier.type);
+        setters.setModifierAmount(stats.modifier.amount.toString());
+      } else {
+        setters.setHasModifier(false);
+        setters.setModifierType("damage");
+        setters.setModifierAmount("");
+      }
+
+      if (stats.specialEffect) {
+        setters.setHasSpecialEffect(true);
+        setters.setEffectTrigger(stats.specialEffect.trigger);
+        setters.setEffectTiming(stats.specialEffect.timing);
+
+        const action = stats.specialEffect.effect;
+        setters.setEffectActionType(action.type);
+
+        if (action.type === "draw_cards") {
+          setters.setEffectCount(action.count.toString());
+        } else if (action.type === "modify_initiative") {
+          setters.setEffectAmount(action.amount.toString());
+        } else if (action.type === "add_persistent_modifier") {
+          setters.setEffectStat(action.stat);
+          setters.setEffectAmount(action.amount.toString());
+        }
+      } else {
+        setters.setHasSpecialEffect(false);
+        setters.setEffectTrigger("on_play");
+        setters.setEffectActionType("draw_cards");
+        setters.setEffectCount("1");
+        setters.setEffectAmount("1");
+        setters.setEffectStat("damage");
+        setters.setEffectTiming("post_combat");
+      }
+    },
+    []
+  );
 
   // Reset form when creating new card
   useEffect(() => {
@@ -37,15 +412,60 @@ export function CardForm() {
       setName("");
       setDescription("");
       setImageUrl(null);
-      setDamage("");
-      setHealth("");
-      setBgDamage("");
-      setBgHealth("");
-      setFgDamage("");
-      setFgHealth("");
       setError(null);
+
+      // Reset animal/equipment stats
+      parseStatsIntoState(undefined, {
+        setDamage,
+        setHealth,
+        setInitiative,
+        setHasModifier,
+        setModifierType,
+        setModifierAmount,
+        setHasSpecialEffect,
+        setEffectTrigger,
+        setEffectActionType,
+        setEffectCount,
+        setEffectAmount,
+        setEffectStat,
+        setEffectTiming,
+      });
+
+      // Reset sleeve background stats
+      parseStatsIntoState(undefined, {
+        setDamage: setBgDamage,
+        setHealth: setBgHealth,
+        setInitiative: setBgInitiative,
+        setHasModifier: setBgHasModifier,
+        setModifierType: setBgModifierType,
+        setModifierAmount: setBgModifierAmount,
+        setHasSpecialEffect: setBgHasSpecialEffect,
+        setEffectTrigger: setBgEffectTrigger,
+        setEffectActionType: setBgEffectActionType,
+        setEffectCount: setBgEffectCount,
+        setEffectAmount: setBgEffectAmount,
+        setEffectStat: setBgEffectStat,
+        setEffectTiming: setBgEffectTiming,
+      });
+
+      // Reset sleeve foreground stats
+      parseStatsIntoState(undefined, {
+        setDamage: setFgDamage,
+        setHealth: setFgHealth,
+        setInitiative: setFgInitiative,
+        setHasModifier: setFgHasModifier,
+        setModifierType: setFgModifierType,
+        setModifierAmount: setFgModifierAmount,
+        setHasSpecialEffect: setFgHasSpecialEffect,
+        setEffectTrigger: setFgEffectTrigger,
+        setEffectActionType: setFgEffectActionType,
+        setEffectCount: setFgEffectCount,
+        setEffectAmount: setFgEffectAmount,
+        setEffectStat: setFgEffectStat,
+        setEffectTiming: setFgEffectTiming,
+      });
     }
-  }, [isNew]);
+  }, [isNew, parseStatsIntoState]);
 
   // Load existing card
   useEffect(() => {
@@ -60,45 +480,229 @@ export function CardForm() {
         setImageUrl(card.imageUrl);
 
         if (card.type === "sleeve") {
-          setBgDamage(card.backgroundStats?.damage?.toString() ?? "");
-          setBgHealth(card.backgroundStats?.health?.toString() ?? "");
-          setFgDamage(card.foregroundStats?.damage?.toString() ?? "");
-          setFgHealth(card.foregroundStats?.health?.toString() ?? "");
+          parseStatsIntoState(card.backgroundStats, {
+            setDamage: setBgDamage,
+            setHealth: setBgHealth,
+            setInitiative: setBgInitiative,
+            setHasModifier: setBgHasModifier,
+            setModifierType: setBgModifierType,
+            setModifierAmount: setBgModifierAmount,
+            setHasSpecialEffect: setBgHasSpecialEffect,
+            setEffectTrigger: setBgEffectTrigger,
+            setEffectActionType: setBgEffectActionType,
+            setEffectCount: setBgEffectCount,
+            setEffectAmount: setBgEffectAmount,
+            setEffectStat: setBgEffectStat,
+            setEffectTiming: setBgEffectTiming,
+          });
+
+          parseStatsIntoState(card.foregroundStats, {
+            setDamage: setFgDamage,
+            setHealth: setFgHealth,
+            setInitiative: setFgInitiative,
+            setHasModifier: setFgHasModifier,
+            setModifierType: setFgModifierType,
+            setModifierAmount: setFgModifierAmount,
+            setHasSpecialEffect: setFgHasSpecialEffect,
+            setEffectTrigger: setFgEffectTrigger,
+            setEffectActionType: setFgEffectActionType,
+            setEffectCount: setFgEffectCount,
+            setEffectAmount: setFgEffectAmount,
+            setEffectStat: setFgEffectStat,
+            setEffectTiming: setFgEffectTiming,
+          });
         } else {
-          setDamage(card.stats?.damage?.toString() ?? "");
-          setHealth(card.stats?.health?.toString() ?? "");
+          parseStatsIntoState(card.stats, {
+            setDamage,
+            setHealth,
+            setInitiative,
+            setHasModifier,
+            setModifierType,
+            setModifierAmount,
+            setHasSpecialEffect,
+            setEffectTrigger,
+            setEffectActionType,
+            setEffectCount,
+            setEffectAmount,
+            setEffectStat,
+            setEffectTiming,
+          });
         }
       }
       setLoading(false);
     });
 
     return unsubscribe;
-  }, [cardId, isNew]);
+  }, [cardId, isNew, parseStatsIntoState]);
+
+  // Build effect action from state
+  const buildEffectAction = useCallback(
+    (
+      actionType: EffectActionType,
+      count: string,
+      amount: string,
+      stat: "damage" | "health"
+    ): SpecialEffectAction => {
+      switch (actionType) {
+        case "draw_cards":
+          return { type: "draw_cards", count: parseInt(count, 10) || 1 };
+        case "modify_initiative":
+          return { type: "modify_initiative", amount: parseInt(amount, 10) || 0 };
+        case "add_persistent_modifier":
+          return {
+            type: "add_persistent_modifier",
+            stat,
+            amount: parseInt(amount, 10) || 0,
+          };
+      }
+    },
+    []
+  );
+
+  // Build CardStats from state values
+  const buildStatsFromValues = useCallback(
+    (
+      damageVal: string,
+      healthVal: string,
+      initiativeVal: string,
+      hasModVal: boolean,
+      modTypeVal: "damage" | "health",
+      modAmountVal: string,
+      hasEffectVal: boolean,
+      triggerVal: SpecialEffectTrigger,
+      actionTypeVal: EffectActionType,
+      countVal: string,
+      amountVal: string,
+      statVal: "damage" | "health",
+      timingVal: EffectTiming
+    ): CardStats | undefined => {
+      const stats: CardStats = {};
+
+      if (damageVal !== "") stats.damage = parseInt(damageVal, 10);
+      if (healthVal !== "") stats.health = parseInt(healthVal, 10);
+      if (initiativeVal !== "") stats.initiative = parseInt(initiativeVal, 10);
+
+      if (hasModVal && modAmountVal !== "") {
+        const modifier: Modifier = {
+          type: modTypeVal,
+          amount: parseInt(modAmountVal, 10),
+        };
+        stats.modifier = modifier;
+      }
+
+      if (hasEffectVal) {
+        const specialEffect: SpecialEffect = {
+          trigger: triggerVal,
+          timing: timingVal,
+          effect: buildEffectAction(actionTypeVal, countVal, amountVal, statVal),
+        };
+        stats.specialEffect = specialEffect;
+      }
+
+      return Object.keys(stats).length > 0 ? stats : undefined;
+    },
+    [buildEffectAction]
+  );
 
   const buildStats = useCallback((): CardStats | undefined => {
-    const stats: CardStats = {};
-    if (damage !== "") stats.damage = parseInt(damage, 10);
-    if (health !== "") stats.health = parseInt(health, 10);
-    return Object.keys(stats).length > 0 ? stats : undefined;
-  }, [damage, health]);
+    return buildStatsFromValues(
+      damage,
+      health,
+      initiative,
+      hasModifier,
+      modifierType,
+      modifierAmount,
+      hasSpecialEffect,
+      effectTrigger,
+      effectActionType,
+      effectCount,
+      effectAmount,
+      effectStat,
+      effectTiming
+    );
+  }, [
+    damage,
+    health,
+    initiative,
+    hasModifier,
+    modifierType,
+    modifierAmount,
+    hasSpecialEffect,
+    effectTrigger,
+    effectActionType,
+    effectCount,
+    effectAmount,
+    effectStat,
+    effectTiming,
+    buildStatsFromValues,
+  ]);
 
   const buildSleeveStats = useCallback((): {
     backgroundStats?: CardStats;
     foregroundStats?: CardStats;
   } => {
-    const bg: CardStats = {};
-    const fg: CardStats = {};
+    const backgroundStats = buildStatsFromValues(
+      bgDamage,
+      bgHealth,
+      bgInitiative,
+      bgHasModifier,
+      bgModifierType,
+      bgModifierAmount,
+      bgHasSpecialEffect,
+      bgEffectTrigger,
+      bgEffectActionType,
+      bgEffectCount,
+      bgEffectAmount,
+      bgEffectStat,
+      bgEffectTiming
+    );
 
-    if (bgDamage !== "") bg.damage = parseInt(bgDamage, 10);
-    if (bgHealth !== "") bg.health = parseInt(bgHealth, 10);
-    if (fgDamage !== "") fg.damage = parseInt(fgDamage, 10);
-    if (fgHealth !== "") fg.health = parseInt(fgHealth, 10);
+    const foregroundStats = buildStatsFromValues(
+      fgDamage,
+      fgHealth,
+      fgInitiative,
+      fgHasModifier,
+      fgModifierType,
+      fgModifierAmount,
+      fgHasSpecialEffect,
+      fgEffectTrigger,
+      fgEffectActionType,
+      fgEffectCount,
+      fgEffectAmount,
+      fgEffectStat,
+      fgEffectTiming
+    );
 
-    return {
-      backgroundStats: Object.keys(bg).length > 0 ? bg : undefined,
-      foregroundStats: Object.keys(fg).length > 0 ? fg : undefined,
-    };
-  }, [bgDamage, bgHealth, fgDamage, fgHealth]);
+    return { backgroundStats, foregroundStats };
+  }, [
+    bgDamage,
+    bgHealth,
+    bgInitiative,
+    bgHasModifier,
+    bgModifierType,
+    bgModifierAmount,
+    bgHasSpecialEffect,
+    bgEffectTrigger,
+    bgEffectActionType,
+    bgEffectCount,
+    bgEffectAmount,
+    bgEffectStat,
+    bgEffectTiming,
+    fgDamage,
+    fgHealth,
+    fgInitiative,
+    fgHasModifier,
+    fgModifierType,
+    fgModifierAmount,
+    fgHasSpecialEffect,
+    fgEffectTrigger,
+    fgEffectActionType,
+    fgEffectCount,
+    fgEffectAmount,
+    fgEffectStat,
+    fgEffectTiming,
+    buildStatsFromValues,
+  ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -239,81 +843,102 @@ export function CardForm() {
           <>
             <fieldset>
               <legend>Background Stats (easily overwritten)</legend>
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="bgDamage">Damage</label>
-                  <input
-                    id="bgDamage"
-                    type="number"
-                    value={bgDamage}
-                    onChange={(e) => setBgDamage(e.target.value)}
-                    min="0"
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="bgHealth">Health</label>
-                  <input
-                    id="bgHealth"
-                    type="number"
-                    value={bgHealth}
-                    onChange={(e) => setBgHealth(e.target.value)}
-                    min="0"
-                  />
-                </div>
-              </div>
+              <StatsEditor
+                prefix="bg"
+                damage={bgDamage}
+                setDamage={setBgDamage}
+                health={bgHealth}
+                setHealth={setBgHealth}
+                initiative={bgInitiative}
+                setInitiative={setBgInitiative}
+                hasModifier={bgHasModifier}
+                setHasModifier={setBgHasModifier}
+                modifierType={bgModifierType}
+                setModifierType={setBgModifierType}
+                modifierAmount={bgModifierAmount}
+                setModifierAmount={setBgModifierAmount}
+                hasSpecialEffect={bgHasSpecialEffect}
+                setHasSpecialEffect={setBgHasSpecialEffect}
+                effectTrigger={bgEffectTrigger}
+                setEffectTrigger={setBgEffectTrigger}
+                effectActionType={bgEffectActionType}
+                setEffectActionType={setBgEffectActionType}
+                effectCount={bgEffectCount}
+                setEffectCount={setBgEffectCount}
+                effectAmount={bgEffectAmount}
+                setEffectAmount={setBgEffectAmount}
+                effectStat={bgEffectStat}
+                setEffectStat={setBgEffectStat}
+                effectTiming={bgEffectTiming}
+                setEffectTiming={setBgEffectTiming}
+              />
             </fieldset>
 
             <fieldset>
               <legend>Foreground Stats (guaranteed)</legend>
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="fgDamage">Damage</label>
-                  <input
-                    id="fgDamage"
-                    type="number"
-                    value={fgDamage}
-                    onChange={(e) => setFgDamage(e.target.value)}
-                    min="0"
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="fgHealth">Health</label>
-                  <input
-                    id="fgHealth"
-                    type="number"
-                    value={fgHealth}
-                    onChange={(e) => setFgHealth(e.target.value)}
-                    min="0"
-                  />
-                </div>
-              </div>
+              <StatsEditor
+                prefix="fg"
+                damage={fgDamage}
+                setDamage={setFgDamage}
+                health={fgHealth}
+                setHealth={setFgHealth}
+                initiative={fgInitiative}
+                setInitiative={setFgInitiative}
+                hasModifier={fgHasModifier}
+                setHasModifier={setFgHasModifier}
+                modifierType={fgModifierType}
+                setModifierType={setFgModifierType}
+                modifierAmount={fgModifierAmount}
+                setModifierAmount={setFgModifierAmount}
+                hasSpecialEffect={fgHasSpecialEffect}
+                setHasSpecialEffect={setFgHasSpecialEffect}
+                effectTrigger={fgEffectTrigger}
+                setEffectTrigger={setFgEffectTrigger}
+                effectActionType={fgEffectActionType}
+                setEffectActionType={setFgEffectActionType}
+                effectCount={fgEffectCount}
+                setEffectCount={setFgEffectCount}
+                effectAmount={fgEffectAmount}
+                setEffectAmount={setFgEffectAmount}
+                effectStat={fgEffectStat}
+                setEffectStat={setFgEffectStat}
+                effectTiming={fgEffectTiming}
+                setEffectTiming={setFgEffectTiming}
+              />
             </fieldset>
           </>
         ) : (
           <fieldset>
             <legend>Stats</legend>
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="damage">Damage</label>
-                <input
-                  id="damage"
-                  type="number"
-                  value={damage}
-                  onChange={(e) => setDamage(e.target.value)}
-                  min="0"
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="health">Health</label>
-                <input
-                  id="health"
-                  type="number"
-                  value={health}
-                  onChange={(e) => setHealth(e.target.value)}
-                  min="0"
-                />
-              </div>
-            </div>
+            <StatsEditor
+              prefix="stats"
+              damage={damage}
+              setDamage={setDamage}
+              health={health}
+              setHealth={setHealth}
+              initiative={initiative}
+              setInitiative={setInitiative}
+              hasModifier={hasModifier}
+              setHasModifier={setHasModifier}
+              modifierType={modifierType}
+              setModifierType={setModifierType}
+              modifierAmount={modifierAmount}
+              setModifierAmount={setModifierAmount}
+              hasSpecialEffect={hasSpecialEffect}
+              setHasSpecialEffect={setHasSpecialEffect}
+              effectTrigger={effectTrigger}
+              setEffectTrigger={setEffectTrigger}
+              effectActionType={effectActionType}
+              setEffectActionType={setEffectActionType}
+              effectCount={effectCount}
+              setEffectCount={setEffectCount}
+              effectAmount={effectAmount}
+              setEffectAmount={setEffectAmount}
+              effectStat={effectStat}
+              setEffectStat={setEffectStat}
+              effectTiming={effectTiming}
+              setEffectTiming={setEffectTiming}
+            />
           </fieldset>
         )}
 

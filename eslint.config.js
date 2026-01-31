@@ -2,6 +2,7 @@ import eslint from "@eslint/js";
 import tseslint from "@typescript-eslint/eslint-plugin";
 import tsparser from "@typescript-eslint/parser";
 import prettier from "eslint-config-prettier";
+import globals from "globals";
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
@@ -27,6 +28,15 @@ export default [
       "@typescript-eslint/explicit-function-return-type": "off",
       "@typescript-eslint/explicit-module-boundary-types": "off",
       "@typescript-eslint/no-explicit-any": "warn",
+    },
+  },
+  // Node.js environment for functions package
+  {
+    files: ["functions/**/*.ts"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
     },
   },
   {

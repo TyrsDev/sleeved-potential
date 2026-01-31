@@ -67,12 +67,14 @@ function mergeStats(base: CardStats, overlay: CardStats): CardStats {
  * Then apply:
  * 5. Persistent modifiers (additive)
  * 6. Card modifier (if present, additive)
+ * 7. Initiative modifier from special effects (additive)
  */
 export function resolveStats(
   sleeve: CardDefinition,
   animal: CardDefinition,
   equipment: CardDefinition[],
-  persistentModifiers: PersistentModifier[]
+  persistentModifiers: PersistentModifier[],
+  initiativeModifier: number = 0
 ): ResolvedStats {
   // Start with empty stats
   let stats: CardStats = {};
@@ -102,7 +104,7 @@ export function resolveStats(
   // Extract base values
   let damage = stats.damage ?? 0;
   let health = stats.health ?? 0;
-  const initiative = stats.initiative ?? 0;
+  let initiative = stats.initiative ?? 0;
   const modifier = stats.modifier ?? null;
   const specialEffect = stats.specialEffect ?? null;
 
@@ -124,7 +126,10 @@ export function resolveStats(
     }
   }
 
-  // Floor values at 0
+  // 7. Apply initiative modifier from special effects
+  initiative += initiativeModifier;
+
+  // Floor values at 0 (initiative can be negative though)
   return {
     damage: Math.max(0, damage),
     health: Math.max(0, health),

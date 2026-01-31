@@ -1,5 +1,5 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
-import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import { getFirestore, FieldValue, Firestore, DocumentReference } from "firebase-admin/firestore";
 import type {
   CommitCardInput,
   CommitCardOutput,
@@ -12,7 +12,7 @@ import type {
   PersistentModifier,
   CardDefinition,
 } from "@sleeved-potential/shared";
-import { resolveStats, findCardOfType, dealCards } from "./utils/gameHelpers.js";
+import { resolveStats, findCardOfType, dealCards, shuffleArray } from "./utils/gameHelpers.js";
 
 /**
  * Commit a composed card for the current round
@@ -110,8 +110,14 @@ export const commitCard = onCall<CommitCardInput, Promise<CommitCardOutput>>(
       throw new HttpsError("internal", "Some equipment not found in game snapshot");
     }
 
-    // Resolve final stats
-    const finalStats = resolveStats(sleeve, animal, equipment, playerState.persistentModifiers);
+    // Resolve final stats (including any initiative modifier from previous round's effects)
+    const finalStats = resolveStats(
+      sleeve,
+      animal,
+      equipment,
+      playerState.persistentModifiers,
+      playerState.initiativeModifier ?? 0
+    );
 
     const commit: CommittedCard = {
       sleeveId,
@@ -147,11 +153,30 @@ export const commitCard = onCall<CommitCardInput, Promise<CommitCardOutput>>(
 );
 
 /**
+ * Player cleanup state after round resolution
+ * Includes all fields that need to be updated
+ * Index signature required for Firestore UpdateData compatibility
+ */
+interface PlayerCleanup {
+  [key: string]: string[] | PersistentModifier[] | number | null | boolean;
+  availableSleeves: string[];
+  usedSleeves: string[];
+  animalHand: string[];
+  equipmentHand: string[];
+  equipmentDeck: string[];
+  equipmentDiscard: string[];
+  persistentModifiers: PersistentModifier[];
+  initiativeModifier: number;
+  currentCommit: null;
+  hasCommitted: false;
+}
+
+/**
  * Resolve a round after both players have committed
  */
 async function resolveRound(
-  db: FirebaseFirestore.Firestore,
-  gameRef: FirebaseFirestore.DocumentReference,
+  db: Firestore,
+  gameRef: DocumentReference,
   game: Game,
   player1Id: string,
   player2Id: string,
@@ -174,7 +199,6 @@ async function resolveRound(
       effect: p1Stats.specialEffect,
       resolved: true,
     });
-    // Note: on_play effects like draw_cards would be handled here
   }
   if (p2Stats.specialEffect?.trigger === "on_play") {
     effectsTriggered.push({
@@ -328,41 +352,27 @@ async function resolveRound(
   const p1State = p1StateDoc.data() as PlayerGameState;
   const p2State = p2StateDoc.data() as PlayerGameState;
 
-  // Process cleanup for each player
+  // Process cleanup for each player (creates base cleanup state)
   const processPlayerCleanup = (
     state: PlayerGameState,
     commit: CommittedCard,
     effects: TriggeredEffect[],
     playerId: string
-  ) => {
+  ): PlayerCleanup => {
     // Move sleeve to used
     const newAvailableSleeves = state.availableSleeves.filter((s) => s !== commit.sleeveId);
-    let newUsedSleeves = [...state.usedSleeves, commit.sleeveId];
+    const newUsedSleeves = [...state.usedSleeves, commit.sleeveId];
 
     // If all sleeves used, reset
-    if (newAvailableSleeves.length === 0) {
-      return {
-        availableSleeves: newUsedSleeves,
-        usedSleeves: [],
-        animalHand: state.animalHand.filter((a) => a !== commit.animalId),
-        equipmentHand: state.equipmentHand.filter((e) => !commit.equipmentIds.includes(e)),
-        equipmentDiscard: [...state.equipmentDiscard, ...commit.equipmentIds],
-        persistentModifiers: processEffectsForModifiers(
-          state.persistentModifiers,
-          effects,
-          playerId,
-          game.currentRound
-        ),
-        currentCommit: null,
-        hasCommitted: false,
-      };
-    }
+    const finalAvailableSleeves = newAvailableSleeves.length === 0 ? newUsedSleeves : newAvailableSleeves;
+    const finalUsedSleeves = newAvailableSleeves.length === 0 ? [] : newUsedSleeves;
 
     return {
-      availableSleeves: newAvailableSleeves,
-      usedSleeves: newUsedSleeves,
+      availableSleeves: finalAvailableSleeves,
+      usedSleeves: finalUsedSleeves,
       animalHand: state.animalHand.filter((a) => a !== commit.animalId),
       equipmentHand: state.equipmentHand.filter((e) => !commit.equipmentIds.includes(e)),
+      equipmentDeck: state.equipmentDeck,
       equipmentDiscard: [...state.equipmentDiscard, ...commit.equipmentIds],
       persistentModifiers: processEffectsForModifiers(
         state.persistentModifiers,
@@ -370,6 +380,7 @@ async function resolveRound(
         playerId,
         game.currentRound
       ),
+      initiativeModifier: processEffectsForInitiative(effects, playerId),
       currentCommit: null,
       hasCommitted: false,
     };
@@ -377,6 +388,10 @@ async function resolveRound(
 
   const p1Cleanup = processPlayerCleanup(p1State, player1Commit, effectsTriggered, player1Id);
   const p2Cleanup = processPlayerCleanup(p2State, player2Commit, effectsTriggered, player2Id);
+
+  // Execute draw_cards effects
+  processEffectsForDrawCards(p1Cleanup, effectsTriggered, player1Id);
+  processEffectsForDrawCards(p2Cleanup, effectsTriggered, player2Id);
 
   // Move used animals to shared discard
   const newAnimalDiscard = [
@@ -407,30 +422,30 @@ async function resolveRound(
   // Draw equipment for next round (if game continues)
   if (status === "active") {
     // Player 1 equipment draw
-    if (p1State.equipmentDeck.length > 0) {
-      const { dealt, remaining } = dealCards(p1State.equipmentDeck, rules.equipmentDrawPerRound);
+    if (p1Cleanup.equipmentDeck.length > 0) {
+      const { dealt, remaining } = dealCards(p1Cleanup.equipmentDeck, rules.equipmentDrawPerRound);
       p1Cleanup.equipmentHand = [...p1Cleanup.equipmentHand, ...dealt];
-      (p1Cleanup as Record<string, unknown>).equipmentDeck = remaining;
+      p1Cleanup.equipmentDeck = remaining;
     } else if (p1Cleanup.equipmentDiscard.length > 0) {
       // Shuffle discard into deck
-      const shuffled = [...p1Cleanup.equipmentDiscard].sort(() => Math.random() - 0.5);
+      const shuffled = shuffleArray(p1Cleanup.equipmentDiscard);
       const { dealt, remaining } = dealCards(shuffled, rules.equipmentDrawPerRound);
       p1Cleanup.equipmentHand = [...p1Cleanup.equipmentHand, ...dealt];
-      (p1Cleanup as Record<string, unknown>).equipmentDeck = remaining;
+      p1Cleanup.equipmentDeck = remaining;
       p1Cleanup.equipmentDiscard = [];
     }
 
     // Player 2 equipment draw
-    if (p2State.equipmentDeck.length > 0) {
-      const { dealt, remaining } = dealCards(p2State.equipmentDeck, rules.equipmentDrawPerRound);
+    if (p2Cleanup.equipmentDeck.length > 0) {
+      const { dealt, remaining } = dealCards(p2Cleanup.equipmentDeck, rules.equipmentDrawPerRound);
       p2Cleanup.equipmentHand = [...p2Cleanup.equipmentHand, ...dealt];
-      (p2Cleanup as Record<string, unknown>).equipmentDeck = remaining;
+      p2Cleanup.equipmentDeck = remaining;
     } else if (p2Cleanup.equipmentDiscard.length > 0) {
       // Shuffle discard into deck
-      const shuffled = [...p2Cleanup.equipmentDiscard].sort(() => Math.random() - 0.5);
+      const shuffled = shuffleArray(p2Cleanup.equipmentDiscard);
       const { dealt, remaining } = dealCards(shuffled, rules.equipmentDrawPerRound);
       p2Cleanup.equipmentHand = [...p2Cleanup.equipmentHand, ...dealt];
-      (p2Cleanup as Record<string, unknown>).equipmentDeck = remaining;
+      p2Cleanup.equipmentDeck = remaining;
       p2Cleanup.equipmentDiscard = [];
     }
   }
@@ -509,8 +524,58 @@ function processEffectsForModifiers(
         sourceRound: roundNumber,
       });
     }
-    // Note: draw_cards and modify_initiative would be handled elsewhere
   }
 
   return newModifiers;
+}
+
+/**
+ * Process triggered effects and return initiative modifier for next round
+ * Initiative modifiers are temporary (only apply to next round)
+ */
+function processEffectsForInitiative(effects: TriggeredEffect[], playerId: string): number {
+  let initiativeModifier = 0;
+
+  for (const triggered of effects) {
+    if (triggered.odIdplayerId !== playerId) continue;
+
+    const action = triggered.effect.effect;
+    if (action.type === "modify_initiative") {
+      initiativeModifier += action.amount;
+    }
+  }
+
+  return initiativeModifier;
+}
+
+/**
+ * Process triggered effects for draw_cards action
+ * Modifies the cleanup object in place to add drawn cards
+ */
+function processEffectsForDrawCards(
+  cleanup: PlayerCleanup,
+  effects: TriggeredEffect[],
+  playerId: string
+): void {
+  for (const triggered of effects) {
+    if (triggered.odIdplayerId !== playerId) continue;
+
+    const action = triggered.effect.effect;
+    if (action.type === "draw_cards") {
+      // Draw from equipment deck
+      if (cleanup.equipmentDeck.length > 0) {
+        const { dealt, remaining } = dealCards(cleanup.equipmentDeck, action.count);
+        cleanup.equipmentHand = [...cleanup.equipmentHand, ...dealt];
+        cleanup.equipmentDeck = remaining;
+      } else if (cleanup.equipmentDiscard.length > 0) {
+        // Shuffle discard into deck first, then draw
+        const shuffled = shuffleArray(cleanup.equipmentDiscard);
+        const { dealt, remaining } = dealCards(shuffled, action.count);
+        cleanup.equipmentHand = [...cleanup.equipmentHand, ...dealt];
+        cleanup.equipmentDeck = remaining;
+        cleanup.equipmentDiscard = [];
+      }
+      // If both deck and discard are empty, no cards to draw (effect fizzles)
+    }
+  }
 }

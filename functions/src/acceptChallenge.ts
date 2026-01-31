@@ -167,6 +167,7 @@ export const acceptChallenge = onCall<AcceptChallengeInput, Promise<AcceptChalle
       availableSleeves: [...sleeveIds],
       usedSleeves: [],
       persistentModifiers: [],
+      initiativeModifier: 0,
       currentCommit: null,
       hasCommitted: false,
     };
@@ -181,6 +182,7 @@ export const acceptChallenge = onCall<AcceptChallengeInput, Promise<AcceptChalle
       availableSleeves: [...sleeveIds],
       usedSleeves: [],
       persistentModifiers: [],
+      initiativeModifier: 0,
       currentCommit: null,
       hasCommitted: false,
     };

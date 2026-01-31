@@ -1564,3 +1564,50 @@ legend {
   letter-spacing: 0.1em;
   color: #888;
 }
+
+/* Card Form - Enhanced Stats Editor */
+.checkbox-group {
+  margin-bottom: 0.5rem;
+}
+
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-weight: normal;
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+}
+
+.indented {
+  margin-left: 1.5rem;
+  padding-left: 1rem;
+  border-left: 2px solid #333;
+  margin-bottom: 1rem;
+}
+
+.special-effect-editor {
+  background: #1a1a1a;
+  border-radius: 4px;
+  padding: 1rem;
+  margin-top: 0.5rem;
+}
+
+.special-effect-editor .form-group {
+  margin-bottom: 0.75rem;
+}
+
+.special-effect-editor .form-group:last-child {
+  margin-bottom: 0;
+}
+
+/* Three-column layout for basic stats row */
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 1rem;
+}
