@@ -1,43 +1,15 @@
-import { useState, useEffect } from "react";
-import {
-  signInWithGoogle,
-  signInAsGuest,
-  logout,
-  onAuthChange,
-  getOrCreateUser,
-  type FirebaseUser,
-  type User,
-} from "./firebase";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { UserProvider, useUser } from "./contexts/UserContext";
+import { Layout } from "./components/Layout";
+import { Home } from "./pages/Home";
+import { Cards } from "./pages/Cards";
+import { Rules } from "./pages/Rules";
+import { Profile } from "./pages/Profile";
+import { Play } from "./pages/Play";
 import "./App.css";
 
-function App() {
-  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const unsubscribe = onAuthChange(async (authUser) => {
-      setFirebaseUser(authUser);
-
-      if (authUser) {
-        try {
-          setError(null);
-          const result = await getOrCreateUser();
-          setUser(result.user);
-        } catch (err) {
-          console.error("Failed to get or create user:", err);
-          setError("Failed to initialize user. Please try again.");
-          setUser(null);
-        }
-      } else {
-        setUser(null);
-      }
-
-      setLoading(false);
-    });
-    return unsubscribe;
-  }, []);
+function AuthGate({ children }: { children: React.ReactNode }) {
+  const { firebaseUser, user, loading, error, signInWithGoogle, signInAsGuest, logout } = useUser();
 
   if (loading) {
     return <div className="loading">Loading...</div>;
@@ -47,10 +19,14 @@ function App() {
     return (
       <div className="auth-container">
         <h1>Sleeved Potential</h1>
-        <p>Sign in to play</p>
+        <p className="tagline">A 1v1 composite card game where you build cards by layering.</p>
         <div className="auth-buttons">
-          <button onClick={signInWithGoogle}>Sign in with Google</button>
-          <button onClick={signInAsGuest}>Play as Guest</button>
+          <button className="btn btn-primary" onClick={signInWithGoogle}>
+            Sign in with Google
+          </button>
+          <button className="btn" onClick={signInAsGuest}>
+            Play as Guest
+          </button>
         </div>
       </div>
     );
@@ -61,39 +37,47 @@ function App() {
       <div className="auth-container">
         <h1>Sleeved Potential</h1>
         <p className="error">{error}</p>
-        <button onClick={logout}>Sign Out</button>
+        <button className="btn" onClick={logout}>
+          Sign Out
+        </button>
       </div>
     );
   }
 
+  if (!user) {
+    return <div className="loading">Loading user data...</div>;
+  }
+
+  return <>{children}</>;
+}
+
+function App() {
   return (
-    <div className="app-container">
-      <header>
-        <h1>Sleeved Potential</h1>
-        <div className="user-info">
-          {firebaseUser.photoURL && <img src={firebaseUser.photoURL} alt="Avatar" />}
-          <span>{user?.displayName || "Loading..."}</span>
-          <button onClick={logout}>Sign Out</button>
-        </div>
-      </header>
-      <main>
-        <p>Welcome to the game!</p>
-        {user?.isGuest && (
-          <p className="guest-notice">
-            You're playing as a guest ({user.displayName}). Sign in with Google to save your
-            progress.
-          </p>
-        )}
-        {user && (
-          <div className="user-stats">
-            <p>Username: {user.username}</p>
-            <p>
-              Games: {user.stats.gamesPlayed} | Wins: {user.stats.wins} | Losses:{" "}
-              {user.stats.losses}
-            </p>
-          </div>
-        )}
-      </main>
+    <UserProvider>
+      <BrowserRouter>
+        <AuthGate>
+          <Routes>
+            <Route path="/" element={<Layout />}>
+              <Route index element={<Home />} />
+              <Route path="cards" element={<Cards />} />
+              <Route path="rules" element={<Rules />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="play" element={<Play />} />
+              <Route path="game/:gameId" element={<GamePlaceholder />} />
+            </Route>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </AuthGate>
+      </BrowserRouter>
+    </UserProvider>
+  );
+}
+
+function GamePlaceholder() {
+  return (
+    <div className="game-placeholder">
+      <h2>Game View</h2>
+      <p>Game UI will be implemented in Phase 5.</p>
     </div>
   );
 }

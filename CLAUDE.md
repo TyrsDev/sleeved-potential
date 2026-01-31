@@ -141,3 +141,32 @@ import { GetOrCreateUserInput, GetOrCreateUserOutput } from "@sleeved-potential/
 - Every callable function must have corresponding `{FunctionName}Input` and `{FunctionName}Output` interfaces
 - Functions must NOT define their own input/output types inline
 - Use the shared interfaces for both validation and return types
+
+## Cloud Functions Initialization
+
+**IMPORTANT: Do NOT call Firebase Admin SDK methods at module scope in function files.**
+
+The `initializeApp()` call happens in `index.ts`, but ESM module loading executes imports before the main module code runs. This causes "The default Firebase app does not exist" errors at deploy time.
+
+**Wrong:**
+```typescript
+// functions/src/myFunction.ts
+import { getFirestore } from "firebase-admin/firestore";
+
+const db = getFirestore(); // ❌ Called at module load, before initializeApp()
+
+export const myFunction = onCall(...);
+```
+
+**Correct:**
+```typescript
+// functions/src/myFunction.ts
+import { getFirestore } from "firebase-admin/firestore";
+
+export const myFunction = onCall(
+  { region: "europe-west1" },
+  async (request) => {
+    const db = getFirestore(); // ✅ Called inside handler, after initializeApp()
+    // ...
+  }
+);

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import {
   signInWithGoogle,
   logout,
@@ -7,6 +8,13 @@ import {
   type FirebaseUser,
   type User,
 } from "./firebase";
+import { Layout } from "./components/Layout";
+import { Dashboard } from "./pages/Dashboard";
+import { CardList } from "./pages/CardList";
+import { CardForm } from "./pages/CardForm";
+import { ImageList } from "./pages/ImageList";
+import { RulesEditor } from "./pages/RulesEditor";
+import { PlayerList } from "./pages/PlayerList";
 import "./App.css";
 
 function App() {
@@ -64,27 +72,23 @@ function App() {
     );
   }
 
+  if (!user) {
+    return <div className="loading">Loading user data...</div>;
+  }
+
   return (
-    <div className="app-container">
-      <header>
-        <h1>Sleeved Potential - Admin</h1>
-        <div className="user-info">
-          {firebaseUser.photoURL && <img src={firebaseUser.photoURL} alt="Avatar" />}
-          <span>{user?.displayName || "Loading..."}</span>
-          <button onClick={logout}>Sign Out</button>
-        </div>
-      </header>
-      <main>
-        <p>Welcome to the admin dashboard!</p>
-        <p>Here you can manage cards and game settings during playtesting.</p>
-        {user && (
-          <div className="user-stats">
-            <p>Username: {user.username}</p>
-            <p>Role: {user.roles.includes("ADMIN") ? "Admin" : "User"}</p>
-          </div>
-        )}
-      </main>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Layout user={user} onLogout={logout} />}>
+          <Route index element={<Dashboard />} />
+          <Route path="cards" element={<CardList />} />
+          <Route path="cards/:cardId" element={<CardForm />} />
+          <Route path="images" element={<ImageList />} />
+          <Route path="rules" element={<RulesEditor />} />
+          <Route path="players" element={<PlayerList />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 

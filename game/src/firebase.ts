@@ -8,12 +8,18 @@ import {
   onAuthStateChanged,
   type User as FirebaseUser,
 } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, collection, doc, onSnapshot, query, orderBy } from "firebase/firestore";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import type {
   User,
+  CardDefinition,
+  GameRules,
   GetOrCreateUserInput,
   GetOrCreateUserOutput,
+  SetUsernameInput,
+  SetUsernameOutput,
+  JoinGameInput,
+  JoinGameOutput,
 } from "@sleeved-potential/shared";
 
 const firebaseConfig = {
@@ -58,6 +64,61 @@ export async function getOrCreateUser(): Promise<GetOrCreateUserOutput> {
   );
   const result = await fn({});
   return result.data;
+}
+
+/**
+ * Set username for account users
+ */
+export async function setUsername(username: string): Promise<SetUsernameOutput> {
+  const fn = httpsCallable<SetUsernameInput, SetUsernameOutput>(functions, "setUsername");
+  const result = await fn({ username });
+  return result.data;
+}
+
+/**
+ * Join matchmaking queue
+ */
+export async function joinGame(): Promise<JoinGameOutput> {
+  const fn = httpsCallable<JoinGameInput, JoinGameOutput>(functions, "joinGame");
+  const result = await fn({});
+  return result.data;
+}
+
+/**
+ * Subscribe to all card definitions
+ */
+export function subscribeToCards(callback: (cards: CardDefinition[]) => void) {
+  const cardsQuery = query(collection(db, "cards"), orderBy("name"));
+  return onSnapshot(cardsQuery, (snapshot) => {
+    const cards = snapshot.docs.map((doc) => doc.data() as CardDefinition);
+    callback(cards);
+  });
+}
+
+/**
+ * Subscribe to game rules
+ */
+export function subscribeToRules(callback: (rules: GameRules | null) => void) {
+  return onSnapshot(doc(db, "rules", "current"), (snapshot) => {
+    if (snapshot.exists()) {
+      callback(snapshot.data() as GameRules);
+    } else {
+      callback(null);
+    }
+  });
+}
+
+/**
+ * Subscribe to user document
+ */
+export function subscribeToUser(userId: string, callback: (user: User | null) => void) {
+  return onSnapshot(doc(db, "users", userId), (snapshot) => {
+    if (snapshot.exists()) {
+      callback(snapshot.data() as User);
+    } else {
+      callback(null);
+    }
+  });
 }
 
 export type { FirebaseUser, User };

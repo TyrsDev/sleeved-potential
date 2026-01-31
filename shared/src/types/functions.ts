@@ -186,3 +186,23 @@ export interface UpdateRulesInput {
 export interface UpdateRulesOutput {
   rules: GameRules;
 }
+
+/**
+ * listCardImages - List all card images in Storage with usage info
+ */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface ListCardImagesInput {}
+
+export interface CardImageInfo {
+  path: string;
+  url: string;
+  name: string;
+  cardId: string | null; // null if unused
+  cardName: string | null;
+  size: number;
+  updatedAt: string;
+}
+
+export interface ListCardImagesOutput {
+  images: CardImageInfo[];
+}
