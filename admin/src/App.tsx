@@ -9,9 +9,11 @@ import {
   type User,
 } from "./firebase";
 import { Layout } from "./components/Layout";
+import { DataProvider } from "./contexts/DataContext";
 import { Dashboard } from "./pages/Dashboard";
 import { CardList } from "./pages/CardList";
 import { CardForm } from "./pages/CardForm";
+import { CompositeCardViewer } from "./pages/CompositeCardViewer";
 import { ImageList } from "./pages/ImageList";
 import { RulesEditor } from "./pages/RulesEditor";
 import { PlayerList } from "./pages/PlayerList";
@@ -77,18 +79,21 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Layout user={user} onLogout={logout} />}>
-          <Route index element={<Dashboard />} />
-          <Route path="cards" element={<CardList />} />
-          <Route path="cards/:cardId" element={<CardForm />} />
-          <Route path="images" element={<ImageList />} />
-          <Route path="rules" element={<RulesEditor />} />
-          <Route path="players" element={<PlayerList />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <DataProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Layout user={user} onLogout={logout} />}>
+            <Route index element={<Dashboard />} />
+            <Route path="cards" element={<CardList />} />
+            <Route path="cards/compose" element={<CompositeCardViewer />} />
+            <Route path="cards/:cardId" element={<CardForm />} />
+            <Route path="images" element={<ImageList />} />
+            <Route path="rules" element={<RulesEditor />} />
+            <Route path="players" element={<PlayerList />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </DataProvider>
   );
 }
 

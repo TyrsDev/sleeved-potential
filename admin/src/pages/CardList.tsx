@@ -1,31 +1,17 @@
-import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { collection, query, where, orderBy, onSnapshot } from "firebase/firestore";
-import { db } from "../firebase";
-import type { CardDefinition, CardType } from "@sleeved-potential/shared";
+import { useData } from "../contexts/DataContext";
+import type { CardType } from "@sleeved-potential/shared";
 
 export function CardList() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [cards, setCards] = useState<CardDefinition[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { cards, loading } = useData();
 
   const typeFilter = (searchParams.get("type") as CardType | null) || null;
 
-  useEffect(() => {
-    let q = query(collection(db, "cards"), orderBy("name"));
-
-    if (typeFilter) {
-      q = query(collection(db, "cards"), where("type", "==", typeFilter), orderBy("name"));
-    }
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const cardData = snapshot.docs.map((doc) => doc.data() as CardDefinition);
-      setCards(cardData);
-      setLoading(false);
-    });
-
-    return unsubscribe;
-  }, [typeFilter]);
+  // Filter cards client-side (avoids needing composite index)
+  const filteredCards = typeFilter
+    ? cards.filter((c) => c.type === typeFilter)
+    : cards;
 
   const setTypeFilter = (type: CardType | null) => {
     if (type) {
@@ -41,7 +27,7 @@ export function CardList() {
     equipment: cards.filter((c) => c.type === "equipment"),
   };
 
-  if (loading) {
+  if (loading.cards) {
     return <div className="loading">Loading cards...</div>;
   }
 
@@ -49,9 +35,14 @@ export function CardList() {
     <div className="card-list-page">
       <div className="page-header">
         <h2>Cards</h2>
-        <Link to="/cards/new" className="btn btn-primary">
-          + New Card
-        </Link>
+        <div style={{ display: "flex", gap: "0.5rem" }}>
+          <Link to="/cards/compose" className="btn">
+            Compose Preview
+          </Link>
+          <Link to="/cards/new" className="btn btn-primary">
+            + New Card
+          </Link>
+        </div>
       </div>
 
       <div className="filter-tabs">
@@ -81,11 +72,15 @@ export function CardList() {
         </button>
       </div>
 
-      {cards.length === 0 ? (
-        <p className="empty-state">No cards yet. Create your first card!</p>
+      {filteredCards.length === 0 ? (
+        <p className="empty-state">
+          {typeFilter
+            ? `No ${typeFilter}s yet. Create your first ${typeFilter}!`
+            : "No cards yet. Create your first card!"}
+        </p>
       ) : (
         <div className="card-grid">
-          {cards.map((card) => (
+          {filteredCards.map((card) => (
             <Link key={card.id} to={`/cards/${card.id}`} className="card-item">
               {card.imageUrl ? (
                 <img src={card.imageUrl} alt={card.name} className="card-image" />

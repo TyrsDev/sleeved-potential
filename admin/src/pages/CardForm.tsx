@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db, createCard, updateCard, deleteCard, uploadCardImage } from "../firebase";
 import { ImageSelector } from "../components/ImageSelector";
@@ -29,6 +29,23 @@ export function CardForm() {
   const [bgHealth, setBgHealth] = useState<string>("");
   const [fgDamage, setFgDamage] = useState<string>("");
   const [fgHealth, setFgHealth] = useState<string>("");
+
+  // Reset form when creating new card
+  useEffect(() => {
+    if (isNew) {
+      setType("animal");
+      setName("");
+      setDescription("");
+      setImageUrl(null);
+      setDamage("");
+      setHealth("");
+      setBgDamage("");
+      setBgHealth("");
+      setFgDamage("");
+      setFgHealth("");
+      setError(null);
+    }
+  }, [isNew]);
 
   // Load existing card
   useEffect(() => {
@@ -171,7 +188,14 @@ export function CardForm() {
 
   return (
     <div className="card-form-page">
-      <h2>{isNew ? "Create Card" : "Edit Card"}</h2>
+      <div className="page-header">
+        <h2>{isNew ? "Create Card" : "Edit Card"}</h2>
+        {!isNew && (
+          <Link to="/cards/new" className="btn btn-primary">
+            + New Card
+          </Link>
+        )}
+      </div>
 
       {error && <div className="alert alert-error">{error}</div>}
 
