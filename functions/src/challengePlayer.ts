@@ -14,6 +14,7 @@ interface ChallengePlayerResult {
  * Create a direct challenge to a specific player
  */
 export const challengePlayer = onCall<ChallengePlayerRequest, Promise<ChallengePlayerResult>>(
+  { region: "europe-west1" },
   async (request) => {
     if (!request.auth) {
       throw new HttpsError("unauthenticated", "Must be signed in to challenge a player");

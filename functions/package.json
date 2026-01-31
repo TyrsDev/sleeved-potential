@@ -17,7 +17,7 @@
   },
   "main": "lib/index.js",
   "dependencies": {
-    "@sleeved-potential/shared": "workspace:*",
+    "@sleeved-potential/shared": "file:./shared",
     "firebase-admin": "^12.7.0",
     "firebase-functions": "^7.0.5"
   },

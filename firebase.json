@@ -18,7 +18,8 @@
       ],
       "predeploy": [
         "pnpm --filter @sleeved-potential/shared build",
-        "pnpm --filter functions build"
+        "rm -rf functions/shared && cp -r shared functions/shared",
+        "cd functions && npm run build"
       ]
     }
   ],

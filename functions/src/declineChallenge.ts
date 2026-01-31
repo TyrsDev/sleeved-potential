@@ -14,6 +14,7 @@ interface DeclineChallengeResult {
  * Decline a challenge
  */
 export const declineChallenge = onCall<DeclineChallengeRequest, Promise<DeclineChallengeResult>>(
+  { region: "europe-west1" },
   async (request) => {
     if (!request.auth) {
       throw new HttpsError("unauthenticated", "Must be signed in to decline a challenge");

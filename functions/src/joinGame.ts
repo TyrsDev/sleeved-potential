@@ -14,7 +14,9 @@ interface JoinGameResult {
  * 2. If found: Create game with both players, delete challenge
  * 3. If not found: Create new matchmaking challenge
  */
-export const joinGame = onCall<void, Promise<JoinGameResult>>(async (request) => {
+export const joinGame = onCall<void, Promise<JoinGameResult>>(
+  { region: "europe-west1" },
+  async (request) => {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "Must be signed in to join a game");
   }
@@ -84,4 +86,5 @@ export const joinGame = onCall<void, Promise<JoinGameResult>>(async (request) =>
     type: "waiting",
     challengeId: challengeRef.id,
   };
-});
+  }
+);

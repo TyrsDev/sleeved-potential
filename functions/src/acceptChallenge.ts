@@ -14,6 +14,7 @@ interface AcceptChallengeResult {
  * Accept a challenge and create a game
  */
 export const acceptChallenge = onCall<AcceptChallengeRequest, Promise<AcceptChallengeResult>>(
+  { region: "europe-west1" },
   async (request) => {
     if (!request.auth) {
       throw new HttpsError("unauthenticated", "Must be signed in to accept a challenge");

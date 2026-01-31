@@ -7,6 +7,8 @@ dist-ssr/
 public/
 shared/dist/
 functions/lib/
+functions/shared/
+functions/pnpm-lock.yaml
 typings/
 
 # Logs

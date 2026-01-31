@@ -78,3 +78,18 @@ This is a 1v1 card game with real-time Firestore updates. pnpm workspace monorep
 - Admins (users with `ADMIN` role) can write to `cards` collection
 - `challenges` and `games` write-only via Cloud Functions
 - Games readable only by participants
+
+## Date/Timestamp Convention
+
+**All date/time fields use ISO 8601 strings (`string` type), not `Date` or Firestore `Timestamp`.**
+
+This includes: `createdAt`, `updatedAt`, `startedAt`, `endedAt`, and any other temporal fields.
+
+**Rationale:** Firebase Admin SDK, Firestore Web SDK, and Cloud Functions serialize Timestamps differently. Using ISO strings ensures consistent behavior across shared types.
+
+**Rules:**
+- Store as ISO string in Firestore (e.g., `"2025-01-31T12:00:00.000Z"`)
+- Shared types define these fields as `string`
+- Convert to `Date` only at display time in UI components
+- Use `new Date().toISOString()` when creating timestamps
+- In Cloud Functions, avoid `FieldValue.serverTimestamp()` for shared types; use `new Date().toISOString()` instead
