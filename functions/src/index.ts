@@ -5,7 +5,15 @@ initializeApp();
 
 // Export all functions
 // Note: Region is set per-function to avoid ESM module loading order issues
+
+// User management
+export { getOrCreateUser } from "./getOrCreateUser.js";
+export { setUsername } from "./setUsername.js";
+
+// Matchmaking
 export { joinGame } from "./joinGame.js";
 export { challengePlayer } from "./challengePlayer.js";
+
+// Challenge management
 export { acceptChallenge } from "./acceptChallenge.js";
 export { declineChallenge } from "./declineChallenge.js";

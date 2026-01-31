@@ -1,19 +1,21 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
-import { getFirestore, FieldValue } from "firebase-admin/firestore";
-import type { Challenge, Game } from "@sleeved-potential/shared";
-
-interface AcceptChallengeRequest {
-  challengeId: string;
-}
-
-interface AcceptChallengeResult {
-  gameId: string;
-}
+import { getFirestore } from "firebase-admin/firestore";
+import type {
+  Challenge,
+  AcceptChallengeInput,
+  AcceptChallengeOutput,
+} from "@sleeved-potential/shared";
 
 /**
  * Accept a challenge and create a game
+ *
+ * TODO: Phase 4 - Initialize full game state with:
+ * - Card snapshots (sleeves, animals, equipment)
+ * - Rules snapshot
+ * - Player state subcollections
+ * - Initial deck distributions
  */
-export const acceptChallenge = onCall<AcceptChallengeRequest, Promise<AcceptChallengeResult>>(
+export const acceptChallenge = onCall<AcceptChallengeInput, Promise<AcceptChallengeOutput>>(
   { region: "europe-west1" },
   async (request) => {
     if (!request.auth) {
@@ -23,6 +25,7 @@ export const acceptChallenge = onCall<AcceptChallengeRequest, Promise<AcceptChal
     const db = getFirestore();
     const { challengeId } = request.data;
     const userId = request.auth.uid;
+    const now = new Date().toISOString();
 
     if (!challengeId) {
       throw new HttpsError("invalid-argument", "challengeId is required");
@@ -48,19 +51,29 @@ export const acceptChallenge = onCall<AcceptChallengeRequest, Promise<AcceptChal
 
     // Create the game
     const gameRef = db.collection("games").doc();
-    const now = FieldValue.serverTimestamp();
 
-    const gameData: Omit<Game, "createdAt" | "updatedAt"> & {
-      createdAt: FieldValue;
-      updatedAt: FieldValue;
-    } = {
+    // TODO: Phase 4 - Initialize full game state with card/rules snapshots
+    // For now, create a minimal game document
+    const gameData = {
       id: gameRef.id,
-      players: [challenge.creatorId, userId],
-      currentTurn: challenge.creatorId, // Challenger goes first
-      status: "active",
+      players: [challenge.creatorId, userId] as [string, string],
+      status: "active" as const,
+      currentRound: 0,
+      scores: {
+        [challenge.creatorId]: 0,
+        [userId]: 0,
+      },
       winner: null,
+      isDraw: false,
+      // TODO: Add these in Phase 4
+      rulesSnapshot: null,
+      cardSnapshot: null,
+      animalDeck: [],
+      animalDiscard: [],
+      rounds: [],
       createdAt: now,
-      updatedAt: now,
+      startedAt: now,
+      endedAt: null,
     };
 
     // Create game and delete challenge in a transaction

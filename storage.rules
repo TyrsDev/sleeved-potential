@@ -1,10 +1,17 @@
 rules_version = '2';
 
-// Craft rules based on data in your Firestore database
-// allow write: if firestore.get(
-//    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
 service firebase.storage {
   match /b/{bucket}/o {
+    // Card images - publicly readable for game display
+    // Write access is restricted to Cloud Functions only (admin upload)
+    match /cards/{cardId}/{fileName} {
+      // Anyone can read card images (for layered card display)
+      allow read: if true;
+      // Write only via Cloud Functions (admin uploadCardImage function)
+      allow write: if false;
+    }
+
+    // Default: deny all other paths
     match /{allPaths=**} {
       allow read, write: if false;
     }

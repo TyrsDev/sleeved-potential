@@ -60,17 +60,21 @@ This is a 1v1 card game with real-time Firestore updates. pnpm workspace monorep
 - Builds to `admin/public/` for Firebase Hosting
 
 **`functions/`** - Firebase Cloud Functions (Node.js 22)
-- `joinGame` - Matchmaking: find open challenge or create one
-- `challengePlayer` - Create direct challenge to specific player
-- `acceptChallenge` - Accept challenge, create game
-- `declineChallenge` - Decline and delete challenge
+- User: `getOrCreateUser`, `setUsername`
+- Matchmaking: `joinGame`, `challengePlayer`, `challengeByUsername`
+- Challenge: `acceptChallenge`, `declineChallenge`
+- Game: `commitCard`
+- Admin: `createCard`, `updateCard`, `deleteCard`, `uploadCardImage`, `updateRules`
 
 ## Firestore Collections
 
 - `users/{userId}` - User profiles with `roles` array (e.g., `["ADMIN"]`)
+- `usernames/{username}` - Username uniqueness enforcement (Functions-only write)
 - `challenges/{challengeId}` - Pending matchmaking/direct challenges
-- `games/{gameId}` - Active/finished game matches
-- `cards/{cardId}` - Card definitions (admin-editable)
+- `games/{gameId}` - Active/finished game matches with card/rules snapshots
+- `games/{gameId}/playerState/{playerId}` - Private player state (hands, decks, commits)
+- `cards/{cardId}` - Card definitions: sleeves, animals, equipment (admin-editable)
+- `rules/current` - Game rules configuration (admin-editable)
 
 ## Security Model
 
@@ -93,3 +97,47 @@ This includes: `createdAt`, `updatedAt`, `startedAt`, `endedAt`, and any other t
 - Convert to `Date` only at display time in UI components
 - Use `new Date().toISOString()` when creating timestamps
 - In Cloud Functions, avoid `FieldValue.serverTimestamp()` for shared types; use `new Date().toISOString()` instead
+
+## Firebase Storage
+
+Card images are stored in Firebase Storage at `cards/{cardId}/{fileName}`.
+
+**Rules:**
+- Images are publicly readable (no auth required)
+- Write access is restricted to Cloud Functions only (admin functions)
+- Card images are partially transparent PNGs for layering
+
+**Upload Pattern:**
+- Admin uploads images via Cloud Functions, not directly from frontend
+- Function validates admin role, then uploads to Storage
+- Returns download URL to store in card document's `imageUrl` field
+
+## Function Interface Convention
+
+**All Firebase Function input/output types are defined in `shared/src/types/functions.ts`.**
+
+This ensures type safety across the entire stack:
+- Functions import input/output interfaces from shared
+- Frontends import the same interfaces when calling functions
+- No duplicate type definitions
+
+**Pattern:**
+```typescript
+// In shared/src/types/functions.ts
+export interface GetOrCreateUserInput {}
+export interface GetOrCreateUserOutput {
+  user: User;
+  isNewUser: boolean;
+}
+
+// In functions/src/getOrCreateUser.ts
+import { GetOrCreateUserInput, GetOrCreateUserOutput } from "@sleeved-potential/shared";
+
+// In frontend
+import { GetOrCreateUserInput, GetOrCreateUserOutput } from "@sleeved-potential/shared";
+```
+
+**Rules:**
+- Every callable function must have corresponding `{FunctionName}Input` and `{FunctionName}Output` interfaces
+- Functions must NOT define their own input/output types inline
+- Use the shared interfaces for both validation and return types

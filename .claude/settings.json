@@ -5,7 +5,10 @@
       "Bash(pnpm build:shared:*)",
       "Bash(pnpm build:*)",
       "Bash(pnpm --filter functions build:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(pnpm build:functions:*)",
+      "Bash(pnpm typecheck:*)",
+      "Bash(pnpm lint:*)"
     ]
   }
 }

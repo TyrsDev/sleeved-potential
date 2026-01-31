@@ -1,19 +1,19 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
-import { getFirestore, FieldValue } from "firebase-admin/firestore";
-import type { Challenge } from "@sleeved-potential/shared";
-
-interface ChallengePlayerRequest {
-  opponentId: string;
-}
-
-interface ChallengePlayerResult {
-  challengeId: string;
-}
+import { getFirestore } from "firebase-admin/firestore";
+import type {
+  Challenge,
+  User,
+  ChallengePlayerInput,
+  ChallengePlayerOutput,
+} from "@sleeved-potential/shared";
 
 /**
- * Create a direct challenge to a specific player
+ * Create a direct challenge to a specific player by user ID
+ *
+ * Note: Only available to account users (not guests)
+ * Note: Cannot challenge guest users
  */
-export const challengePlayer = onCall<ChallengePlayerRequest, Promise<ChallengePlayerResult>>(
+export const challengePlayer = onCall<ChallengePlayerInput, Promise<ChallengePlayerOutput>>(
   { region: "europe-west1" },
   async (request) => {
     if (!request.auth) {
@@ -23,6 +23,7 @@ export const challengePlayer = onCall<ChallengePlayerRequest, Promise<ChallengeP
     const db = getFirestore();
     const { opponentId } = request.data;
     const userId = request.auth.uid;
+    const now = new Date().toISOString();
 
     if (!opponentId) {
       throw new HttpsError("invalid-argument", "opponentId is required");
@@ -32,10 +33,34 @@ export const challengePlayer = onCall<ChallengePlayerRequest, Promise<ChallengeP
       throw new HttpsError("invalid-argument", "Cannot challenge yourself");
     }
 
+    // Get current user
+    const userDoc = await db.collection("users").doc(userId).get();
+    if (!userDoc.exists) {
+      throw new HttpsError("not-found", "User not found. Call getOrCreateUser first.");
+    }
+    const userData = userDoc.data() as User;
+
+    // Check if current user is a guest (guests cannot challenge directly)
+    if (userData.isGuest) {
+      throw new HttpsError(
+        "permission-denied",
+        "Guest users cannot send direct challenges. Use matchmaking instead."
+      );
+    }
+
     // Verify opponent exists
     const opponentDoc = await db.collection("users").doc(opponentId).get();
     if (!opponentDoc.exists) {
       throw new HttpsError("not-found", "Opponent not found");
+    }
+    const opponentData = opponentDoc.data() as User;
+
+    // Check if opponent is a guest (cannot challenge guests)
+    if (opponentData.isGuest) {
+      throw new HttpsError(
+        "invalid-argument",
+        "Cannot challenge guest users. They can only use matchmaking."
+      );
     }
 
     // Check if there's already a pending challenge between these players
@@ -54,13 +79,15 @@ export const challengePlayer = onCall<ChallengePlayerRequest, Promise<ChallengeP
 
     // Create the challenge
     const challengeRef = db.collection("challenges").doc();
-    const challengeData: Omit<Challenge, "createdAt"> & { createdAt: FieldValue } = {
+    const challengeData: Challenge = {
       id: challengeRef.id,
       type: "direct",
       creatorId: userId,
+      creatorUsername: userData.username,
       opponentId,
+      opponentUsername: opponentData.username,
       status: "waiting",
-      createdAt: FieldValue.serverTimestamp(),
+      createdAt: now,
     };
 
     await challengeRef.set(challengeData);

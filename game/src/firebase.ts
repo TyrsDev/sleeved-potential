@@ -6,9 +6,15 @@ import {
   signInAnonymously,
   signOut,
   onAuthStateChanged,
-  type User,
+  type User as FirebaseUser,
 } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getFunctions, httpsCallable } from "firebase/functions";
+import type {
+  User,
+  GetOrCreateUserInput,
+  GetOrCreateUserOutput,
+} from "@sleeved-potential/shared";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAbOHF0kJvs51r9_6yhW0GfMWBla0TvGiU",
@@ -22,6 +28,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+const functions = getFunctions(app, "europe-west1");
 
 const googleProvider = new GoogleAuthProvider();
 
@@ -37,8 +44,20 @@ export async function logout() {
   return signOut(auth);
 }
 
-export function onAuthChange(callback: (user: User | null) => void) {
+export function onAuthChange(callback: (user: FirebaseUser | null) => void) {
   return onAuthStateChanged(auth, callback);
 }
 
-export type { User };
+/**
+ * Call getOrCreateUser function to ensure user document exists
+ */
+export async function getOrCreateUser(): Promise<GetOrCreateUserOutput> {
+  const fn = httpsCallable<GetOrCreateUserInput, GetOrCreateUserOutput>(
+    functions,
+    "getOrCreateUser"
+  );
+  const result = await fn({});
+  return result.data;
+}
+
+export type { FirebaseUser, User };

@@ -17,11 +17,27 @@ service cloud.firestore {
     }
 
     // Users collection
-    match /users/{userId} {
+    match /users/{odIduserId} {
       allow read: if isSignedIn();
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(odIduserId);
+      allow update: if isOwner(odIduserId) || isAdmin();
       allow delete: if isAdmin();
+    }
+
+    // Username uniqueness collection
+    // Read: signed in users (for checking availability)
+    // Write: Cloud Functions only (atomic username reservation)
+    match /usernames/{username} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    // Rules collection (game configuration)
+    // Read: signed in users
+    // Write: admins only
+    match /rules/{ruleId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
     }
 
     // Challenges collection
@@ -40,6 +56,14 @@ service cloud.firestore {
       allow read: if isSignedIn() && request.auth.uid in resource.data.players;
       // Write only via Cloud Functions
       allow write: if false;
+
+      // Player-specific game state subcollection
+      // Each player can only read their own state document
+      match /playerState/{odIdplayerId} {
+        allow read: if isSignedIn() && request.auth.uid == resource.data.odIduserId;
+        // Write only via Cloud Functions
+        allow write: if false;
+      }
     }
 
     // Cards collection (admin-editable)

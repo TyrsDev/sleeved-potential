@@ -1,19 +1,15 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore } from "firebase-admin/firestore";
-import type { Challenge } from "@sleeved-potential/shared";
-
-interface DeclineChallengeRequest {
-  challengeId: string;
-}
-
-interface DeclineChallengeResult {
-  success: boolean;
-}
+import type {
+  Challenge,
+  DeclineChallengeInput,
+  DeclineChallengeOutput,
+} from "@sleeved-potential/shared";
 
 /**
  * Decline a challenge
  */
-export const declineChallenge = onCall<DeclineChallengeRequest, Promise<DeclineChallengeResult>>(
+export const declineChallenge = onCall<DeclineChallengeInput, Promise<DeclineChallengeOutput>>(
   { region: "europe-west1" },
   async (request) => {
     if (!request.auth) {

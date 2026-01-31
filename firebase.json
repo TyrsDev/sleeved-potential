@@ -32,6 +32,7 @@
         "**/.*",
         "**/node_modules/**"
       ],
+      "predeploy": ["pnpm build:game"],
       "rewrites": [
         {
           "source": "**",
@@ -47,6 +48,7 @@
         "**/.*",
         "**/node_modules/**"
       ],
+      "predeploy": ["pnpm build:admin"],
       "rewrites": [
         {
           "source": "**",
