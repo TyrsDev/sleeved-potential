@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { subscribeToCards } from "../firebase";
 import { CardStatsFallback } from "../components/CardStatsFallback";
-import type { CardDefinition, CardType } from "@sleeved-potential/shared";
+import { formatTriggerName, formatEffectAction } from "@sleeved-potential/shared";
+import type { CardDefinition, CardType, CardStats } from "@sleeved-potential/shared";
 
 type FilterType = "all" | CardType;
 
@@ -124,17 +125,70 @@ interface CardItemProps {
 }
 
 function CardItem({ card, onClick }: CardItemProps) {
+  // Get stats for overlay
+  const stats: CardStats | undefined =
+    card.type === "sleeve"
+      ? { ...card.backgroundStats, ...card.foregroundStats }
+      : card.stats;
+
+  const effectText =
+    stats?.specialEffect
+      ? `${formatTriggerName(stats.specialEffect.trigger)}: ${formatEffectAction(stats.specialEffect)}`
+      : null;
+
+  const modifierText = stats?.modifier
+    ? `${stats.modifier.amount > 0 ? "+" : ""}${stats.modifier.amount} ${stats.modifier.type === "damage" ? "dmg" : "hp"}`
+    : null;
+
+  const initiativeText =
+    stats?.initiative !== undefined && stats.initiative !== 0
+      ? `${stats.initiative > 0 ? "+" : ""}${stats.initiative} init`
+      : null;
+
+  const hasDamage = stats?.damage !== undefined && stats.damage !== 0;
+  const hasHealth = stats?.health !== undefined && stats.health !== 0;
+
   return (
     <div className="card-item" onClick={onClick}>
-      {card.imageUrl ? (
-        <img src={card.imageUrl} alt={card.name} className="card-image" />
-      ) : (
-        <CardStatsFallback card={card} />
-      )}
+      <div className="card-image-container">
+        {card.imageUrl ? (
+          <img src={card.imageUrl} alt={card.name} className="card-image" />
+        ) : (
+          <CardStatsFallback card={card} />
+        )}
+        {card.imageUrl && (
+          <div className="card-stats-overlay">
+            <div className="overlay-top">
+              {effectText && <div className="overlay-effect">{effectText}</div>}
+            </div>
+            <div className="overlay-middle">
+              {modifierText && <div className="overlay-modifier">{modifierText}</div>}
+              {!modifierText && initiativeText && <div className="overlay-initiative">{initiativeText}</div>}
+            </div>
+            <div className="overlay-bottom">
+              <div className="overlay-stat damage">
+                {hasDamage && (
+                  <>
+                    <span className="stat-value">{stats!.damage}</span>
+                    <span className="stat-label">DMG</span>
+                  </>
+                )}
+              </div>
+              <div className="overlay-stat health">
+                {hasHealth && (
+                  <>
+                    <span className="stat-value">{stats!.health}</span>
+                    <span className="stat-label">HP</span>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
       <div className="card-info">
         <span className={`card-type type-${card.type}`}>{card.type}</span>
         <h4>{card.name}</h4>
-        <CardStats card={card} />
       </div>
     </div>
   );
@@ -170,29 +224,6 @@ function CardDetailModal({ card, onClose }: CardDetailModalProps) {
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-function CardStats({ card }: { card: CardDefinition }) {
-  if (card.type === "sleeve") {
-    const bgStats = card.backgroundStats;
-    const fgStats = card.foregroundStats;
-    return (
-      <div className="card-stats">
-        {bgStats?.damage !== undefined && <span>BG Dmg: {bgStats.damage}</span>}
-        {bgStats?.health !== undefined && <span>BG HP: {bgStats.health}</span>}
-        {fgStats?.damage !== undefined && <span>FG Dmg: {fgStats.damage}</span>}
-        {fgStats?.health !== undefined && <span>FG HP: {fgStats.health}</span>}
-      </div>
-    );
-  }
-
-  const stats = card.stats;
-  return (
-    <div className="card-stats">
-      {stats?.damage !== undefined && <span>Dmg: {stats.damage}</span>}
-      {stats?.health !== undefined && <span>HP: {stats.health}</span>}
     </div>
   );
 }
