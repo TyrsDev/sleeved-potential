@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../contexts/UserContext";
+import splashImage from "../assets/splash_image.png";
 import { useEffect, useState } from "react";
 import {
   subscribeToUserGames,
@@ -86,6 +87,7 @@ export function Home() {
     <div className="home-page">
       <div className="hero">
         <h2>Welcome, {user?.displayName}!</h2>
+        <img src={splashImage} alt="Sleeved Potential" className="splash-image" />
         <p className="tagline">A 1v1 composite card game where you build cards by layering.</p>
       </div>
 
