@@ -105,12 +105,15 @@ export async function joinGame(): Promise<JoinGameOutput> {
 }
 
 /**
- * Subscribe to all card definitions
+ * Subscribe to all active card definitions
+ * Inactive cards (active === false) are filtered out
  */
 export function subscribeToCards(callback: (cards: CardDefinition[]) => void) {
   const cardsQuery = query(collection(db, "cards"), orderBy("name"));
   return onSnapshot(cardsQuery, (snapshot) => {
-    const cards = snapshot.docs.map((doc) => doc.data() as CardDefinition);
+    const cards = snapshot.docs
+      .map((doc) => doc.data() as CardDefinition)
+      .filter((card) => card.active !== false);
     callback(cards);
   });
 }

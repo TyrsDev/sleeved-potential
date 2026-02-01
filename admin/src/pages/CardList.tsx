@@ -103,22 +103,6 @@ export function CardList() {
                 </h3>
                 <span className={`card-type type-${card.type}`}>{card.type}</span>
                 <p className="card-description">{card.description || "No description"}</p>
-                {card.type === "sleeve" && (
-                  <div className="card-stats">
-                    {card.backgroundStats && (
-                      <span>BG: {JSON.stringify(card.backgroundStats)}</span>
-                    )}
-                    {card.foregroundStats && (
-                      <span>FG: {JSON.stringify(card.foregroundStats)}</span>
-                    )}
-                  </div>
-                )}
-                {card.type !== "sleeve" && card.stats && (
-                  <div className="card-stats">
-                    {card.stats.damage !== undefined && <span>DMG: {card.stats.damage}</span>}
-                    {card.stats.health !== undefined && <span>HP: {card.stats.health}</span>}
-                  </div>
-                )}
               </div>
             </Link>
           ))}

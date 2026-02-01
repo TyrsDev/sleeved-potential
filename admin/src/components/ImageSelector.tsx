@@ -4,7 +4,7 @@ import type { CardImageInfo } from "@sleeved-potential/shared";
 
 interface ImageSelectorProps {
   currentImageUrl: string | null;
-  currentCardId: string | null; // To exclude images used by THIS card
+  currentCardId: string | null;
   onSelect: (imageUrl: string | null) => void;
 }
 
@@ -33,10 +33,8 @@ export function ImageSelector({ currentImageUrl, currentCardId, onSelect }: Imag
     }
   }
 
-  // Available images: unused OR used by this card
-  const availableImages = images.filter(
-    (img) => img.cardId === null || img.cardId === currentCardId
-  );
+  // Show all images - multiple cards can share the same image
+  const availableImages = images;
 
   return (
     <div className="image-selector">
@@ -77,8 +75,14 @@ export function ImageSelector({ currentImageUrl, currentCardId, onSelect }: Imag
                     onSelect(image.url);
                     setShowSelector(false);
                   }}
+                  title={image.cardName ? `Used by: ${image.cardName}` : "Not used by any card"}
                 >
                   <img src={image.url} alt={image.name} />
+                  {image.cardName && image.cardId !== currentCardId && (
+                    <span className="image-used-badge" title={`Used by: ${image.cardName}`}>
+                      {image.cardName}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>

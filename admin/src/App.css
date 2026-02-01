@@ -644,6 +644,7 @@ legend {
 }
 
 .image-selector-item {
+  position: relative;
   cursor: pointer;
   border: 2px solid transparent;
   border-radius: 4px;
@@ -664,6 +665,21 @@ legend {
   aspect-ratio: 2 / 3;
   object-fit: cover;
   background: #2a2a2a;
+}
+
+.image-used-badge {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.8);
+  color: #aaa;
+  font-size: 0.65rem;
+  padding: 0.2rem 0.3rem;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Composite Card Viewer */
