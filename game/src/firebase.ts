@@ -8,7 +8,16 @@ import {
   onAuthStateChanged,
   type User as FirebaseUser,
 } from "firebase/auth";
-import { getFirestore, collection, doc, onSnapshot, query, orderBy } from "firebase/firestore";
+import {
+  getFirestore,
+  collection,
+  doc,
+  onSnapshot,
+  query,
+  orderBy,
+  where,
+  limit,
+} from "firebase/firestore";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import type {
   User,
@@ -16,6 +25,7 @@ import type {
   GameRules,
   Game,
   PlayerGameState,
+  Challenge,
   GetOrCreateUserInput,
   GetOrCreateUserOutput,
   SetUsernameInput,
@@ -170,6 +180,44 @@ export async function commitCard(
   const fn = httpsCallable<CommitCardInput, CommitCardOutput>(functions, "commitCard");
   const result = await fn({ gameId, sleeveId, animalId, equipmentIds });
   return result.data;
+}
+
+/**
+ * Subscribe to a challenge document
+ * Used to track when a matchmaking challenge gets matched
+ */
+export function subscribeToChallenge(
+  challengeId: string,
+  callback: (challenge: Challenge | null) => void
+): () => void {
+  return onSnapshot(doc(db, "challenges", challengeId), (snapshot) => {
+    if (snapshot.exists()) {
+      callback(snapshot.data() as Challenge);
+    } else {
+      callback(null);
+    }
+  });
+}
+
+/**
+ * Subscribe to the user's active games
+ * Useful for detecting when a game is created (from matchmaking or direct challenge)
+ */
+export function subscribeToUserActiveGames(
+  userId: string,
+  callback: (games: Game[]) => void
+): () => void {
+  const gamesQuery = query(
+    collection(db, "games"),
+    where("players", "array-contains", userId),
+    where("status", "==", "active"),
+    limit(1)
+  );
+
+  return onSnapshot(gamesQuery, (snapshot) => {
+    const games = snapshot.docs.map((doc) => doc.data() as Game);
+    callback(games);
+  });
 }
 
 export type { FirebaseUser, User };

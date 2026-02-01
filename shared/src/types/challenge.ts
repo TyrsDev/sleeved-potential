@@ -21,6 +21,7 @@ export interface Challenge {
   opponentId: string | null; // null for matchmaking
   opponentUsername: string | null; // For direct challenges
   status: ChallengeStatus;
+  gameId?: string; // Set when status becomes "accepted"
   createdAt: string; // ISO 8601
 }
 

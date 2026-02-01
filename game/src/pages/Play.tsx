@@ -1,13 +1,44 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../contexts/UserContext";
-import { joinGame } from "../firebase";
+import { joinGame, subscribeToChallenge, subscribeToUserActiveGames } from "../firebase";
 
 export function Play() {
   const { user } = useUser();
   const navigate = useNavigate();
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [challengeId, setChallengeId] = useState<string | null>(null);
+  const unsubscribeRef = useRef<(() => void) | null>(null);
+
+  // Subscribe to active games to detect when matched
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const unsubscribe = subscribeToUserActiveGames(user.id, (games) => {
+      if (games.length > 0) {
+        // Found an active game, navigate to it
+        navigate(`/game/${games[0].id}`);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [user?.id, navigate]);
+
+  // Subscribe to challenge updates when waiting
+  useEffect(() => {
+    if (!challengeId) return;
+
+    const unsubscribe = subscribeToChallenge(challengeId, (challenge) => {
+      if (challenge?.status === "accepted" && challenge.gameId) {
+        // Challenge was matched, navigate to game
+        navigate(`/game/${challenge.gameId}`);
+      }
+    });
+
+    unsubscribeRef.current = unsubscribe;
+    return () => unsubscribe();
+  }, [challengeId, navigate]);
 
   const handleFindMatch = async () => {
     setSearching(true);
@@ -18,17 +49,25 @@ export function Play() {
       if (result.type === "matched" && result.gameId) {
         // Game created, navigate to it
         navigate(`/game/${result.gameId}`);
-      } else {
-        // Waiting for opponent - show waiting state
-        // In a real implementation, we'd subscribe to the challenge
-        // For now, just show a message
-        setError("Searching for opponent... (This will be enhanced with real-time updates)");
+      } else if (result.type === "waiting" && result.challengeId) {
+        // Waiting for opponent - subscribe to challenge for updates
+        setChallengeId(result.challengeId);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to find match");
-    } finally {
       setSearching(false);
     }
+    // Don't set searching to false here - stay in searching state while waiting
+  };
+
+  const handleCancelSearch = () => {
+    // Clean up subscription
+    if (unsubscribeRef.current) {
+      unsubscribeRef.current();
+      unsubscribeRef.current = null;
+    }
+    setChallengeId(null);
+    setSearching(false);
   };
 
   return (
@@ -40,14 +79,25 @@ export function Play() {
       <div className="play-options">
         <div className="play-card">
           <h3>Quick Match</h3>
-          <p>Find a random opponent and start playing immediately.</p>
-          <button
-            className="btn btn-primary btn-large"
-            onClick={handleFindMatch}
-            disabled={searching}
-          >
-            {searching ? "Searching..." : "Find Match"}
-          </button>
+          {searching ? (
+            <>
+              <p className="searching-text">Searching for opponent...</p>
+              <div className="searching-spinner"></div>
+              <button className="btn" onClick={handleCancelSearch}>
+                Cancel
+              </button>
+            </>
+          ) : (
+            <>
+              <p>Find a random opponent and start playing immediately.</p>
+              <button
+                className="btn btn-primary btn-large"
+                onClick={handleFindMatch}
+              >
+                Find Match
+              </button>
+            </>
+          )}
         </div>
 
         {!user?.isGuest && (

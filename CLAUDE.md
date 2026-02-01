@@ -49,34 +49,60 @@ This is a 1v1 card game with real-time Firestore updates. pnpm workspace monorep
 
 **`shared/`** - `@sleeved-potential/shared`
 - Pure TypeScript types and utilities (no React)
-- Types: `User`, `Challenge`, `Game`, `Card`
+- Types: `User`, `Challenge`, `Game`, `Card`, `GameRules`, effects/modifiers
+- Combat logic: `combat.ts` with `resolveStats()`, `resolveCombat()` - used by both backend and frontend
 - Imported by functions, game, and admin via `workspace:*`
 
 **`game/`** - React + Vite frontend
 - Firebase Auth: Google + Anonymous
+- Game UI: `GameContext` for state management, `CardComposer` for card selection, `RoundResult` for outcomes
+- Playtest page: theorycraft tool using shared combat logic
 - Builds to `game/public/` for Firebase Hosting
 
 **`admin/`** - React + Vite frontend
 - Firebase Auth: Google only
-- For playtesting: admins can edit card stats live
+- For playtesting: admins can edit card stats live, playtest page for combat simulation
 - Builds to `admin/public/` for Firebase Hosting
 
 **`functions/`** - Firebase Cloud Functions (Node.js 22)
 - User: `getOrCreateUser`, `setUsername`
 - Matchmaking: `joinGame`, `challengePlayer`, `challengeByUsername`
 - Challenge: `acceptChallenge`, `declineChallenge`
-- Game: `commitCard`
-- Admin: `createCard`, `updateCard`, `deleteCard`, `uploadCardImage`, `updateRules`
+- Game: `commitCard` (validates, resolves stats, triggers round resolution when both commit)
+- Admin: `createCard`, `updateCard`, `deleteCard`, `uploadCardImage`, `listCardImages`, `updateRules`
 
 ## Firestore Collections
 
 - `users/{userId}` - User profiles with `roles` array (e.g., `["ADMIN"]`)
 - `usernames/{username}` - Username uniqueness enforcement (Functions-only write)
 - `challenges/{challengeId}` - Pending matchmaking/direct challenges
-- `games/{gameId}` - Active/finished game matches with card/rules snapshots
-- `games/{gameId}/playerState/{playerId}` - Private player state (hands, decks, commits)
+- `games/{gameId}` - Active/finished game matches with card/rules snapshots (immutable during game)
+- `games/{gameId}/playerState/{playerId}` - Private player state (hands, decks, commits, persistent modifiers)
 - `cards/{cardId}` - Card definitions: sleeves, animals, equipment (admin-editable)
 - `rules/current` - Game rules configuration (admin-editable)
+
+## Combat System
+
+Combat logic is shared between backend and frontend in `shared/src/combat.ts`.
+
+**Stat Resolution Order (bottom to top):**
+1. Sleeve background stats (easily overwritten)
+2. Animal stats
+3. Equipment stats (in array order)
+4. Sleeve foreground stats (guaranteed overwrite)
+5. Persistent modifiers (additive, from previous round effects)
+6. Card modifier (topmost only)
+7. Initiative modifier (from effects, resets each round)
+
+**Key Rule:** Higher layers **overwrite** same stats from lower layers. Only one modifier and one special effect per card (topmost wins).
+
+**Special Effects:**
+- Triggers: `on_play`, `if_survives`, `if_destroyed`, `if_defeats`, `if_doesnt_defeat`
+- Actions: `draw_cards`, `modify_initiative`, `add_persistent_modifier`
+
+**Initiative:**
+- Equal (default 0): Simultaneous attack
+- Different: Higher attacks first; defender counterattacks only if survives
 
 ## Security Model
 

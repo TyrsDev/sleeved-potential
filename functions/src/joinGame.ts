@@ -1,12 +1,22 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore } from "firebase-admin/firestore";
-import type { Challenge, User, JoinGameInput, JoinGameOutput } from "@sleeved-potential/shared";
+import {
+  DEFAULT_GAME_RULES,
+  type Challenge,
+  type User,
+  type JoinGameInput,
+  type JoinGameOutput,
+  type GameRules,
+  type CardDefinition,
+} from "@sleeved-potential/shared";
+import { createGameFromChallenge } from "./utils/gameHelpers.js";
 
 /**
  * Matchmaking function:
- * 1. Look for existing matchmaking challenges (not created by this user)
- * 2. If found: Create game with both players, delete challenge
- * 3. If not found: Create new matchmaking challenge
+ * 1. Validate enough cards exist to start a game
+ * 2. Look for existing matchmaking challenges (not created by this user)
+ * 3. If found: Create full game with card/rules snapshots, update challenge
+ * 4. If not found: Create new matchmaking challenge
  *
  * Note: Available to all users including guests (unlike direct challenges)
  */
@@ -20,6 +30,38 @@ export const joinGame = onCall<JoinGameInput, Promise<JoinGameOutput>>(
     const db = getFirestore();
     const userId = request.auth.uid;
     const now = new Date().toISOString();
+
+    // Validate we have enough cards to start a game BEFORE creating/matching challenges
+    const rulesDoc = await db.doc("rules/current").get();
+    const rules: GameRules = rulesDoc.exists
+      ? (rulesDoc.data() as GameRules)
+      : { id: "current", ...DEFAULT_GAME_RULES, updatedAt: now, updatedBy: "system" };
+
+    const cardsSnapshot = await db.collection("cards").get();
+    let sleeveCount = 0;
+    let animalCount = 0;
+
+    cardsSnapshot.docs.forEach((doc) => {
+      const card = doc.data() as CardDefinition;
+      if (card.active === false) return;
+      if (card.type === "sleeve") sleeveCount++;
+      else if (card.type === "animal") animalCount++;
+    });
+
+    if (sleeveCount === 0) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Cannot start game: no sleeves defined. Admin must create sleeves first."
+      );
+    }
+
+    const requiredAnimals = rules.startingAnimalHand * 2;
+    if (animalCount < requiredAnimals) {
+      throw new HttpsError(
+        "failed-precondition",
+        `Cannot start game: need at least ${requiredAnimals} animals, found ${animalCount}`
+      );
+    }
 
     // Get current user's info for challenge creation
     const userDoc = await db.collection("users").doc(userId).get();
@@ -42,44 +84,20 @@ export const joinGame = onCall<JoinGameInput, Promise<JoinGameOutput>>(
     );
 
     if (availableChallenge) {
-      // Match found! Create a game
+      // Match found! Create a full game with proper initialization
       const challengeData = availableChallenge.data() as Challenge;
 
-      const gameRef = db.collection("games").doc();
-
-      // TODO: Phase 4 - Initialize full game state with card/rules snapshots
-      // For now, create a minimal game document
-      const gameData = {
-        id: gameRef.id,
-        players: [challengeData.creatorId, userId] as [string, string],
-        status: "active" as const,
-        currentRound: 0,
-        scores: {
-          [challengeData.creatorId]: 0,
-          [userId]: 0,
-        },
-        winner: null,
-        isDraw: false,
-        // TODO: Add these in Phase 4
-        rulesSnapshot: null,
-        cardSnapshot: null,
-        animalDeck: [],
-        animalDiscard: [],
-        rounds: [],
-        createdAt: now,
-        startedAt: now,
-        endedAt: null,
-      };
-
-      // Create game and delete challenge in a transaction
-      await db.runTransaction(async (transaction) => {
-        transaction.set(gameRef, gameData);
-        transaction.delete(availableChallenge.ref);
-      });
+      const gameId = await createGameFromChallenge(
+        db,
+        availableChallenge.ref,
+        challengeData,
+        challengeData.creatorId, // player1 = challenge creator
+        userId // player2 = this user (the matcher)
+      );
 
       return {
         type: "matched",
-        gameId: gameRef.id,
+        gameId,
       };
     }
 
