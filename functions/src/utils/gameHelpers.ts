@@ -157,6 +157,7 @@ export async function createGameFromChallenge(
     createdAt: now,
     startedAt: now,
     endedAt: null,
+    endReason: null,
   };
 
   // Create player state documents

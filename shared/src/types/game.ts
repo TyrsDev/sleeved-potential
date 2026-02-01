@@ -8,6 +8,11 @@ import type { GameRules } from "./rules.js";
 export type GameStatus = "active" | "finished";
 
 /**
+ * Reason the game ended
+ */
+export type GameEndReason = "points" | "surrender";
+
+/**
  * Resolved stats after card composition
  * All stats are calculated from layering + modifiers + persistent stack
  */
@@ -85,6 +90,7 @@ export interface Game {
   createdAt: string; // ISO 8601
   startedAt: string; // ISO 8601
   endedAt: string | null; // ISO 8601
+  endReason: GameEndReason | null; // Why the game ended
 }
 
 /**

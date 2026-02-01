@@ -34,6 +34,12 @@ import type {
   JoinGameOutput,
   CommitCardInput,
   CommitCardOutput,
+  AcceptChallengeInput,
+  AcceptChallengeOutput,
+  DeclineChallengeInput,
+  DeclineChallengeOutput,
+  SurrenderGameInput,
+  SurrenderGameOutput,
 } from "@sleeved-potential/shared";
 
 const firebaseConfig = {
@@ -218,6 +224,98 @@ export function subscribeToUserActiveGames(
     const games = snapshot.docs.map((doc) => doc.data() as Game);
     callback(games);
   });
+}
+
+/**
+ * Subscribe to all user's active games (for Home page display)
+ */
+export function subscribeToUserGames(
+  userId: string,
+  callback: (games: Game[]) => void
+): () => void {
+  const gamesQuery = query(
+    collection(db, "games"),
+    where("players", "array-contains", userId),
+    where("status", "==", "active")
+  );
+
+  return onSnapshot(gamesQuery, (snapshot) => {
+    const games = snapshot.docs.map((d) => d.data() as Game);
+    callback(games);
+  });
+}
+
+/**
+ * Subscribe to user's challenges (created by them OR targeting them)
+ */
+export function subscribeToUserChallenges(
+  userId: string,
+  callback: (challenges: Challenge[]) => void
+): () => void {
+  // Query for challenges where user is the creator
+  const creatorQuery = query(
+    collection(db, "challenges"),
+    where("creatorId", "==", userId),
+    where("status", "==", "waiting")
+  );
+
+  // Query for challenges where user is the opponent
+  const opponentQuery = query(
+    collection(db, "challenges"),
+    where("opponentId", "==", userId),
+    where("status", "==", "waiting")
+  );
+
+  let creatorChallenges: Challenge[] = [];
+  let opponentChallenges: Challenge[] = [];
+
+  const unsubCreator = onSnapshot(creatorQuery, (snapshot) => {
+    creatorChallenges = snapshot.docs.map((d) => d.data() as Challenge);
+    callback([...creatorChallenges, ...opponentChallenges]);
+  });
+
+  const unsubOpponent = onSnapshot(opponentQuery, (snapshot) => {
+    opponentChallenges = snapshot.docs.map((d) => d.data() as Challenge);
+    callback([...creatorChallenges, ...opponentChallenges]);
+  });
+
+  return () => {
+    unsubCreator();
+    unsubOpponent();
+  };
+}
+
+/**
+ * Accept a direct challenge
+ */
+export async function acceptChallenge(challengeId: string): Promise<AcceptChallengeOutput> {
+  const fn = httpsCallable<AcceptChallengeInput, AcceptChallengeOutput>(
+    functions,
+    "acceptChallenge"
+  );
+  const result = await fn({ challengeId });
+  return result.data;
+}
+
+/**
+ * Decline a direct challenge
+ */
+export async function declineChallenge(challengeId: string): Promise<DeclineChallengeOutput> {
+  const fn = httpsCallable<DeclineChallengeInput, DeclineChallengeOutput>(
+    functions,
+    "declineChallenge"
+  );
+  const result = await fn({ challengeId });
+  return result.data;
+}
+
+/**
+ * Surrender an active game
+ */
+export async function surrenderGame(gameId: string): Promise<SurrenderGameOutput> {
+  const fn = httpsCallable<SurrenderGameInput, SurrenderGameOutput>(functions, "surrenderGame");
+  const result = await fn({ gameId });
+  return result.data;
 }
 
 export type { FirebaseUser, User };

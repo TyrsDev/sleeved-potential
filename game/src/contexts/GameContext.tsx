@@ -79,6 +79,7 @@ export function GameProvider({ gameId, children }: GameProviderProps) {
   const [error, setError] = useState<string | null>(null);
   const [showingResult, setShowingResult] = useState(false);
   const lastSeenRoundCountRef = useRef(0);
+  const isInitialLoadRef = useRef(true);
 
   // Subscribe to game document
   useEffect(() => {
@@ -88,14 +89,15 @@ export function GameProvider({ gameId, children }: GameProviderProps) {
 
     const unsubscribe = subscribeToGame(gameId, (gameData) => {
       if (gameData) {
-        // Check if a new round was completed
+        // Check if a new round was completed (skip on initial load)
         const newRoundCount = gameData.rounds.length;
         const lastSeen = lastSeenRoundCountRef.current;
-        if (newRoundCount > lastSeen && lastSeen > 0) {
-          // New round just completed
+        if (newRoundCount > lastSeen && !isInitialLoadRef.current) {
+          // New round just completed - show result
           setShowingResult(true);
         }
         lastSeenRoundCountRef.current = newRoundCount;
+        isInitialLoadRef.current = false;
 
         setGame(gameData);
         setError(null);

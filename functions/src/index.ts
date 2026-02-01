@@ -21,6 +21,7 @@ export { declineChallenge } from "./declineChallenge.js";
 
 // Game actions
 export { commitCard } from "./commitCard.js";
+export { surrenderGame } from "./surrenderGame.js";
 
 // Admin functions (ADMIN role required)
 export { createCard } from "./createCard.js";

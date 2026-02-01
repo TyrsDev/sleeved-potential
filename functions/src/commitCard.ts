@@ -232,6 +232,7 @@ async function resolveRound(
   let isDraw = false;
   let status = game.status;
   let endedAt: string | null = null;
+  let endReason: "points" | null = null;
 
   const p1Total = newScores[player1Id];
   const p2Total = newScores[player2Id];
@@ -244,6 +245,7 @@ async function resolveRound(
     }
     status = "finished";
     endedAt = now;
+    endReason = "points";
   }
 
   // Prepare player state updates
@@ -368,6 +370,7 @@ async function resolveRound(
     isDraw,
     status,
     endedAt,
+    endReason,
     animalDeck,
     animalDiscard: newAnimalDiscard,
     rounds: FieldValue.arrayUnion(roundResult),

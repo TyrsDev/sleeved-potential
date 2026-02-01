@@ -193,6 +193,22 @@ body {
   font-size: 1.25rem;
 }
 
+.btn-small {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+.btn-surrender {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  margin-top: 0.5rem;
+}
+
+.btn-surrender:hover {
+  background: rgba(239, 68, 68, 0.3);
+}
+
 /* Badges */
 .badge {
   display: inline-block;
@@ -263,7 +279,124 @@ body {
 }
 
 .action-buttons {
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
+}
+
+/* Home Page Sections */
+.home-section {
+  max-width: 600px;
+  margin: 0 auto 2rem;
+  text-align: left;
+}
+
+.home-section h3 {
+  font-size: 1rem;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+}
+
+.home-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.home-list-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: #1a1a2a;
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid #2a2a3a;
+}
+
+.home-list-item.clickable {
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.home-list-item.clickable:hover {
+  border-color: #6366f1;
+  transform: translateX(4px);
+}
+
+.home-item-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.home-item-title {
+  font-weight: 500;
+  color: #fff;
+}
+
+.home-item-subtitle {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.home-item-stats {
+  text-align: right;
+}
+
+.home-item-stats .score-display {
+  font-size: 1.25rem;
+  font-weight: bold;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.home-item-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.home-item-status {
+  display: flex;
+  align-items: center;
+}
+
+.spinner-small {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #2a2a3a;
+  border-top-color: #6366f1;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Surrender Modal */
+.surrender-modal {
+  max-width: 400px;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.surrender-modal h3 {
+  margin: 0 0 1rem;
+  color: #f87171;
+}
+
+.surrender-modal p {
+  color: #888;
+  margin-bottom: 1.5rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.modal-actions .btn {
+  min-width: 120px;
 }
 
 .quick-stats {

@@ -15,6 +15,7 @@ export function GameOverScreen() {
   }, [game, userId]);
 
   const isDraw = game?.isDraw ?? false;
+  const endReason = game?.endReason;
 
   const roundsPlayed = game?.rounds.length ?? 0;
 
@@ -35,12 +36,16 @@ export function GameOverScreen() {
         ) : isWinner ? (
           <>
             <h2 className="game-over-title winner">Victory!</h2>
-            <p className="game-over-subtitle">You reached {myScore} points first</p>
+            <p className="game-over-subtitle">
+              {endReason === "surrender" ? "Your opponent surrendered" : `You reached ${myScore} points first`}
+            </p>
           </>
         ) : (
           <>
             <h2 className="game-over-title loser">Defeat</h2>
-            <p className="game-over-subtitle">Your opponent reached {opponentScore} points first</p>
+            <p className="game-over-subtitle">
+              {endReason === "surrender" ? "You surrendered" : `Your opponent reached ${opponentScore} points first`}
+            </p>
           </>
         )}
 

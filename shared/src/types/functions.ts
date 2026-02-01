@@ -206,3 +206,18 @@ export interface CardImageInfo {
 export interface ListCardImagesOutput {
   images: CardImageInfo[];
 }
+
+// =============================================================================
+// Game Management Functions
+// =============================================================================
+
+/**
+ * surrenderGame - Surrender an active game
+ */
+export interface SurrenderGameInput {
+  gameId: string;
+}
+
+export interface SurrenderGameOutput {
+  success: boolean;
+}
