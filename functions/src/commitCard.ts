@@ -7,12 +7,11 @@ import type {
   PlayerGameState,
   CommittedCard,
   RoundResult,
-  RoundOutcome,
   TriggeredEffect,
   PersistentModifier,
   CardDefinition,
 } from "@sleeved-potential/shared";
-import { resolveStats, findCardOfType, dealCards, shuffleArray } from "./utils/gameHelpers.js";
+import { resolveStats, findCardOfType, dealCards, shuffleArray, resolveCombat } from "./utils/gameHelpers.js";
 
 /**
  * Commit a composed card for the current round
@@ -186,111 +185,29 @@ async function resolveRound(
   const now = new Date().toISOString();
   const rules = game.rulesSnapshot;
 
-  const p1Stats = player1Commit.finalStats;
-  const p2Stats = player2Commit.finalStats;
+  // Use shared combat resolution for consistent logic between frontend simulator and backend
+  const combatResult = resolveCombat({
+    player1: {
+      playerId: player1Id,
+      stats: player1Commit.finalStats,
+    },
+    player2: {
+      playerId: player2Id,
+      stats: player2Commit.finalStats,
+    },
+    rules,
+  });
 
-  // Track triggered effects
+  // Collect triggered effects from combat result
   const effectsTriggered: TriggeredEffect[] = [];
-
-  // Execute on_play effects
-  if (p1Stats.specialEffect?.trigger === "on_play") {
-    effectsTriggered.push({
-      odIdplayerId: player1Id,
-      effect: p1Stats.specialEffect,
-      resolved: true,
-    });
+  if (combatResult.player1.effectTriggered) {
+    effectsTriggered.push(combatResult.player1.effectTriggered);
   }
-  if (p2Stats.specialEffect?.trigger === "on_play") {
-    effectsTriggered.push({
-      odIdplayerId: player2Id,
-      effect: p2Stats.specialEffect,
-      resolved: true,
-    });
+  if (combatResult.player2.effectTriggered) {
+    effectsTriggered.push(combatResult.player2.effectTriggered);
   }
 
-  // Combat resolution
-  let p1Health = p1Stats.health;
-  let p2Health = p2Stats.health;
-
-  if (p1Stats.initiative === p2Stats.initiative) {
-    // Simultaneous attack
-    p1Health -= p2Stats.damage;
-    p2Health -= p1Stats.damage;
-  } else {
-    // Different initiative - higher goes first
-    if (p1Stats.initiative > p2Stats.initiative) {
-      // Player 1 attacks first
-      p2Health -= p1Stats.damage;
-      if (p2Health > 0) {
-        // Player 2 survives, attacks back
-        p1Health -= p2Stats.damage;
-      }
-    } else {
-      // Player 2 attacks first
-      p1Health -= p2Stats.damage;
-      if (p1Health > 0) {
-        // Player 1 survives, attacks back
-        p2Health -= p1Stats.damage;
-      }
-    }
-  }
-
-  // Determine outcomes
-  const p1Survived = p1Health > 0;
-  const p2Survived = p2Health > 0;
-  const p1Defeated = !p2Survived; // P1 defeated P2 if P2 didn't survive
-  const p2Defeated = !p1Survived;
-
-  // Execute post_combat effects based on triggers
-  const checkAndTriggerEffect = (
-    playerId: string,
-    stats: typeof p1Stats,
-    survived: boolean,
-    defeated: boolean,
-    opponentSurvived: boolean
-  ) => {
-    if (!stats.specialEffect || stats.specialEffect.trigger === "on_play") return;
-
-    const trigger = stats.specialEffect.trigger;
-    let shouldTrigger = false;
-
-    switch (trigger) {
-      case "if_survives":
-        shouldTrigger = survived;
-        break;
-      case "if_destroyed":
-        shouldTrigger = !survived;
-        break;
-      case "if_defeats":
-        shouldTrigger = defeated;
-        break;
-      case "if_doesnt_defeat":
-        shouldTrigger = opponentSurvived;
-        break;
-    }
-
-    if (shouldTrigger) {
-      effectsTriggered.push({
-        odIdplayerId: playerId,
-        effect: stats.specialEffect,
-        resolved: true,
-      });
-    }
-  };
-
-  checkAndTriggerEffect(player1Id, p1Stats, p1Survived, p1Defeated, p2Survived);
-  checkAndTriggerEffect(player2Id, p2Stats, p2Survived, p2Defeated, p1Survived);
-
-  // Calculate points
-  let p1Points = 0;
-  let p2Points = 0;
-
-  if (p1Survived) p1Points += rules.pointsForSurviving;
-  if (p2Survived) p2Points += rules.pointsForSurviving;
-  if (p1Defeated) p1Points += rules.pointsForDefeating;
-  if (p2Defeated) p2Points += rules.pointsForDefeating;
-
-  // Create round result
+  // Create round result from combat outcomes
   const roundResult: RoundResult = {
     roundNumber: game.currentRound,
     commits: {
@@ -298,26 +215,16 @@ async function resolveRound(
       [player2Id]: player2Commit,
     },
     results: {
-      [player1Id]: {
-        pointsEarned: p1Points,
-        survived: p1Survived,
-        defeated: p1Defeated,
-        finalHealth: Math.max(0, p1Health),
-      } as RoundOutcome,
-      [player2Id]: {
-        pointsEarned: p2Points,
-        survived: p2Survived,
-        defeated: p2Defeated,
-        finalHealth: Math.max(0, p2Health),
-      } as RoundOutcome,
+      [player1Id]: combatResult.player1.outcome,
+      [player2Id]: combatResult.player2.outcome,
     },
     effectsTriggered,
   };
 
-  // Update scores
+  // Update scores using points from combat result
   const newScores = {
-    [player1Id]: game.scores[player1Id] + p1Points,
-    [player2Id]: game.scores[player2Id] + p2Points,
+    [player1Id]: game.scores[player1Id] + combatResult.player1.outcome.pointsEarned,
+    [player2Id]: game.scores[player2Id] + combatResult.player2.outcome.pointsEarned,
   };
 
   // Check win condition
