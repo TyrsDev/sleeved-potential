@@ -530,6 +530,19 @@ body {
   pointer-events: none;
 }
 
+.overlay-header {
+  background: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .overlay-top {
   text-align: center;
 }
@@ -1681,6 +1694,17 @@ body {
   font-size: 0.5rem;
   font-weight: bold;
   color: #fcd34d;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.75);
+  padding: 0.12rem 0.2rem;
+  border-radius: 2px;
+  text-shadow: 0 1px 2px #000;
+}
+
+.mini-card-initiative {
+  font-size: 0.5rem;
+  font-weight: bold;
+  color: #60a5fa;
   text-align: center;
   background: rgba(0, 0, 0, 0.75);
   padding: 0.12rem 0.2rem;

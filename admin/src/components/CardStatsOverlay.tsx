@@ -14,6 +14,7 @@ export function CardStatsOverlay({ card, className = "" }: CardStatsOverlayProps
   if (card.type === "sleeve") {
     return (
       <SleeveStatsOverlay
+        name={card.name}
         bgStats={card.backgroundStats}
         fgStats={card.foregroundStats}
         className={className}
@@ -21,16 +22,17 @@ export function CardStatsOverlay({ card, className = "" }: CardStatsOverlayProps
     );
   }
 
-  return <StatsOverlay stats={card.stats} className={className} />;
+  return <StatsOverlay name={card.name} stats={card.stats} className={className} />;
 }
 
 interface SleeveStatsOverlayProps {
+  name: string;
   bgStats: CardStats | undefined;
   fgStats: CardStats | undefined;
   className?: string;
 }
 
-function SleeveStatsOverlay({ bgStats, fgStats, className = "" }: SleeveStatsOverlayProps) {
+function SleeveStatsOverlay({ name, bgStats, fgStats, className = "" }: SleeveStatsOverlayProps) {
   const hasBgEffect = bgStats?.specialEffect !== undefined;
   const hasFgEffect = fgStats?.specialEffect !== undefined;
   const hasBgModifier = bgStats?.modifier !== undefined;
@@ -41,17 +43,6 @@ function SleeveStatsOverlay({ bgStats, fgStats, className = "" }: SleeveStatsOve
   const hasFgHealth = fgStats?.health !== undefined && fgStats.health !== 0;
   const hasBgInit = bgStats?.initiative !== undefined && bgStats.initiative !== 0;
   const hasFgInit = fgStats?.initiative !== undefined && fgStats.initiative !== 0;
-
-  const hasEffect = hasBgEffect || hasFgEffect;
-  const hasModifier = hasBgModifier || hasFgModifier;
-  const hasInit = hasBgInit || hasFgInit;
-  const hasDamage = hasBgDamage || hasFgDamage;
-  const hasHealth = hasBgHealth || hasFgHealth;
-  const hasAnyStats = hasEffect || hasModifier || hasDamage || hasHealth || hasInit;
-
-  if (!hasAnyStats) {
-    return null;
-  }
 
   // Determine which stat to show (foreground overwrites background)
   const effect = hasFgEffect ? fgStats!.specialEffect : (hasBgEffect ? bgStats!.specialEffect : null);
@@ -68,6 +59,8 @@ function SleeveStatsOverlay({ bgStats, fgStats, className = "" }: SleeveStatsOve
 
   return (
     <div className={`stats-overlay ${className}`}>
+      <div className="overlay-header">{name}</div>
+
       {/* Top: Special Effect */}
       {effect && (
         <div className={`overlay-top ${effectIsFg ? "fg-text" : "bg-text"}`}>
@@ -105,24 +98,22 @@ function SleeveStatsOverlay({ bgStats, fgStats, className = "" }: SleeveStatsOve
 }
 
 interface StatsOverlayProps {
+  name: string;
   stats: CardStats | undefined;
   className?: string;
 }
 
-function StatsOverlay({ stats, className = "" }: StatsOverlayProps) {
+function StatsOverlay({ name, stats, className = "" }: StatsOverlayProps) {
   const hasEffect = stats?.specialEffect !== undefined;
   const hasModifier = stats?.modifier !== undefined;
   const hasDamage = stats?.damage !== undefined && stats.damage !== 0;
   const hasHealth = stats?.health !== undefined && stats.health !== 0;
   const hasInit = stats?.initiative !== undefined && stats.initiative !== 0;
-  const hasAnyStats = hasEffect || hasModifier || hasDamage || hasHealth || hasInit;
-
-  if (!hasAnyStats) {
-    return null;
-  }
 
   return (
     <div className={`stats-overlay ${className}`}>
+      <div className="overlay-header">{name}</div>
+
       {/* Top: Special Effect */}
       {hasEffect && (
         <div className="overlay-top">

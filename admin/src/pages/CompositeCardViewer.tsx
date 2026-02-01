@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase";
-import { CardStatsFallback } from "../components/CardStatsFallback";
+import { formatEffectAction, formatTriggerName } from "@sleeved-potential/shared";
 import type { CardDefinition, CardStats, ResolvedStats } from "@sleeved-potential/shared";
 
 /**
@@ -19,6 +19,68 @@ import type { CardDefinition, CardStats, ResolvedStats } from "@sleeved-potentia
  * 3. Equipment (in added order)
  * 4. Sleeve foreground (top)
  */
+
+/**
+ * Mini card display with stats overlay - consistent sizing with or without image
+ */
+function MiniCardDisplay({ card }: { card: CardDefinition }) {
+  const stats =
+    card.type === "sleeve"
+      ? { ...card.backgroundStats, ...card.foregroundStats }
+      : card.stats;
+
+  const typeLabel = card.type.toUpperCase();
+  const typeClass = `fallback-${card.type}`;
+
+  const effectText =
+    stats?.specialEffect
+      ? `${formatTriggerName(stats.specialEffect.trigger)}: ${formatEffectAction(stats.specialEffect)}`
+      : null;
+
+  const modifierText = stats?.modifier
+    ? `${stats.modifier.amount > 0 ? "+" : ""}${stats.modifier.amount} ${stats.modifier.type === "damage" ? "dmg" : "hp"}`
+    : null;
+
+  const initiativeText =
+    stats?.initiative !== undefined && stats.initiative !== 0
+      ? `${stats.initiative > 0 ? "+" : ""}${stats.initiative} init`
+      : null;
+
+  return (
+    <div className={`mini-card-display ${typeClass}`}>
+      <div className="mini-card-label">{typeLabel}</div>
+      <div className="mini-card-content">
+        {card.imageUrl ? (
+          <img src={card.imageUrl} alt={card.name} className="mini-card-image" />
+        ) : (
+          <div className="mini-card-placeholder" />
+        )}
+        <div className="mini-card-overlay">
+          <div className="mini-card-top">
+            {effectText && <div className="mini-card-effect">{effectText}</div>}
+          </div>
+          <div className="mini-card-middle">
+            {modifierText && <div className="mini-card-modifier">{modifierText}</div>}
+            {!modifierText && initiativeText && <div className="mini-card-initiative">{initiativeText}</div>}
+          </div>
+          <div className="mini-card-stats">
+            <span className="mini-stat damage">
+              {stats?.damage !== undefined && stats.damage !== 0 ? stats.damage : ""}
+            </span>
+            <span className="mini-stat initiative">
+              {stats?.initiative !== undefined && stats.initiative !== 0
+                ? `${stats.initiative > 0 ? "+" : ""}${stats.initiative}`
+                : ""}
+            </span>
+            <span className="mini-stat health">
+              {stats?.health !== undefined && stats.health !== 0 ? stats.health : ""}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 interface SelectedEquipment {
   card: CardDefinition;
@@ -379,19 +441,14 @@ export function CompositeCardViewer() {
           {/* Sleeves */}
           <div className="selection-section">
             <h4>Sleeves ({sleeves.length})</h4>
-            <div className="selection-grid">
+            <div className="mini-selection-grid">
               {sleeves.map((card) => (
                 <div
                   key={card.id}
-                  className={`selection-item ${selectedSleeve?.id === card.id ? "selected" : ""}`}
+                  className={`mini-selection-item ${selectedSleeve?.id === card.id ? "selected" : ""}`}
                   onClick={() => setSelectedSleeve(card)}
                 >
-                  {card.imageUrl ? (
-                    <img src={card.imageUrl} alt={card.name} />
-                  ) : (
-                    <CardStatsFallback card={card} className="selection-fallback" />
-                  )}
-                  <span className="selection-name">{card.name}</span>
+                  <MiniCardDisplay card={card} />
                 </div>
               ))}
               {sleeves.length === 0 && (
@@ -403,19 +460,14 @@ export function CompositeCardViewer() {
           {/* Animals */}
           <div className="selection-section">
             <h4>Animals ({animals.length})</h4>
-            <div className="selection-grid">
+            <div className="mini-selection-grid">
               {animals.map((card) => (
                 <div
                   key={card.id}
-                  className={`selection-item ${selectedAnimal?.id === card.id ? "selected" : ""}`}
+                  className={`mini-selection-item ${selectedAnimal?.id === card.id ? "selected" : ""}`}
                   onClick={() => setSelectedAnimal(card)}
                 >
-                  {card.imageUrl ? (
-                    <img src={card.imageUrl} alt={card.name} />
-                  ) : (
-                    <CardStatsFallback card={card} className="selection-fallback" />
-                  )}
-                  <span className="selection-name">{card.name}</span>
+                  <MiniCardDisplay card={card} />
                 </div>
               ))}
               {animals.length === 0 && (
@@ -435,22 +487,17 @@ export function CompositeCardViewer() {
               )}
             </div>
             <p className="selection-hint">Click to add equipment. Can select multiple.</p>
-            <div className="selection-grid">
+            <div className="mini-selection-grid">
               {equipment.map((card) => {
                 const isSelected = selectedEquipment.some((e) => e.card.id === card.id);
                 const count = selectedEquipment.filter((e) => e.card.id === card.id).length;
                 return (
                   <div
                     key={card.id}
-                    className={`selection-item ${isSelected ? "selected" : ""}`}
+                    className={`mini-selection-item ${isSelected ? "selected" : ""}`}
                     onClick={() => handleAddEquipment(card)}
                   >
-                    {card.imageUrl ? (
-                      <img src={card.imageUrl} alt={card.name} />
-                    ) : (
-                      <CardStatsFallback card={card} className="selection-fallback" />
-                    )}
-                    <span className="selection-name">{card.name}</span>
+                    <MiniCardDisplay card={card} />
                     {count > 0 && <span className="selection-count">{count}</span>}
                   </div>
                 );

@@ -158,6 +158,7 @@ function CardItem({ card, onClick }: CardItemProps) {
         )}
         {card.imageUrl && (
           <div className="card-stats-overlay">
+            <div className="overlay-header">{card.name}</div>
             <div className="overlay-top">
               {effectText && <div className="overlay-effect">{effectText}</div>}
             </div>
