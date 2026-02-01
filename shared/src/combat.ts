@@ -58,12 +58,13 @@ export interface CombatResult {
 /**
  * Merge card stats (higher layer overwrites same stats from lower layer)
  * undefined values do NOT overwrite - only explicit values do
+ * Zero values for damage/health also do NOT overwrite (0 means "not defined")
  */
 export function mergeStats(base: CardStats, overlay: CardStats): CardStats {
   const result: CardStats = { ...base };
 
-  if (overlay.damage !== undefined) result.damage = overlay.damage;
-  if (overlay.health !== undefined) result.health = overlay.health;
+  if (overlay.damage !== undefined && overlay.damage !== 0) result.damage = overlay.damage;
+  if (overlay.health !== undefined && overlay.health !== 0) result.health = overlay.health;
   if (overlay.modifier !== undefined) result.modifier = overlay.modifier;
   if (overlay.specialEffect !== undefined) result.specialEffect = overlay.specialEffect;
   if (overlay.initiative !== undefined) result.initiative = overlay.initiative;

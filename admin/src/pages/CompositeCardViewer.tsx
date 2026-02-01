@@ -9,15 +9,14 @@ import type { CardDefinition, CardStats, ResolvedStats } from "@sleeved-potentia
  * Composite Card Viewer
  *
  * Allows artists to test how card images overlap by selecting:
- * - A sleeve (background + foreground)
+ * - A sleeve (background)
  * - An animal
  * - Multiple equipment cards
  *
  * The view renders layers in order:
- * 1. Sleeve background (bottom)
+ * 1. Sleeve (bottom/background)
  * 2. Animal
- * 3. Equipment (in added order)
- * 4. Sleeve foreground (top)
+ * 3. Equipment (in added order, on top)
  */
 
 /**
@@ -83,8 +82,8 @@ interface SelectedEquipment {
 
 function mergeStats(base: CardStats, overlay: CardStats): CardStats {
   const result: CardStats = { ...base };
-  if (overlay.damage !== undefined) result.damage = overlay.damage;
-  if (overlay.health !== undefined) result.health = overlay.health;
+  if (overlay.damage !== undefined && overlay.damage !== 0) result.damage = overlay.damage;
+  if (overlay.health !== undefined && overlay.health !== 0) result.health = overlay.health;
   if (overlay.modifier !== undefined) result.modifier = overlay.modifier;
   if (overlay.specialEffect !== undefined) result.specialEffect = overlay.specialEffect;
   if (overlay.initiative !== undefined) result.initiative = overlay.initiative;
@@ -292,7 +291,7 @@ export function CompositeCardViewer() {
 
       <p className="help-text">
         Select cards to preview how their images layer together. The composition preview shows
-        layers in order: sleeve background, animal, equipment, then sleeve foreground on top.
+        layers in order: sleeve (background), animal, then equipment on top.
       </p>
 
       <div className="composite-viewer-layout">
@@ -302,7 +301,7 @@ export function CompositeCardViewer() {
           <div className="composite-preview-container">
             {/* Layer stack - images only, then one unified stats overlay */}
             <div className="composite-layer-stack">
-              {/* Layer 1: Sleeve image (renders at both bottom and top for transparency effect) */}
+              {/* Layer 1: Sleeve image (background) */}
               {selectedSleeve?.imageUrl && (
                 <img
                   src={selectedSleeve.imageUrl}
@@ -334,16 +333,6 @@ export function CompositeCardViewer() {
                   />
                 )
               ))}
-
-              {/* Layer top: Sleeve image again (for foreground transparency) */}
-              {selectedSleeve?.imageUrl && (
-                <img
-                  src={selectedSleeve.imageUrl}
-                  alt={selectedSleeve.name}
-                  className="composite-layer"
-                  style={{ zIndex: 100 }}
-                />
-              )}
 
               {/* Final layer: Unified stats overlay showing resolved values */}
               {(selectedSleeve || selectedAnimal || selectedEquipment.length > 0) && (
@@ -396,7 +385,7 @@ export function CompositeCardViewer() {
             <ol className="layer-list">
               {selectedSleeve && (
                 <li className="layer-item layer-bg">
-                  <span className="layer-type">Sleeve BG:</span> {selectedSleeve.name}
+                  <span className="layer-type">Sleeve:</span> {selectedSleeve.name}
                   <button onClick={() => setSelectedSleeve(null)} className="layer-remove">
                     &times;
                   </button>
@@ -421,11 +410,6 @@ export function CompositeCardViewer() {
                   </button>
                 </li>
               ))}
-              {selectedSleeve && (
-                <li className="layer-item layer-fg">
-                  <span className="layer-type">Sleeve FG:</span> {selectedSleeve.name} (top)
-                </li>
-              )}
             </ol>
           </div>
         </div>
