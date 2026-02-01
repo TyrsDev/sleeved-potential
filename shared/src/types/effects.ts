@@ -16,11 +16,6 @@ export type SpecialEffectTrigger =
   | "if_doesnt_defeat"; // After combat, if opponent survives
 
 /**
- * When the effect resolves in the game flow
- */
-export type EffectTiming = "on_play" | "post_combat" | "end_of_round";
-
-/**
  * Draw cards from equipment deck
  */
 export interface DrawCardsAction {
@@ -64,7 +59,6 @@ export type SpecialEffectAction =
 export interface SpecialEffect {
   trigger: SpecialEffectTrigger;
   effect: SpecialEffectAction;
-  timing: EffectTiming;
 }
 
 /**

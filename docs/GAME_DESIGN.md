@@ -104,11 +104,10 @@ Examples:
 interface SpecialEffect {
   trigger: SpecialEffectTrigger;
   effect: SpecialEffectAction;
-  timing: EffectTiming;
 }
 
 type SpecialEffectTrigger =
-  | "on_play"           // When card is committed
+  | "on_play"           // When card is committed (resolves before combat)
   | "if_survives"       // After combat, if this card survives
   | "if_destroyed"      // After combat, if this card is destroyed
   | "if_defeats"        // After combat, if this card defeats opponent
@@ -119,8 +118,6 @@ type SpecialEffectAction =
   | { type: "modify_initiative"; amount: number }
   // | { type: "attack_again" }  // POSTPONED for later
   | { type: "add_persistent_modifier"; stat: "damage" | "health"; amount: number };
-
-type EffectTiming = "on_play" | "post_combat" | "end_of_round";
 ```
 
 ### Persistent Modifier Stack

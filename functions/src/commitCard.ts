@@ -303,7 +303,7 @@ async function resolveRound(
   processEffectsForDrawCards(p2Cleanup, effectsTriggered, player2Id);
 
   // Move used animals to shared discard
-  const newAnimalDiscard = [
+  let animalDiscard = [
     ...game.animalDiscard,
     player1Commit.animalId,
     player2Commit.animalId,
@@ -312,12 +312,24 @@ async function resolveRound(
   // Draw new animals for players if needed
   let animalDeck = [...game.animalDeck];
 
+  // If deck is empty but discard has cards, shuffle discard into deck
+  if (animalDeck.length === 0 && animalDiscard.length > 0) {
+    animalDeck = shuffleArray(animalDiscard);
+    animalDiscard = [];
+  }
+
   // Draw for player 1 if needed
   if (p1Cleanup.animalHand.length < rules.startingAnimalHand && animalDeck.length > 0) {
     const needed = rules.startingAnimalHand - p1Cleanup.animalHand.length;
     const { dealt, remaining } = dealCards(animalDeck, needed);
     p1Cleanup.animalHand = [...p1Cleanup.animalHand, ...dealt];
     animalDeck = remaining;
+  }
+
+  // If deck ran out after player 1 draw, shuffle discard again
+  if (animalDeck.length === 0 && animalDiscard.length > 0) {
+    animalDeck = shuffleArray(animalDiscard);
+    animalDiscard = [];
   }
 
   // Draw for player 2 if needed
@@ -372,7 +384,7 @@ async function resolveRound(
     endedAt,
     endReason,
     animalDeck,
-    animalDiscard: newAnimalDiscard,
+    animalDiscard,
     rounds: FieldValue.arrayUnion(roundResult),
   });
 

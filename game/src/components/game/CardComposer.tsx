@@ -96,12 +96,17 @@ function MiniCardDisplay({ card }: { card: CardDefinition }) {
             {modifierText && <div className="mini-card-modifier">{modifierText}</div>}
           </div>
           <div className="mini-card-stats">
-            {stats?.damage !== undefined && (
-              <span className="mini-stat damage">{stats.damage}</span>
-            )}
-            {stats?.health !== undefined && (
-              <span className="mini-stat health">{stats.health}</span>
-            )}
+            <span className="mini-stat damage">
+              {stats?.damage !== undefined ? stats.damage : ""}
+            </span>
+            <span className="mini-stat initiative">
+              {stats?.initiative !== undefined && stats.initiative !== 0
+                ? `${stats.initiative > 0 ? "+" : ""}${stats.initiative}`
+                : ""}
+            </span>
+            <span className="mini-stat health">
+              {stats?.health !== undefined ? stats.health : ""}
+            </span>
           </div>
         </div>
       </div>
@@ -346,16 +351,18 @@ export function CardComposer() {
           <summary>Equipment ({equipmentHand.length})</summary>
           <div className="mini-selection-grid">
             {equipmentHand.map((card) => {
-              const count = selectedEquipment.filter((e) => e.card.id === card.id).length;
+              const equipped = selectedEquipment.find((e) => e.card.id === card.id);
+              const isSelected = equipped !== undefined;
               return (
                 <div
                   key={card.id}
-                  className={`mini-selection-item ${count > 0 ? "selected" : ""}`}
-                  onClick={() => handleEquipmentAdd(card)}
+                  className={`mini-selection-item ${isSelected ? "selected" : ""}`}
+                  onClick={() =>
+                    isSelected ? handleEquipmentRemove(equipped.order) : handleEquipmentAdd(card)
+                  }
                   title={formatCardTooltip(card)}
                 >
                   <MiniCardDisplay card={card} />
-                  {count > 0 && <span className="selection-count">{count}</span>}
                 </div>
               );
             })}

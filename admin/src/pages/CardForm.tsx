@@ -9,7 +9,6 @@ import type {
   CardStats,
   CreateCardData,
   SpecialEffectTrigger,
-  EffectTiming,
   SpecialEffectAction,
   Modifier,
   SpecialEffect,
@@ -47,8 +46,6 @@ function StatsEditor({
   setEffectAmount,
   effectStat,
   setEffectStat,
-  effectTiming,
-  setEffectTiming,
 }: {
   prefix: string;
   damage: string;
@@ -75,8 +72,6 @@ function StatsEditor({
   setEffectAmount: (v: string) => void;
   effectStat: "damage" | "health";
   setEffectStat: (v: "damage" | "health") => void;
-  effectTiming: EffectTiming;
-  setEffectTiming: (v: EffectTiming) => void;
 }) {
   return (
     <>
@@ -177,18 +172,6 @@ function StatsEditor({
                 <option value="if_destroyed">If Destroyed</option>
                 <option value="if_defeats">If Defeats</option>
                 <option value="if_doesnt_defeat">If Doesn't Defeat</option>
-              </select>
-            </div>
-            <div className="form-group">
-              <label htmlFor={`${prefix}EffectTiming`}>Timing</label>
-              <select
-                id={`${prefix}EffectTiming`}
-                value={effectTiming}
-                onChange={(e) => setEffectTiming(e.target.value as EffectTiming)}
-              >
-                <option value="on_play">On Play</option>
-                <option value="post_combat">Post Combat</option>
-                <option value="end_of_round">End of Round</option>
               </select>
             </div>
           </div>
@@ -294,7 +277,6 @@ export function CardForm() {
   const [effectCount, setEffectCount] = useState<string>("1");
   const [effectAmount, setEffectAmount] = useState<string>("1");
   const [effectStat, setEffectStat] = useState<"damage" | "health">("damage");
-  const [effectTiming, setEffectTiming] = useState<EffectTiming>("post_combat");
 
   // Sleeve background stats
   const [bgDamage, setBgDamage] = useState<string>("");
@@ -309,7 +291,6 @@ export function CardForm() {
   const [bgEffectCount, setBgEffectCount] = useState<string>("1");
   const [bgEffectAmount, setBgEffectAmount] = useState<string>("1");
   const [bgEffectStat, setBgEffectStat] = useState<"damage" | "health">("damage");
-  const [bgEffectTiming, setBgEffectTiming] = useState<EffectTiming>("post_combat");
 
   // Sleeve foreground stats
   const [fgDamage, setFgDamage] = useState<string>("");
@@ -324,7 +305,6 @@ export function CardForm() {
   const [fgEffectCount, setFgEffectCount] = useState<string>("1");
   const [fgEffectAmount, setFgEffectAmount] = useState<string>("1");
   const [fgEffectStat, setFgEffectStat] = useState<"damage" | "health">("damage");
-  const [fgEffectTiming, setFgEffectTiming] = useState<EffectTiming>("post_combat");
 
   // Helper to parse stats from a CardStats object
   const parseStatsIntoState = useCallback(
@@ -343,7 +323,6 @@ export function CardForm() {
         setEffectCount: (v: string) => void;
         setEffectAmount: (v: string) => void;
         setEffectStat: (v: "damage" | "health") => void;
-        setEffectTiming: (v: EffectTiming) => void;
       }
     ) => {
       if (!stats) {
@@ -359,7 +338,6 @@ export function CardForm() {
         setters.setEffectCount("1");
         setters.setEffectAmount("1");
         setters.setEffectStat("damage");
-        setters.setEffectTiming("post_combat");
         return;
       }
 
@@ -380,7 +358,6 @@ export function CardForm() {
       if (stats.specialEffect) {
         setters.setHasSpecialEffect(true);
         setters.setEffectTrigger(stats.specialEffect.trigger);
-        setters.setEffectTiming(stats.specialEffect.timing);
 
         const action = stats.specialEffect.effect;
         setters.setEffectActionType(action.type);
@@ -400,7 +377,6 @@ export function CardForm() {
         setters.setEffectCount("1");
         setters.setEffectAmount("1");
         setters.setEffectStat("damage");
-        setters.setEffectTiming("post_combat");
       }
     },
     []
@@ -430,7 +406,6 @@ export function CardForm() {
         setEffectCount,
         setEffectAmount,
         setEffectStat,
-        setEffectTiming,
       });
 
       // Reset sleeve background stats
@@ -447,7 +422,6 @@ export function CardForm() {
         setEffectCount: setBgEffectCount,
         setEffectAmount: setBgEffectAmount,
         setEffectStat: setBgEffectStat,
-        setEffectTiming: setBgEffectTiming,
       });
 
       // Reset sleeve foreground stats
@@ -464,7 +438,6 @@ export function CardForm() {
         setEffectCount: setFgEffectCount,
         setEffectAmount: setFgEffectAmount,
         setEffectStat: setFgEffectStat,
-        setEffectTiming: setFgEffectTiming,
       });
     }
   }, [isNew, parseStatsIntoState]);
@@ -496,7 +469,6 @@ export function CardForm() {
             setEffectCount: setBgEffectCount,
             setEffectAmount: setBgEffectAmount,
             setEffectStat: setBgEffectStat,
-            setEffectTiming: setBgEffectTiming,
           });
 
           parseStatsIntoState(card.foregroundStats, {
@@ -512,7 +484,6 @@ export function CardForm() {
             setEffectCount: setFgEffectCount,
             setEffectAmount: setFgEffectAmount,
             setEffectStat: setFgEffectStat,
-            setEffectTiming: setFgEffectTiming,
           });
         } else {
           parseStatsIntoState(card.stats, {
@@ -528,7 +499,6 @@ export function CardForm() {
             setEffectCount,
             setEffectAmount,
             setEffectStat,
-            setEffectTiming,
           });
         }
       }
@@ -576,8 +546,7 @@ export function CardForm() {
       actionTypeVal: EffectActionType,
       countVal: string,
       amountVal: string,
-      statVal: "damage" | "health",
-      timingVal: EffectTiming
+      statVal: "damage" | "health"
     ): CardStats | undefined => {
       const stats: CardStats = {};
 
@@ -596,7 +565,6 @@ export function CardForm() {
       if (hasEffectVal) {
         const specialEffect: SpecialEffect = {
           trigger: triggerVal,
-          timing: timingVal,
           effect: buildEffectAction(actionTypeVal, countVal, amountVal, statVal),
         };
         stats.specialEffect = specialEffect;
@@ -620,8 +588,7 @@ export function CardForm() {
       effectActionType,
       effectCount,
       effectAmount,
-      effectStat,
-      effectTiming
+      effectStat
     );
   }, [
     damage,
@@ -636,7 +603,6 @@ export function CardForm() {
     effectCount,
     effectAmount,
     effectStat,
-    effectTiming,
     buildStatsFromValues,
   ]);
 
@@ -656,8 +622,7 @@ export function CardForm() {
       bgEffectActionType,
       bgEffectCount,
       bgEffectAmount,
-      bgEffectStat,
-      bgEffectTiming
+      bgEffectStat
     );
 
     const foregroundStats = buildStatsFromValues(
@@ -672,8 +637,7 @@ export function CardForm() {
       fgEffectActionType,
       fgEffectCount,
       fgEffectAmount,
-      fgEffectStat,
-      fgEffectTiming
+      fgEffectStat
     );
 
     return { backgroundStats, foregroundStats };
@@ -690,7 +654,6 @@ export function CardForm() {
     bgEffectCount,
     bgEffectAmount,
     bgEffectStat,
-    bgEffectTiming,
     fgDamage,
     fgHealth,
     fgInitiative,
@@ -703,7 +666,6 @@ export function CardForm() {
     fgEffectCount,
     fgEffectAmount,
     fgEffectStat,
-    fgEffectTiming,
     buildStatsFromValues,
   ]);
 
@@ -886,8 +848,6 @@ export function CardForm() {
                 setEffectAmount={setBgEffectAmount}
                 effectStat={bgEffectStat}
                 setEffectStat={setBgEffectStat}
-                effectTiming={bgEffectTiming}
-                setEffectTiming={setBgEffectTiming}
               />
             </fieldset>
 
@@ -919,8 +879,6 @@ export function CardForm() {
                 setEffectAmount={setFgEffectAmount}
                 effectStat={fgEffectStat}
                 setEffectStat={setFgEffectStat}
-                effectTiming={fgEffectTiming}
-                setEffectTiming={setFgEffectTiming}
               />
             </fieldset>
           </>
@@ -953,8 +911,6 @@ export function CardForm() {
               setEffectAmount={setEffectAmount}
               effectStat={effectStat}
               setEffectStat={setEffectStat}
-              effectTiming={effectTiming}
-              setEffectTiming={setEffectTiming}
             />
           </fieldset>
         )}

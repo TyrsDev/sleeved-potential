@@ -1333,10 +1333,22 @@ legend {
 }
 
 .mini-card-stats {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: flex-end;
   gap: 0.15rem;
+}
+
+.mini-card-stats .mini-stat.damage {
+  justify-self: start;
+}
+
+.mini-card-stats .mini-stat.initiative {
+  justify-self: center;
+}
+
+.mini-card-stats .mini-stat.health {
+  justify-self: end;
 }
 
 .mini-stat {
@@ -1352,6 +1364,10 @@ legend {
 
 .mini-stat.damage {
   color: #f66;
+}
+
+.mini-stat.initiative {
+  color: #c084fc;
 }
 
 .mini-stat.health {

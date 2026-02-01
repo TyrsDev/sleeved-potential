@@ -106,12 +106,17 @@ function MiniCardDisplay({ card }: { card: CardDefinition }) {
           </div>
           {/* BOTTOM: Combat stats */}
           <div className="mini-card-stats">
-            {stats?.damage !== undefined && (
-              <span className="mini-stat damage">{stats.damage}</span>
-            )}
-            {stats?.health !== undefined && (
-              <span className="mini-stat health">{stats.health}</span>
-            )}
+            <span className="mini-stat damage">
+              {stats?.damage !== undefined ? stats.damage : ""}
+            </span>
+            <span className="mini-stat initiative">
+              {stats?.initiative !== undefined && stats.initiative !== 0
+                ? `${stats.initiative > 0 ? "+" : ""}${stats.initiative}`
+                : ""}
+            </span>
+            <span className="mini-stat health">
+              {stats?.health !== undefined ? stats.health : ""}
+            </span>
           </div>
         </div>
       </div>
@@ -339,16 +344,18 @@ function PlayerCardSelector({
           <summary>Equipment ({equipment.length})</summary>
           <div className="mini-selection-grid">
             {equipment.map((card) => {
-              const count = composition.equipment.filter((e) => e.card.id === card.id).length;
+              const equipped = composition.equipment.find((e) => e.card.id === card.id);
+              const isSelected = equipped !== undefined;
               return (
                 <div
                   key={card.id}
-                  className={`mini-selection-item ${count > 0 ? "selected" : ""}`}
-                  onClick={() => onEquipmentAdd(card)}
+                  className={`mini-selection-item ${isSelected ? "selected" : ""}`}
+                  onClick={() =>
+                    isSelected ? onEquipmentRemove(equipped.order) : onEquipmentAdd(card)
+                  }
                   title={formatCardTooltip(card)}
                 >
                   <MiniCardDisplay card={card} />
-                  {count > 0 && <span className="selection-count">{count}</span>}
                 </div>
               );
             })}
