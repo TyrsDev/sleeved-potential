@@ -89,15 +89,19 @@ export function GameProvider({ gameId, children }: GameProviderProps) {
 
     const unsubscribe = subscribeToGame(gameId, (gameData) => {
       if (gameData) {
-        // Check if a new round was completed (skip on initial load)
         const newRoundCount = gameData.rounds.length;
-        const lastSeen = lastSeenRoundCountRef.current;
-        if (newRoundCount > lastSeen && !isInitialLoadRef.current) {
-          // New round just completed - show result
-          setShowingResult(true);
+
+        // On initial load, just capture state - don't try to show results
+        if (isInitialLoadRef.current) {
+          lastSeenRoundCountRef.current = newRoundCount;
+          isInitialLoadRef.current = false;
+        } else {
+          // After initial load, check if a new round was completed
+          if (newRoundCount > lastSeenRoundCountRef.current) {
+            setShowingResult(true);
+          }
+          lastSeenRoundCountRef.current = newRoundCount;
         }
-        lastSeenRoundCountRef.current = newRoundCount;
-        isInitialLoadRef.current = false;
 
         setGame(gameData);
         setError(null);
