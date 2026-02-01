@@ -90,11 +90,11 @@ function SleeveStatsDisplay({ bgStats, fgStats }: SleeveStatsDisplayProps) {
       <div className={`grid-middle ${(modifier || initiative) ? ((modifierIsFg || initIsFg) ? "fg-stat" : "bg-stat") : "empty-cell"}`}>
         {modifier && (
           <span className="modifier-display">
-            {modifier.amount > 0 ? "+" : ""}{modifier.amount} {modifier.type.toUpperCase()}
+            {modifier.amount > 0 ? "+" : ""}{modifier.amount} {modifier.type === "damage" ? "dmg" : "hp"}
           </span>
         )}
         {initiative && !modifier && (
-          <span className="initiative-display">INIT {initiative}</span>
+          <span className="initiative-display">{initiative > 0 ? "+" : ""}{initiative} init</span>
         )}
       </div>
 
@@ -153,11 +153,11 @@ function StatsDisplay({ stats }: StatsDisplayProps) {
       <div className={`grid-middle ${(hasModifier || hasInit) ? "" : "empty-cell"}`}>
         {hasModifier && (
           <span className="modifier-display">
-            {stats!.modifier!.amount > 0 ? "+" : ""}{stats!.modifier!.amount} {stats!.modifier!.type.toUpperCase()}
+            {stats!.modifier!.amount > 0 ? "+" : ""}{stats!.modifier!.amount} {stats!.modifier!.type === "damage" ? "dmg" : "hp"}
           </span>
         )}
         {hasInit && !hasModifier && (
-          <span className="initiative-display">INIT {stats!.initiative}</span>
+          <span className="initiative-display">{stats!.initiative! > 0 ? "+" : ""}{stats!.initiative} init</span>
         )}
       </div>
 
@@ -198,11 +198,13 @@ function formatTrigger(trigger: string): string {
 function formatAction(effect: { type: string; count?: number; amount?: number; stat?: string }): string {
   switch (effect.type) {
     case "draw_cards":
-      return `Draw ${effect.count}`;
+      return `+${effect.count} card${effect.count !== 1 ? "s" : ""}`;
     case "modify_initiative":
-      return `${effect.amount! > 0 ? "+" : ""}${effect.amount} Init`;
-    case "add_persistent_modifier":
-      return `${effect.amount! > 0 ? "+" : ""}${effect.amount} ${effect.stat?.toUpperCase()}`;
+      return `${effect.amount! > 0 ? "+" : ""}${effect.amount} init`;
+    case "add_persistent_modifier": {
+      const statShort = effect.stat === "damage" ? "dmg" : effect.stat === "health" ? "hp" : effect.stat;
+      return `${effect.amount! > 0 ? "+" : ""}${effect.amount} ${statShort}`;
+    }
     default:
       return effect.type;
   }

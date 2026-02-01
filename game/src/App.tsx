@@ -6,6 +6,7 @@ import { Cards } from "./pages/Cards";
 import { Rules } from "./pages/Rules";
 import { Profile } from "./pages/Profile";
 import { Play } from "./pages/Play";
+import { Playtest } from "./pages/Playtest";
 import "./App.css";
 
 function AuthGate({ children }: { children: React.ReactNode }) {
@@ -61,6 +62,7 @@ function App() {
               <Route index element={<Home />} />
               <Route path="cards" element={<Cards />} />
               <Route path="rules" element={<Rules />} />
+              <Route path="playtest" element={<Playtest />} />
               <Route path="profile" element={<Profile />} />
               <Route path="play" element={<Play />} />
               <Route path="game/:gameId" element={<GamePlaceholder />} />

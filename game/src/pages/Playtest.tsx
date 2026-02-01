@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { collection, query, orderBy, onSnapshot, doc, getDoc } from "firebase/firestore";
-import { db } from "../firebase";
+import { subscribeToCards, subscribeToRules } from "../firebase";
 import {
   resolveStats,
   resolveCombat,
@@ -154,11 +153,7 @@ function resolveCompositionStats(composition: PlayerComposition): ResolvedStats 
     .sort((a, b) => a.order - b.order)
     .map((e) => e.card);
 
-  return resolveStats(
-    composition.sleeve,
-    composition.animal,
-    sortedEquipment
-  );
+  return resolveStats(composition.sleeve, composition.animal, sortedEquipment);
 }
 
 /**
@@ -172,14 +167,12 @@ function simulateBattle(
   const p1Stats = resolveCompositionStats(p1Composition);
   const p2Stats = resolveCompositionStats(p2Composition);
 
-  // Use shared combat resolution
   const combatResult: CombatResult = resolveCombat({
     player1: { playerId: "Player 1", stats: p1Stats },
     player2: { playerId: "Player 2", stats: p2Stats },
     rules,
   });
 
-  // Collect triggered effects
   const effectsTriggered: TriggeredEffect[] = [];
   if (combatResult.player1.effectTriggered) {
     effectsTriggered.push(combatResult.player1.effectTriggered);
@@ -234,7 +227,9 @@ function PlayerCardSelector({
     <div className="player-selector">
       <div className="player-selector-header">
         <h3>{title}</h3>
-        <button onClick={onClear} className="btn btn-small">Clear</button>
+        <button onClick={onClear} className="btn btn-small">
+          Clear
+        </button>
       </div>
 
       {/* Stats Preview */}
@@ -274,7 +269,9 @@ function PlayerCardSelector({
           {composition.sleeve ? (
             <>
               <span>{composition.sleeve.name}</span>
-              <button onClick={() => onSleeveSelect(null)} className="remove-btn">&times;</button>
+              <button onClick={() => onSleeveSelect(null)} className="remove-btn">
+                &times;
+              </button>
             </>
           ) : (
             <span className="not-selected">Not selected</span>
@@ -285,7 +282,9 @@ function PlayerCardSelector({
           {composition.animal ? (
             <>
               <span>{composition.animal.name}</span>
-              <button onClick={() => onAnimalSelect(null)} className="remove-btn">&times;</button>
+              <button onClick={() => onAnimalSelect(null)} className="remove-btn">
+                &times;
+              </button>
             </>
           ) : (
             <span className="not-selected">Not selected</span>
@@ -295,7 +294,9 @@ function PlayerCardSelector({
           <div key={e.order} className="selected-card-item">
             <span className="card-type-label equipment">Equip {i + 1}:</span>
             <span>{e.card.name}</span>
-            <button onClick={() => onEquipmentRemove(e.order)} className="remove-btn">&times;</button>
+            <button onClick={() => onEquipmentRemove(e.order)} className="remove-btn">
+              &times;
+            </button>
           </div>
         ))}
       </div>
@@ -381,16 +382,24 @@ export function Playtest() {
 
   // Load cards and rules
   useEffect(() => {
-    const q = query(collection(db, "cards"), orderBy("name"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const cardData = snapshot.docs.map((docSnap) => docSnap.data() as CardDefinition);
-      setCards(cardData);
+    let cardsLoaded = false;
+    let rulesLoaded = false;
+
+    const checkLoaded = () => {
+      if (cardsLoaded && rulesLoaded) {
+        setLoading(false);
+      }
+    };
+
+    const unsubscribeCards = subscribeToCards((loadedCards) => {
+      setCards(loadedCards);
+      cardsLoaded = true;
+      checkLoaded();
     });
 
-    // Load rules
-    getDoc(doc(db, "rules", "current")).then((snapshot) => {
-      if (snapshot.exists()) {
-        setRules(snapshot.data() as GameRules);
+    const unsubscribeRules = subscribeToRules((loadedRules) => {
+      if (loadedRules) {
+        setRules(loadedRules);
       } else {
         // Use defaults
         setRules({
@@ -407,10 +416,14 @@ export function Playtest() {
           updatedBy: "system",
         });
       }
-      setLoading(false);
+      rulesLoaded = true;
+      checkLoaded();
     });
 
-    return unsubscribe;
+    return () => {
+      unsubscribeCards();
+      unsubscribeRules();
+    };
   }, []);
 
   // Player 1 handlers
@@ -424,14 +437,17 @@ export function Playtest() {
     setBattleResult(null);
   }, []);
 
-  const handleP1EquipmentAdd = useCallback((card: CardDefinition) => {
-    setP1Composition((prev) => ({
-      ...prev,
-      equipment: [...prev.equipment, { card, order: p1NextOrder }],
-    }));
-    setP1NextOrder((prev) => prev + 1);
-    setBattleResult(null);
-  }, [p1NextOrder]);
+  const handleP1EquipmentAdd = useCallback(
+    (card: CardDefinition) => {
+      setP1Composition((prev) => ({
+        ...prev,
+        equipment: [...prev.equipment, { card, order: p1NextOrder }],
+      }));
+      setP1NextOrder((prev) => prev + 1);
+      setBattleResult(null);
+    },
+    [p1NextOrder]
+  );
 
   const handleP1EquipmentRemove = useCallback((order: number) => {
     setP1Composition((prev) => ({
@@ -458,14 +474,17 @@ export function Playtest() {
     setBattleResult(null);
   }, []);
 
-  const handleP2EquipmentAdd = useCallback((card: CardDefinition) => {
-    setP2Composition((prev) => ({
-      ...prev,
-      equipment: [...prev.equipment, { card, order: p2NextOrder }],
-    }));
-    setP2NextOrder((prev) => prev + 1);
-    setBattleResult(null);
-  }, [p2NextOrder]);
+  const handleP2EquipmentAdd = useCallback(
+    (card: CardDefinition) => {
+      setP2Composition((prev) => ({
+        ...prev,
+        equipment: [...prev.equipment, { card, order: p2NextOrder }],
+      }));
+      setP2NextOrder((prev) => prev + 1);
+      setBattleResult(null);
+    },
+    [p2NextOrder]
+  );
 
   const handleP2EquipmentRemove = useCallback((order: number) => {
     setP2Composition((prev) => ({
@@ -497,18 +516,22 @@ export function Playtest() {
 
   return (
     <div className="playtest-page">
-      <div className="page-header">
-        <h2>Playtest - Battle Simulator</h2>
-        <div className="rules-info">
-          <span>Survive: +{rules?.pointsForSurviving}</span>
-          <span>Defeat: +{rules?.pointsForDefeating}</span>
-        </div>
-      </div>
-
-      <p className="help-text">
-        Compose cards for each player and simulate a round of combat.
-        Uses the same shared combat logic as the backend.
+      <h2>Theorycraft</h2>
+      <p className="page-description">
+        Compose cards and simulate combat to test strategies before playing.
       </p>
+
+      <div className="rules-info-bar">
+        <span>
+          Survive: <strong>+{rules?.pointsForSurviving}</strong>
+        </span>
+        <span>
+          Defeat: <strong>+{rules?.pointsForDefeating}</strong>
+        </span>
+        <span>
+          Win at: <strong>{rules?.pointsToWin} pts</strong>
+        </span>
+      </div>
 
       <div className="playtest-layout">
         {/* Player 1 */}
@@ -530,11 +553,9 @@ export function Playtest() {
             disabled={!canSimulate}
             className="btn btn-primary btn-large"
           >
-            Simulate Battle
+            Battle!
           </button>
-          {!canSimulate && (
-            <p className="help-text">Select an animal for each player</p>
-          )}
+          {!canSimulate && <p className="help-text">Select an animal for each player</p>}
         </div>
 
         {/* Player 2 */}
@@ -557,7 +578,9 @@ export function Playtest() {
 
           <div className="results-grid">
             {/* Player 1 Result */}
-            <div className={`result-card ${battleResult.player1.outcome.survived ? "survived" : "destroyed"}`}>
+            <div
+              className={`result-card ${battleResult.player1.outcome.survived ? "survived" : "destroyed"}`}
+            >
               <h4>Player 1</h4>
               <div className="result-status">
                 {battleResult.player1.outcome.survived ? "SURVIVED" : "DESTROYED"}
@@ -565,9 +588,7 @@ export function Playtest() {
               <div className="result-health">
                 {battleResult.player1.outcome.finalHealth} HP remaining
               </div>
-              <div className="result-points">
-                +{battleResult.player1.outcome.pointsEarned} points
-              </div>
+              <div className="result-points">+{battleResult.player1.outcome.pointsEarned} points</div>
               {battleResult.player1.outcome.defeated && (
                 <div className="result-badge">Defeated opponent</div>
               )}
@@ -577,7 +598,9 @@ export function Playtest() {
             <div className="vs-divider">VS</div>
 
             {/* Player 2 Result */}
-            <div className={`result-card ${battleResult.player2.outcome.survived ? "survived" : "destroyed"}`}>
+            <div
+              className={`result-card ${battleResult.player2.outcome.survived ? "survived" : "destroyed"}`}
+            >
               <h4>Player 2</h4>
               <div className="result-status">
                 {battleResult.player2.outcome.survived ? "SURVIVED" : "DESTROYED"}
@@ -585,9 +608,7 @@ export function Playtest() {
               <div className="result-health">
                 {battleResult.player2.outcome.finalHealth} HP remaining
               </div>
-              <div className="result-points">
-                +{battleResult.player2.outcome.pointsEarned} points
-              </div>
+              <div className="result-points">+{battleResult.player2.outcome.pointsEarned} points</div>
               {battleResult.player2.outcome.defeated && (
                 <div className="result-badge">Defeated opponent</div>
               )}
