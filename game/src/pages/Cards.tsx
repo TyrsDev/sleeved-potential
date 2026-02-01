@@ -234,49 +234,59 @@ function CardDetailModal({ card, onClose }: CardDetailModalProps) {
   );
 }
 
+function StatsDisplay({ stats, label }: { stats: CardStats | undefined; label?: string }) {
+  const hasInit = stats?.initiative !== undefined && stats.initiative !== 0;
+  const hasModifier = stats?.modifier !== undefined;
+  const hasEffect = stats?.specialEffect !== undefined;
+
+  return (
+    <div className="stats-display">
+      {label && <h4>{label}</h4>}
+      <div className="stats-row">
+        <div className="stat">
+          <span className="stat-label">Damage</span>
+          <span className="stat-value">{stats?.damage ?? "-"}</span>
+        </div>
+        <div className="stat">
+          <span className="stat-label">Health</span>
+          <span className="stat-value">{stats?.health ?? "-"}</span>
+        </div>
+        {hasInit && (
+          <div className="stat">
+            <span className="stat-label">Initiative</span>
+            <span className="stat-value">
+              {stats!.initiative! > 0 ? "+" : ""}{stats!.initiative}
+            </span>
+          </div>
+        )}
+      </div>
+      {hasModifier && (
+        <div className="stat-effect">
+          <span className="stat-label">Modifier</span>
+          <span className="stat-value">
+            {stats!.modifier!.amount > 0 ? "+" : ""}{stats!.modifier!.amount} {stats!.modifier!.type}
+          </span>
+        </div>
+      )}
+      {hasEffect && (
+        <div className="stat-effect">
+          <span className="stat-label">{formatTriggerName(stats!.specialEffect!.trigger)}</span>
+          <span className="stat-value">{formatEffectAction(stats!.specialEffect!)}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function CardStatsDetail({ card }: { card: CardDefinition }) {
   if (card.type === "sleeve") {
-    const bgStats = card.backgroundStats;
-    const fgStats = card.foregroundStats;
     return (
       <>
-        <h4>Background Stats (easily overwritten)</h4>
-        <div className="stats-row">
-          <div className="stat">
-            <span className="stat-label">Damage</span>
-            <span className="stat-value">{bgStats?.damage ?? "-"}</span>
-          </div>
-          <div className="stat">
-            <span className="stat-label">Health</span>
-            <span className="stat-value">{bgStats?.health ?? "-"}</span>
-          </div>
-        </div>
-        <h4>Foreground Stats (guaranteed)</h4>
-        <div className="stats-row">
-          <div className="stat">
-            <span className="stat-label">Damage</span>
-            <span className="stat-value">{fgStats?.damage ?? "-"}</span>
-          </div>
-          <div className="stat">
-            <span className="stat-label">Health</span>
-            <span className="stat-value">{fgStats?.health ?? "-"}</span>
-          </div>
-        </div>
+        <StatsDisplay stats={card.backgroundStats} label="Background Stats (easily overwritten)" />
+        <StatsDisplay stats={card.foregroundStats} label="Foreground Stats (guaranteed)" />
       </>
     );
   }
 
-  const stats = card.stats;
-  return (
-    <div className="stats-row">
-      <div className="stat">
-        <span className="stat-label">Damage</span>
-        <span className="stat-value">{stats?.damage ?? "-"}</span>
-      </div>
-      <div className="stat">
-        <span className="stat-label">Health</span>
-        <span className="stat-value">{stats?.health ?? "-"}</span>
-      </div>
-    </div>
-  );
+  return <StatsDisplay stats={card.stats} />;
 }
