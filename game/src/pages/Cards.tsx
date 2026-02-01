@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { subscribeToCards } from "../firebase";
+import { CardStatsFallback } from "../components/CardStatsFallback";
 import type { CardDefinition, CardType } from "@sleeved-potential/shared";
 
 type FilterType = "all" | CardType;
@@ -128,7 +129,7 @@ function CardItem({ card, onClick }: CardItemProps) {
       {card.imageUrl ? (
         <img src={card.imageUrl} alt={card.name} className="card-image" />
       ) : (
-        <div className="card-image-placeholder">No Image</div>
+        <CardStatsFallback card={card} />
       )}
       <div className="card-info">
         <span className={`card-type type-${card.type}`}>{card.type}</span>
@@ -156,7 +157,7 @@ function CardDetailModal({ card, onClose }: CardDetailModalProps) {
             {card.imageUrl ? (
               <img src={card.imageUrl} alt={card.name} />
             ) : (
-              <div className="card-image-placeholder large">No Image</div>
+              <CardStatsFallback card={card} className="large" />
             )}
           </div>
           <div className="card-detail-info">

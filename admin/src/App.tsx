@@ -17,6 +17,7 @@ import { CompositeCardViewer } from "./pages/CompositeCardViewer";
 import { ImageList } from "./pages/ImageList";
 import { RulesEditor } from "./pages/RulesEditor";
 import { PlayerList } from "./pages/PlayerList";
+import { Playtest } from "./pages/Playtest";
 import "./App.css";
 
 function App() {
@@ -90,6 +91,7 @@ function App() {
             <Route path="images" element={<ImageList />} />
             <Route path="rules" element={<RulesEditor />} />
             <Route path="players" element={<PlayerList />} />
+            <Route path="playtest" element={<Playtest />} />
           </Route>
         </Routes>
       </BrowserRouter>
