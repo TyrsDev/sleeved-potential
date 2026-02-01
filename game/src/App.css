@@ -581,7 +581,7 @@ body {
 
 .overlay-bottom {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 0.25rem;
 }
 
@@ -593,6 +593,7 @@ body {
   background: rgba(0, 0, 0, 0.65);
   border-radius: 4px;
   padding: 0.25rem;
+  min-height: 2.5rem;
 }
 
 .overlay-stat .stat-value {
@@ -609,6 +610,10 @@ body {
 
 .overlay-stat.damage {
   color: #f87171;
+}
+
+.overlay-stat.initiative {
+  color: #60a5fa;
 }
 
 .overlay-stat.health {

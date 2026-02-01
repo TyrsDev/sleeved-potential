@@ -140,13 +140,9 @@ function CardItem({ card, onClick }: CardItemProps) {
     ? `${stats.modifier.amount > 0 ? "+" : ""}${stats.modifier.amount} ${stats.modifier.type === "damage" ? "dmg" : "hp"}`
     : null;
 
-  const initiativeText =
-    stats?.initiative !== undefined && stats.initiative !== 0
-      ? `${stats.initiative > 0 ? "+" : ""}${stats.initiative} init`
-      : null;
-
   const hasDamage = stats?.damage !== undefined && stats.damage !== 0;
   const hasHealth = stats?.health !== undefined && stats.health !== 0;
+  const hasInit = stats?.initiative !== undefined && stats.initiative !== 0;
 
   return (
     <div className="card-item" onClick={onClick}>
@@ -164,7 +160,6 @@ function CardItem({ card, onClick }: CardItemProps) {
             </div>
             <div className="overlay-middle">
               {modifierText && <div className="overlay-modifier">{modifierText}</div>}
-              {!modifierText && initiativeText && <div className="overlay-initiative">{initiativeText}</div>}
             </div>
             <div className="overlay-bottom">
               <div className="overlay-stat damage">
@@ -172,6 +167,16 @@ function CardItem({ card, onClick }: CardItemProps) {
                   <>
                     <span className="stat-value">{stats!.damage}</span>
                     <span className="stat-label">DMG</span>
+                  </>
+                )}
+              </div>
+              <div className="overlay-stat initiative">
+                {hasInit && (
+                  <>
+                    <span className="stat-value">
+                      {stats!.initiative! > 0 ? "+" : ""}{stats!.initiative}
+                    </span>
+                    <span className="stat-label">INIT</span>
                   </>
                 )}
               </div>

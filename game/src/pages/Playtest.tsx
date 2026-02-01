@@ -86,11 +86,6 @@ function MiniCardDisplay({ card }: { card: CardDefinition }) {
     ? `${stats.modifier.amount > 0 ? "+" : ""}${stats.modifier.amount} ${stats.modifier.type === "damage" ? "dmg" : "hp"}`
     : null;
 
-  const initiativeText =
-    stats?.initiative !== undefined && stats.initiative !== 0
-      ? `${stats.initiative > 0 ? "+" : ""}${stats.initiative} init`
-      : null;
-
   return (
     <div className={`mini-card-display ${typeClass}`}>
       <div className="mini-card-label">{typeLabel}</div>
@@ -105,10 +100,9 @@ function MiniCardDisplay({ card }: { card: CardDefinition }) {
           <div className="mini-card-top">
             {effectText && <div className="mini-card-effect">{effectText}</div>}
           </div>
-          {/* MIDDLE: Modifier or Initiative */}
+          {/* MIDDLE: Modifier */}
           <div className="mini-card-middle">
             {modifierText && <div className="mini-card-modifier">{modifierText}</div>}
-            {!modifierText && initiativeText && <div className="mini-card-initiative">{initiativeText}</div>}
           </div>
           {/* BOTTOM: Combat stats */}
           <div className="mini-card-stats">
