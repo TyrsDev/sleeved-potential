@@ -283,6 +283,27 @@ body {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
+.card-item.card-inactive {
+  opacity: 0.5;
+}
+
+.card-item.card-inactive:hover {
+  opacity: 0.7;
+}
+
+.inactive-badge {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.15rem 0.4rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  background: #ef4444;
+  color: #fff;
+  border-radius: 3px;
+  vertical-align: middle;
+}
+
 .card-image {
   width: 100%;
   aspect-ratio: 2 / 3;

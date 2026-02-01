@@ -1673,3 +1673,543 @@ body {
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+/* =========================
+   GAME VIEW STYLES
+   ========================= */
+
+.game-view {
+  min-height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
+}
+
+.game-view.loading,
+.game-view.error {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+}
+
+/* Game Header */
+.game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: linear-gradient(180deg, #151520, #0a0a0f);
+  border-bottom: 1px solid #2a2a3a;
+}
+
+.game-header-player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 120px;
+}
+
+.game-header-player .player-name {
+  font-size: 0.875rem;
+  color: #888;
+  margin-bottom: 0.25rem;
+}
+
+.game-header-player .player-score {
+  font-size: 2rem;
+  font-weight: bold;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.game-header-player.me .player-name {
+  color: #4ade80;
+}
+
+.game-header-player.opponent .player-name {
+  color: #f87171;
+}
+
+.game-header-center {
+  text-align: center;
+}
+
+.game-header-center .round-info {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #fff;
+}
+
+.game-header-center .points-to-win {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+/* Game Content */
+.game-content {
+  flex: 1;
+  padding: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Card Composer */
+.card-composer {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 900px) {
+  .card-composer {
+    grid-template-columns: 1fr;
+  }
+}
+
+.composer-main {
+  background: #1a1a2a;
+  border-radius: 12px;
+  padding: 1rem;
+  border: 1px solid #2a2a3a;
+}
+
+.composer-stats-preview {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.composer-stats-preview .stat-box,
+.commit-stats .stat-box,
+.combat-card-stats .stat-box {
+  flex: 1;
+  padding: 0.5rem;
+  background: #0a0a0f;
+  border-radius: 6px;
+  text-align: center;
+  border: 1px solid #2a2a3a;
+}
+
+.composer-stats-preview .stat-box .stat-label,
+.commit-stats .stat-box .stat-label,
+.combat-card-stats .stat-box .stat-label {
+  display: block;
+  font-size: 0.65rem;
+  color: #888;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+
+.composer-stats-preview .stat-box .stat-value,
+.commit-stats .stat-box .stat-value,
+.combat-card-stats .stat-box .stat-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.composer-stats-preview .stat-box.damage .stat-value,
+.commit-stats .stat-box.damage .stat-value,
+.combat-card-stats .stat-box.damage .stat-value {
+  color: #f87171;
+}
+
+.composer-stats-preview .stat-box.health .stat-value,
+.commit-stats .stat-box.health .stat-value,
+.combat-card-stats .stat-box.health .stat-value {
+  color: #4ade80;
+}
+
+.composer-stats-preview .stat-box.initiative .stat-value,
+.commit-stats .stat-box.initiative .stat-value,
+.combat-card-stats .stat-box.initiative .stat-value {
+  color: #c084fc;
+}
+
+.composer-effect-preview,
+.composer-modifier-preview,
+.commit-effect,
+.commit-modifier {
+  font-size: 0.8rem;
+  color: #aaa;
+  background: #0a0a0f;
+  padding: 0.5rem;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  border: 1px solid #2a2a3a;
+}
+
+.composer-effect-preview strong,
+.commit-effect strong {
+  color: #93c5fd;
+}
+
+.composer-modifier-preview strong,
+.commit-modifier strong {
+  color: #fcd34d;
+}
+
+.composer-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.composer-actions .btn-primary {
+  flex: 1;
+}
+
+/* Waiting for Opponent */
+.waiting-for-opponent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  padding: 2rem;
+}
+
+.waiting-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #2a2a3a;
+  border-top-color: #6366f1;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.waiting-spinner p {
+  color: #888;
+}
+
+.your-commit {
+  background: #1a1a2a;
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid #2a2a3a;
+  max-width: 400px;
+  width: 100%;
+}
+
+.your-commit h3 {
+  margin: 0 0 1rem;
+  text-align: center;
+  color: #888;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+}
+
+.commit-stats {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.commit-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.commit-card-item {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  padding: 0.25rem 0;
+}
+
+/* Combat Display */
+.combat-display {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 700px) {
+  .combat-display {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+}
+
+.combat-card-preview {
+  background: #1a1a2a;
+  border-radius: 12px;
+  padding: 1rem;
+  border: 1px solid #2a2a3a;
+  width: 250px;
+  text-align: center;
+}
+
+.combat-card-label {
+  font-size: 0.75rem;
+  color: #888;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.combat-card-stack {
+  margin-bottom: 0.5rem;
+}
+
+.combat-card-image {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: 8px;
+  max-height: 150px;
+}
+
+.combat-card-placeholder {
+  aspect-ratio: 2 / 3;
+  max-height: 150px;
+  background: #0a0a0f;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  font-size: 0.75rem;
+}
+
+.combat-card-names {
+  margin-bottom: 0.5rem;
+}
+
+.combat-card-name {
+  font-size: 0.75rem;
+  margin: 0.15rem 0;
+}
+
+.combat-card-name.sleeve {
+  color: #c084fc;
+}
+
+.combat-card-name.animal {
+  color: #86efac;
+}
+
+.combat-card-name.equipment {
+  color: #fcd34d;
+}
+
+.combat-card-stats {
+  display: flex;
+  gap: 0.25rem;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.combat-card-stats .stat-box {
+  padding: 0.25rem 0.5rem;
+  min-width: 50px;
+}
+
+.combat-card-stats .stat-box .stat-value {
+  font-size: 1rem;
+}
+
+.combat-effect,
+.combat-modifier {
+  font-size: 0.7rem;
+  padding: 0.25rem 0.5rem;
+  margin: 0.25rem 0;
+}
+
+.combat-vs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #444;
+}
+
+/* Round Result */
+.round-result {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.round-result h3 {
+  margin-bottom: 1.5rem;
+}
+
+.score-totals {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin: 1.5rem 0;
+  font-size: 1.1rem;
+}
+
+.score-total strong {
+  color: #fff;
+}
+
+.score-separator {
+  color: #444;
+}
+
+.score-target {
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.round-result .btn-large {
+  margin-top: 1.5rem;
+}
+
+/* Game Over Screen */
+.game-over-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 80px);
+  padding: 2rem;
+}
+
+.game-over-content {
+  text-align: center;
+  max-width: 500px;
+}
+
+.game-over-title {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+}
+
+.game-over-title.winner {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.game-over-title.loser {
+  color: #f87171;
+}
+
+.game-over-title.draw {
+  color: #888;
+}
+
+.game-over-subtitle {
+  color: #888;
+  margin-bottom: 2rem;
+}
+
+.game-over-scores {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.score-card {
+  background: #1a1a2a;
+  border-radius: 12px;
+  padding: 1.5rem 2rem;
+  border: 1px solid #2a2a3a;
+  min-width: 120px;
+}
+
+.score-card.winner {
+  border-color: #fbbf24;
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.2);
+}
+
+.score-card .score-label {
+  font-size: 0.75rem;
+  color: #888;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.score-card .score-value {
+  font-size: 3rem;
+  font-weight: bold;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.score-vs {
+  font-size: 1.5rem;
+  color: #444;
+}
+
+.game-over-stats {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.game-over-stats .game-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.game-over-stats .stat-label {
+  font-size: 0.75rem;
+  color: #888;
+  text-transform: uppercase;
+}
+
+.game-over-stats .stat-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #fff;
+}
+
+.game-over-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+}
+
+.game-over-actions .btn {
+  min-width: 200px;
+}
+
+/* Selection count badge */
+.selection-count {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  background: #a855f7;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: bold;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

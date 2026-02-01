@@ -33,6 +33,12 @@ export interface CardDefinition {
   imageUrl: string | null; // Firebase Storage URL
 
   /**
+   * Whether this card is active and can be used in new games.
+   * Inactive cards are excluded from cardSnapshot when games start.
+   */
+  active: boolean;
+
+  /**
    * For sleeves only: stats on the inside of the sleeve
    * These are the "default" stats that get easily overwritten by cards inside
    */
@@ -76,6 +82,7 @@ export interface UpdateCardData {
   foregroundStats?: CardStats;
   stats?: CardStats;
   imageUrl?: string | null;
+  active?: boolean;
 }
 
 /**

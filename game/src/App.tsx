@@ -7,6 +7,7 @@ import { Rules } from "./pages/Rules";
 import { Profile } from "./pages/Profile";
 import { Play } from "./pages/Play";
 import { Playtest } from "./pages/Playtest";
+import { GameView } from "./pages/GameView";
 import "./App.css";
 
 function AuthGate({ children }: { children: React.ReactNode }) {
@@ -65,22 +66,13 @@ function App() {
               <Route path="playtest" element={<Playtest />} />
               <Route path="profile" element={<Profile />} />
               <Route path="play" element={<Play />} />
-              <Route path="game/:gameId" element={<GamePlaceholder />} />
+              <Route path="game/:gameId" element={<GameView />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </AuthGate>
       </BrowserRouter>
     </UserProvider>
-  );
-}
-
-function GamePlaceholder() {
-  return (
-    <div className="game-placeholder">
-      <h2>Game View</h2>
-      <p>Game UI will be implemented in Phase 5.</p>
-    </div>
   );
 }
 

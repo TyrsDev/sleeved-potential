@@ -78,6 +78,8 @@ export const acceptChallenge = onCall<AcceptChallengeInput, Promise<AcceptChalle
 
     cardsSnapshot.docs.forEach((doc) => {
       const card = doc.data() as CardDefinition;
+      // Filter out inactive cards - they are excluded from new games
+      if (card.active === false) return;
       if (card.type === "sleeve") cardSnapshot.sleeves.push(card);
       else if (card.type === "animal") cardSnapshot.animals.push(card);
       else if (card.type === "equipment") cardSnapshot.equipment.push(card);

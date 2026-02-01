@@ -279,6 +279,7 @@ export function CardForm() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [active, setActive] = useState(true);
 
   // Stats for animal/equipment
   const [damage, setDamage] = useState<string>("");
@@ -412,6 +413,7 @@ export function CardForm() {
       setName("");
       setDescription("");
       setImageUrl(null);
+      setActive(true);
       setError(null);
 
       // Reset animal/equipment stats
@@ -478,6 +480,7 @@ export function CardForm() {
         setName(card.name);
         setDescription(card.description);
         setImageUrl(card.imageUrl);
+        setActive(card.active ?? true); // Default to true for existing cards without the field
 
         if (card.type === "sleeve") {
           parseStatsIntoState(card.backgroundStats, {
@@ -732,6 +735,7 @@ export function CardForm() {
           name,
           description,
           imageUrl,
+          active,
         };
 
         if (type === "sleeve") {
@@ -838,6 +842,19 @@ export function CardForm() {
             rows={3}
           />
         </div>
+
+        {!isNew && (
+          <div className="form-group checkbox-group">
+            <label>
+              <input
+                type="checkbox"
+                checked={active}
+                onChange={(e) => setActive(e.target.checked)}
+              />
+              Active (include in new games)
+            </label>
+          </div>
+        )}
 
         {type === "sleeve" ? (
           <>

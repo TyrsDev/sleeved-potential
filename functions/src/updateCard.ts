@@ -62,6 +62,10 @@ export const updateCard = onCall<UpdateCardInput, Promise<UpdateCardOutput>>(
       updateData.imageUrl = updates.imageUrl;
     }
 
+    if (updates.active !== undefined) {
+      updateData.active = updates.active;
+    }
+
     // Handle type-specific stats
     if (existingCard.type === "sleeve") {
       if (updates.backgroundStats !== undefined) {

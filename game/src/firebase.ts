@@ -14,12 +14,16 @@ import type {
   User,
   CardDefinition,
   GameRules,
+  Game,
+  PlayerGameState,
   GetOrCreateUserInput,
   GetOrCreateUserOutput,
   SetUsernameInput,
   SetUsernameOutput,
   JoinGameInput,
   JoinGameOutput,
+  CommitCardInput,
+  CommitCardOutput,
 } from "@sleeved-potential/shared";
 
 const firebaseConfig = {
@@ -119,6 +123,53 @@ export function subscribeToUser(userId: string, callback: (user: User | null) =>
       callback(null);
     }
   });
+}
+
+/**
+ * Subscribe to game document
+ */
+export function subscribeToGame(
+  gameId: string,
+  callback: (game: Game | null) => void
+): () => void {
+  return onSnapshot(doc(db, "games", gameId), (snapshot) => {
+    if (snapshot.exists()) {
+      callback(snapshot.data() as Game);
+    } else {
+      callback(null);
+    }
+  });
+}
+
+/**
+ * Subscribe to player's private state
+ */
+export function subscribeToPlayerState(
+  gameId: string,
+  playerId: string,
+  callback: (state: PlayerGameState | null) => void
+): () => void {
+  return onSnapshot(doc(db, "games", gameId, "playerState", playerId), (snapshot) => {
+    if (snapshot.exists()) {
+      callback(snapshot.data() as PlayerGameState);
+    } else {
+      callback(null);
+    }
+  });
+}
+
+/**
+ * Commit a card for the current round
+ */
+export async function commitCard(
+  gameId: string,
+  sleeveId: string,
+  animalId: string,
+  equipmentIds: string[]
+): Promise<CommitCardOutput> {
+  const fn = httpsCallable<CommitCardInput, CommitCardOutput>(functions, "commitCard");
+  const result = await fn({ gameId, sleeveId, animalId, equipmentIds });
+  return result.data;
 }
 
 export type { FirebaseUser, User };

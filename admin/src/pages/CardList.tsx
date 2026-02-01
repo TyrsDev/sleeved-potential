@@ -83,7 +83,11 @@ export function CardList() {
       ) : (
         <div className="card-grid">
           {filteredCards.map((card) => (
-            <Link key={card.id} to={`/cards/${card.id}`} className="card-item">
+            <Link
+              key={card.id}
+              to={`/cards/${card.id}`}
+              className={`card-item ${card.active === false ? "card-inactive" : ""}`}
+            >
               {card.imageUrl ? (
                 <>
                   <img src={card.imageUrl} alt={card.name} className="card-image" />
@@ -93,7 +97,10 @@ export function CardList() {
                 <CardStatsFallback card={card} />
               )}
               <div className="card-info">
-                <h3>{card.name}</h3>
+                <h3>
+                  {card.name}
+                  {card.active === false && <span className="inactive-badge">Inactive</span>}
+                </h3>
                 <span className={`card-type type-${card.type}`}>{card.type}</span>
                 <p className="card-description">{card.description || "No description"}</p>
                 {card.type === "sleeve" && (

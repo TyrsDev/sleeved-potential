@@ -509,54 +509,266 @@ service firebase.storage {
 
 ---
 
-## Implementation Phases
+## Implementation Status
 
-### Phase 1: Foundation
-1. Update shared types (Card, Game, User, Rules structures)
-2. Update CLAUDE.md with Storage info and function interface convention
-3. Implement `getOrCreateUser` and `setUsername` functions
-4. Create `rules/current` document with defaults
-5. Update security rules (Firestore + Storage)
+### ✅ Phase 1: Foundation - COMPLETE
+### ✅ Phase 2: Admin Panel - COMPLETE
+### ✅ Phase 3: Game Frontend Foundation - COMPLETE
+### ✅ Phase 4: Game Logic (Backend) - COMPLETE
 
-### Phase 2: Admin Panel
-1. React Router setup
-2. Card CRUD UI (list, create, edit, delete by type)
-3. Image upload integration
-4. Rules editor page
-5. Player stats viewer
-
-### Phase 3: Game Frontend Foundation
-1. React Router setup
-2. Card browser component
-3. Rules page (fetches from Firestore)
-4. Profile page with stats
-5. GameContext with Firestore subscriptions
-6. Username setup flow for new users
-
-### Phase 4: Game Logic
-1. Enhance `acceptChallenge` to initialize full game state with snapshots
-2. Implement `commitCard` function with validation
-3. Round resolution logic (combat, effects, scoring from rules)
-4. `challengeByUsername` function
-
-### Phase 5: Game UI
-1. Card composition interface (layered preview)
-2. Commit flow
-3. Combat animations and effects
-4. Round results display
-5. Game end screen
-
-### Phase 6: Polish
-1. Sound effects
-2. Notification system
-3. Guest → account upgrade flow
+**Backend is fully implemented:**
+- `commitCard` - Full validation, stat resolution, auto-triggers round resolution
+- `resolveRound` - Combat with initiative, effects system, scoring, win detection
+- `acceptChallenge` - Full game initialization with snapshots
+- All cleanup, card draws, persistent modifiers working
 
 ---
 
-## Open Questions for Later
+## 🎯 NEXT: Make Game Playable
 
-1. **Soft delete cards?** Should deleted cards be hidden or permanently removed?
-2. **Spectator mode?** Allow watching games?
-3. **Rematch flow?** Quick rematch after game ends?
-4. **Tutorial?** Guided first game?
-5. **Turn timer?** Add optional time limits?
+### Overview
+
+The backend is complete. What's missing to let testers play:
+
+1. **Add `active` field to cards** - Filter inactive cards from game snapshots
+2. **Game View UI** - The frontend interface for playing the game
+
+---
+
+### Part 1: Card Active/Inactive Field
+
+#### 1.1 Update CardDefinition Type
+
+**File:** `shared/src/types/card.ts`
+
+Add `active` field:
+```typescript
+export interface CardDefinition {
+  // ... existing fields
+  active: boolean;  // NEW: Whether card is included in new games
+}
+```
+
+#### 1.2 Update Functions
+
+**File:** `functions/src/createCard.ts`
+- Set `active: true` by default when creating cards
+
+**File:** `functions/src/updateCard.ts`
+- Add `active` to updateable fields
+
+**File:** `functions/src/acceptChallenge.ts`
+- Filter `card.active !== false` when building cardSnapshot
+
+#### 1.3 Update Admin UI
+
+**File:** `admin/src/pages/CardForm.tsx`
+- Add checkbox toggle for active status
+
+**File:** `admin/src/pages/CardList.tsx`
+- Show visual indicator for inactive cards (grayed out or badge)
+- Optional: filter toggle to show/hide inactive
+
+---
+
+### Part 2: Game View UI
+
+#### 2.1 File Structure
+
+Create these new files in `game/src/`:
+
+```
+game/src/
+├── contexts/
+│   └── GameContext.tsx          # Game state and subscriptions
+├── pages/
+│   └── GameView.tsx             # Main game page (replaces placeholder)
+├── components/
+│   └── game/
+│       ├── GameHeader.tsx       # Scores, round, points to win
+│       ├── CardHand.tsx         # Selectable card row (reusable)
+│       ├── CardComposer.tsx     # Card composition UI
+│       ├── ComposedCardPreview.tsx  # Layered card preview
+│       ├── WaitingForOpponent.tsx   # Waiting state
+│       ├── CombatDisplay.tsx    # Combat reveal/animation
+│       ├── RoundResult.tsx      # Round outcome
+│       └── GameOverScreen.tsx   # Final results
+```
+
+#### 2.2 GameContext
+
+**File:** `game/src/contexts/GameContext.tsx`
+
+```typescript
+interface GameContextValue {
+  // Data
+  game: Game | null;
+  playerState: PlayerGameState | null;
+  opponentId: string | null;
+
+  // Loading states
+  loading: boolean;
+  error: string | null;
+
+  // Derived state
+  hasCommitted: boolean;
+  isWaitingForOpponent: boolean;
+  latestRound: RoundResult | null;
+
+  // Card lookups (from game.cardSnapshot)
+  getCard: (cardId: string) => CardDefinition | undefined;
+
+  // Actions
+  commitCard: (sleeveId: string, animalId: string, equipmentIds: string[]) => Promise<void>;
+}
+```
+
+**Subscriptions:**
+- `games/{gameId}` - Game document (scores, rounds, status)
+- `games/{gameId}/playerState/{userId}` - Player's private state (hands, commits)
+
+#### 2.3 GameView Component
+
+**File:** `game/src/pages/GameView.tsx`
+
+Game phases:
+1. `composing` - Player selects sleeve + animal + equipment
+2. `waiting` - Player committed, waiting for opponent
+3. `revealing` - Both committed, showing combat
+4. `result` - Round outcome displayed
+5. Back to `composing` (or `finished` if game over)
+
+```tsx
+function GameView() {
+  const { gameId } = useParams();
+  const [phase, setPhase] = useState<'composing' | 'waiting' | 'revealing' | 'result'>('composing');
+
+  // Watch for new rounds to trigger phase changes
+  useEffect(() => {
+    if (latestRound && latestRound.roundNumber === game.currentRound - 1) {
+      setPhase('revealing');
+      setTimeout(() => setPhase('result'), 3000);
+    }
+  }, [latestRound]);
+
+  if (game.status === 'finished') return <GameOverScreen />;
+
+  return (
+    <div className="game-view">
+      <GameHeader />
+      {phase === 'composing' && <CardComposer onCommit={() => setPhase('waiting')} />}
+      {phase === 'waiting' && <WaitingForOpponent />}
+      {phase === 'revealing' && <CombatDisplay />}
+      {phase === 'result' && <RoundResult onContinue={() => setPhase('composing')} />}
+    </div>
+  );
+}
+```
+
+#### 2.4 CardComposer Component
+
+Main UI for building a card:
+
+- **Sleeve selection** - Row of available sleeves (from `playerState.availableSleeves`)
+- **Animal selection** - Row of animals in hand (from `playerState.animalHand`)
+- **Equipment selection** - Multi-select from hand (from `playerState.equipmentHand`)
+- **Live preview** - Shows composed card with resolved stats
+- **Commit button** - Calls `commitCard` function
+
+Stats preview uses same layering logic as backend (can share via shared package).
+
+#### 2.5 Firebase Integration
+
+**File:** `game/src/firebase.ts`
+
+Add:
+```typescript
+export function subscribeToGame(gameId: string, callback: (game: Game | null) => void) {
+  return onSnapshot(doc(db, "games", gameId), (snapshot) => {
+    callback(snapshot.exists() ? snapshot.data() as Game : null);
+  });
+}
+
+export function subscribeToPlayerState(
+  gameId: string,
+  playerId: string,
+  callback: (state: PlayerGameState | null) => void
+) {
+  return onSnapshot(
+    doc(db, "games", gameId, "playerState", playerId),
+    (snapshot) => callback(snapshot.exists() ? snapshot.data() as PlayerGameState : null)
+  );
+}
+
+export async function commitCard(
+  gameId: string,
+  sleeveId: string,
+  animalId: string,
+  equipmentIds: string[]
+): Promise<CommitCardOutput> {
+  const fn = httpsCallable<CommitCardInput, CommitCardOutput>(functions, "commitCard");
+  const result = await fn({ gameId, sleeveId, animalId, equipmentIds });
+  return result.data;
+}
+```
+
+#### 2.6 Update App.tsx
+
+Replace `GamePlaceholder` with `GameView`:
+```tsx
+import { GameView } from "./pages/GameView";
+// ...
+<Route path="game/:gameId" element={<GameView />} />
+```
+
+---
+
+### Critical Files to Modify
+
+| File | Change |
+|------|--------|
+| `shared/src/types/card.ts` | Add `active: boolean` field |
+| `functions/src/createCard.ts` | Default `active: true` |
+| `functions/src/updateCard.ts` | Allow updating `active` |
+| `functions/src/acceptChallenge.ts` | Filter `active !== false` |
+| `admin/src/pages/CardForm.tsx` | Add active checkbox |
+| `admin/src/pages/CardList.tsx` | Show inactive indicator |
+| `game/src/firebase.ts` | Add game subscriptions + commitCard |
+| `game/src/contexts/GameContext.tsx` | NEW - game state management |
+| `game/src/pages/GameView.tsx` | NEW - main game UI |
+| `game/src/components/game/*.tsx` | NEW - game components |
+| `game/src/App.tsx` | Import GameView |
+
+---
+
+### Verification
+
+**After implementation, test:**
+
+1. **Active/Inactive cards:**
+   - Create a card, mark as inactive in admin
+   - Start new game → inactive card should NOT be in cardSnapshot
+   - Reactivate card → appears in future games
+
+2. **Full game flow:**
+   - Two users (or incognito windows) play against each other
+   - Press "Find Match" on both → game starts
+   - Each selects sleeve + animal + equipment → commits
+   - Both see combat result
+   - Play multiple rounds until someone wins
+   - Verify scores, win detection, stats update
+
+3. **Edge cases:**
+   - Player disconnects mid-game (game persists, can rejoin)
+   - Equipment deck empties (draws fizzle)
+   - All sleeves used (cycle back)
+
+---
+
+## Future Enhancements
+
+1. Spectator mode
+2. Rematch flow
+3. Turn timer
+4. Tutorial
+5. Sound effects

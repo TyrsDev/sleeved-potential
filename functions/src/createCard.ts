@@ -50,6 +50,7 @@ export const createCard = onCall<CreateCardInput, Promise<CreateCardOutput>>(
       name: card.name.trim(),
       description: card.description || "",
       imageUrl: null,
+      active: true,
       createdAt: now,
       updatedAt: now,
     };
