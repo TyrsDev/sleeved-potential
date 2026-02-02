@@ -20,6 +20,13 @@ pnpm dev:game         # Start game frontend dev server (Vite)
 pnpm dev:admin        # Start admin frontend dev server (Vite)
 ```
 
+## Game Design
+
+For detailed game mechanics, card types, combat rules, and implementation status, see:
+**[docs/GAME_DESIGN.md](docs/GAME_DESIGN.md)**
+
+Check this document first when working on game logic or wondering how the game works.
+
 ## CI Pipeline
 
 The CI pipeline runs: `pnpm run ci && pnpm run build`

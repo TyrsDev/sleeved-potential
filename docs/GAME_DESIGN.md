@@ -508,31 +508,46 @@ service firebase.storage {
 
 ## Implementation Status
 
-### ✅ Phase 1: Foundation - COMPLETE
-### ✅ Phase 2: Admin Panel - COMPLETE
-### ✅ Phase 3: Game Frontend Foundation - COMPLETE
-### ✅ Phase 4: Game Logic (Backend) - COMPLETE
-### ✅ Phase 5: Game View UI - COMPLETE
+### Core Game Engine ✅
+- Shared combat logic (`shared/src/combat.ts`)
+- Stat resolution with layering system
+- Special effects system (draw_cards, modify_initiative, add_persistent_modifier)
+- Initiative-based combat resolution
 
-**Game is fully playable:**
+### Card System ✅
+- Three card types: sleeves, animals, equipment
+- Sleeve dual-stats (background/foreground)
+- Card snapshots at game start
+- Active/inactive card filtering
 
-**Backend:**
-- `commitCard` - Full validation, stat resolution, auto-triggers round resolution
-- `resolveRound` - Combat with initiative, effects system, scoring, win detection
-- `acceptChallenge` - Full game initialization with snapshots
-- All cleanup, card draws, persistent modifiers working
+### Backend Functions ✅
+- User management: `getOrCreateUser`, `setUsername`
+- Matchmaking: `joinGame`, `challengePlayer`, `challengeByUsername`
+- Challenge flow: `acceptChallenge`, `declineChallenge`
+- Game play: `commitCard`, `surrenderGame`
+- Admin: card CRUD, image upload, rules management
 
-**Frontend (game/src/):**
-- `GameContext.tsx` - Real-time subscriptions to game + playerState, phase management
-- `GameView.tsx` - Main game page with phase transitions
-- `CardComposer.tsx` - Card selection with live stats preview using shared combat logic
-- `RoundResult.tsx` - Round outcome display with effects triggered
-- `GameOverScreen.tsx` - Victory/defeat/draw screen with stats
-- `Playtest.tsx` - Theorycraft tool for testing card combinations (also in admin)
+### Game Frontend ✅
+- Real-time game state via Firestore subscriptions
+- Card composer with live stats preview
+- Round result display
+- Game over screen
+- Playtest/sandbox mode
 
-**Card Active/Inactive:**
-- `CardDefinition.active` field filters cards from new games
-- Admin UI shows toggle and inactive indicators
+### Admin Frontend ✅
+- Card management with image upload
+- Special effect builder
+- Rules configuration editor
+
+### Known Issues / In Progress ⚠️
+- Round result display timing (first round may not show before redirect)
+- Challenge by username UI incomplete (function exists, UI TODO)
+- Surrender button not wired up in game frontend
+
+### Not Yet Implemented 🔜
+- `attack_again` special effect (postponed)
+- Spectator mode, rematch flow, turn timer
+- Tutorial, leaderboard, chat
 
 ---
 
