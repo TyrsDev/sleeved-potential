@@ -198,6 +198,47 @@ Every complete feature or set of bug fixes should result in a version bump. Use 
 2. Create a changelog entry (draft) in the admin panel describing the changes
 3. Publish the changelog entry when deploying
 
+## Writing Changelogs
+
+Changelogs are managed via the admin panel at `/changelog`. Each entry has:
+
+- **Version**: Semantic version (e.g., `1.1.4`) - must match the `VERSION` in `shared/src/version.ts`
+- **Category**: `feature`, `balance`, `bugfix`, or `other`
+- **Title**: Short descriptive title (e.g., "Stat Attribution & Effect Display")
+- **Summary**: One-line description shown in the changelog list
+- **Details**: Full markdown content with all changes
+
+**Writing Good Changelog Entries:**
+
+1. **Title**: Use action-oriented titles that describe what was added/changed (e.g., "ELO Ratings & Leaderboard", not "Update 1.1.0")
+
+2. **Summary**: Keep it to one sentence that captures the main improvement
+
+3. **Details**: Use markdown formatting:
+   ```markdown
+   New Features:
+   - **Feature Name**: Brief description of what it does
+   - Another feature or improvement
+
+   UI Improvements:
+   - List visual or UX changes
+
+   Bug Fixes:
+   - Describe what was fixed
+   ```
+
+4. **Category Selection**:
+   - `feature`: New functionality, UI improvements, new systems
+   - `balance`: Card stat changes, rule adjustments
+   - `bugfix`: Bug fixes without new features
+   - `other`: Documentation, internal changes
+
+**Workflow:**
+1. Create a draft entry in the admin panel
+2. Review the content and formatting
+3. Click "Publish" to make it visible to players
+4. Published entries cannot be unpublished (only edited or deleted)
+
 ## UI Confirmation Patterns
 
 **IMPORTANT: Never use `window.confirm()`, `window.alert()`, or `window.prompt()` for confirmation dialogs.**
