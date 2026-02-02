@@ -2,8 +2,8 @@ import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase";
-import { formatEffectAction, formatTriggerName } from "@sleeved-potential/shared";
-import type { CardDefinition, CardStats, ResolvedStats } from "@sleeved-potential/shared";
+import { formatEffectAction, formatTriggerName, resolveStats } from "@sleeved-potential/shared";
+import type { CardDefinition, ResolvedStats } from "@sleeved-potential/shared";
 
 /**
  * Composite Card Viewer
@@ -78,67 +78,6 @@ function MiniCardDisplay({ card }: { card: CardDefinition }) {
 interface SelectedEquipment {
   card: CardDefinition;
   order: number;
-}
-
-function mergeStats(base: CardStats, overlay: CardStats): CardStats {
-  const result: CardStats = { ...base };
-  if (overlay.damage !== undefined && overlay.damage !== 0) result.damage = overlay.damage;
-  if (overlay.health !== undefined && overlay.health !== 0) result.health = overlay.health;
-  if (overlay.modifier !== undefined) result.modifier = overlay.modifier;
-  if (overlay.specialEffect !== undefined) result.specialEffect = overlay.specialEffect;
-  if (overlay.initiative !== undefined) result.initiative = overlay.initiative;
-  return result;
-}
-
-function resolveCompositeStats(
-  sleeve: CardDefinition | null,
-  animal: CardDefinition | null,
-  equipment: CardDefinition[]
-): ResolvedStats {
-  let stats: CardStats = {};
-
-  // 1. Sleeve background
-  if (sleeve?.backgroundStats) {
-    stats = mergeStats(stats, sleeve.backgroundStats);
-  }
-
-  // 2. Animal
-  if (animal?.stats) {
-    stats = mergeStats(stats, animal.stats);
-  }
-
-  // 3. Equipment (in order)
-  for (const equip of equipment) {
-    if (equip.stats) {
-      stats = mergeStats(stats, equip.stats);
-    }
-  }
-
-  // 4. Sleeve foreground
-  if (sleeve?.foregroundStats) {
-    stats = mergeStats(stats, sleeve.foregroundStats);
-  }
-
-  // Extract values
-  let damage = stats.damage ?? 0;
-  let health = stats.health ?? 0;
-  const initiative = stats.initiative ?? 0;
-  const modifier = stats.modifier ?? null;
-  const specialEffect = stats.specialEffect ?? null;
-
-  // Apply modifier
-  if (modifier) {
-    if (modifier.type === "damage") damage += modifier.amount;
-    if (modifier.type === "health") health += modifier.amount;
-  }
-
-  return {
-    damage: Math.max(0, damage),
-    health: Math.max(0, health),
-    initiative,
-    modifier,
-    specialEffect,
-  };
 }
 
 /**
@@ -268,8 +207,8 @@ export function CompositeCardViewer() {
   const sortedEquipment = [...selectedEquipment].sort((a, b) => a.order - b.order);
   const equipmentCards = sortedEquipment.map((e) => e.card);
 
-  // Calculate resolved stats
-  const resolvedStats = resolveCompositeStats(selectedSleeve, selectedAnimal, equipmentCards);
+  // Calculate resolved stats using shared function
+  const resolvedStats = resolveStats(selectedSleeve, selectedAnimal, equipmentCards);
 
   if (loading) {
     return <div className="loading">Loading cards...</div>;
