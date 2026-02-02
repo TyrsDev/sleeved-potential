@@ -17,6 +17,7 @@ export function Layout() {
             <NavLink to="/rules">Rules</NavLink>
             <NavLink to="/playtest">Theorycraft</NavLink>
             <NavLink to="/leaderboard">Leaderboard</NavLink>
+            <NavLink to="/changelog">Changelog</NavLink>
             <NavLink to="/profile">Profile</NavLink>
           </nav>
           <div className="user-info">

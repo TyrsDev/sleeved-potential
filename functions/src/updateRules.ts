@@ -6,6 +6,7 @@ import type {
   GameRules,
 } from "@sleeved-potential/shared";
 import { DEFAULT_GAME_RULES } from "@sleeved-potential/shared";
+import { getResponseMeta } from "./utils/apiMeta.js";
 
 export const updateRules = onCall<UpdateRulesInput, Promise<UpdateRulesOutput>>(
   { region: "europe-west1" },
@@ -117,6 +118,9 @@ export const updateRules = onCall<UpdateRulesInput, Promise<UpdateRulesOutput>>(
     // Save the updated rules
     await rulesRef.set(updatedRules);
 
-    return { rules: updatedRules };
+    return {
+      rules: updatedRules,
+      _meta: getResponseMeta(),
+    };
   }
 );

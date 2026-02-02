@@ -2,6 +2,7 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore } from "firebase-admin/firestore";
 import type { Challenge, AcceptChallengeInput, AcceptChallengeOutput } from "@sleeved-potential/shared";
 import { createGameFromChallenge } from "./utils/gameHelpers.js";
+import { getResponseMeta } from "./utils/apiMeta.js";
 
 /**
  * Accept a direct challenge and create a game with full initialization
@@ -58,6 +59,7 @@ export const acceptChallenge = onCall<AcceptChallengeInput, Promise<AcceptChalle
 
     return {
       gameId,
+      _meta: getResponseMeta(),
     };
   }
 );

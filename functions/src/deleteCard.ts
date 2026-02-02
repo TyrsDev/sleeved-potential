@@ -1,6 +1,7 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore } from "firebase-admin/firestore";
 import type { DeleteCardInput, DeleteCardOutput } from "@sleeved-potential/shared";
+import { getResponseMeta } from "./utils/apiMeta.js";
 
 export const deleteCard = onCall<DeleteCardInput, Promise<DeleteCardOutput>>(
   { region: "europe-west1" },
@@ -45,6 +46,9 @@ export const deleteCard = onCall<DeleteCardInput, Promise<DeleteCardOutput>>(
     // Note: We could also delete the card image from Storage here,
     // but for now we'll keep images (soft delete approach)
 
-    return { success: true };
+    return {
+      success: true,
+      _meta: getResponseMeta(),
+    };
   }
 );

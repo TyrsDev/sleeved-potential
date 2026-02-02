@@ -7,6 +7,7 @@ import type {
   SetUsernameOutput,
 } from "@sleeved-potential/shared";
 import { isValidUsername } from "@sleeved-potential/shared";
+import { getResponseMeta } from "./utils/apiMeta.js";
 
 /**
  * Set a unique username for an account user
@@ -100,6 +101,7 @@ export const setUsername = onCall<SetUsernameInput, Promise<SetUsernameOutput>>(
       return {
         success: true,
         username: normalizedUsername,
+        _meta: getResponseMeta(),
       };
     } catch (error) {
       if (error instanceof HttpsError) {

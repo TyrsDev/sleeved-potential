@@ -177,6 +177,25 @@ import { GetOrCreateUserInput, GetOrCreateUserOutput } from "@sleeved-potential/
 - Functions must NOT define their own input/output types inline
 - Use the shared interfaces for both validation and return types
 
+## Versioning
+
+The app version is defined in `shared/src/version.ts` as the `VERSION` constant. This version is included in all API requests/responses and displayed in the changelog.
+
+**When to update the version:**
+
+Every complete feature or set of bug fixes should result in a version bump. Use semantic versioning (Major.Minor.Patch):
+
+- **Patch (X.Y.Z → X.Y.Z+1):** Bug fixes, small adjustments, and minor tweaks that don't add new functionality. Example: fixing a display bug, correcting a typo, adjusting card stats.
+
+- **Minor (X.Y.Z → X.Y+1.0):** New features, helpful additions, and enhancements that don't fundamentally change gameplay. Example: adding the changelog system, new card types, UI improvements, new admin tools.
+
+- **Major (X.Y.Z → X+1.0.0):** Only when the core way the game is played is severely changed. Example: completely reworking the combat system, changing fundamental game rules, overhauling the card composition mechanics.
+
+**Process:**
+1. Update `VERSION` in `shared/src/version.ts`
+2. Create a changelog entry (draft) in the admin panel describing the changes
+3. Publish the changelog entry when deploying
+
 ## Cloud Functions Initialization
 
 **IMPORTANT: Do NOT call Firebase Admin SDK methods at module scope in function files.**

@@ -30,3 +30,9 @@ export { deleteCard } from "./deleteCard.js";
 export { uploadCardImage } from "./uploadCardImage.js";
 export { updateRules } from "./updateRules.js";
 export { listCardImages } from "./listCardImages.js";
+
+// Changelog functions (ADMIN role required)
+export { createChangelog } from "./createChangelog.js";
+export { updateChangelog } from "./updateChangelog.js";
+export { publishChangelog } from "./publishChangelog.js";
+export { deleteChangelog } from "./deleteChangelog.js";

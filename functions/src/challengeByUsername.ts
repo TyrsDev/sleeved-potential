@@ -7,6 +7,7 @@ import type {
   ChallengeByUsernameInput,
   ChallengeByUsernameOutput,
 } from "@sleeved-potential/shared";
+import { getResponseMeta } from "./utils/apiMeta.js";
 
 /**
  * Create a challenge to a player by their username
@@ -132,6 +133,7 @@ export const challengeByUsername = onCall<ChallengeByUsernameInput, Promise<Chal
     return {
       challengeId: challengeRef.id,
       opponentId,
+      _meta: getResponseMeta(),
     };
   }
 );

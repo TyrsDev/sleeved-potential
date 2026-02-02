@@ -5,6 +5,7 @@ import type {
   UploadCardImageInput,
   UploadCardImageOutput,
 } from "@sleeved-potential/shared";
+import { getResponseMeta } from "./utils/apiMeta.js";
 
 export const uploadCardImage = onCall<UploadCardImageInput, Promise<UploadCardImageOutput>>(
   { region: "europe-west1" },
@@ -101,6 +102,9 @@ export const uploadCardImage = onCall<UploadCardImageInput, Promise<UploadCardIm
       updatedAt: new Date().toISOString(),
     });
 
-    return { imageUrl };
+    return {
+      imageUrl,
+      _meta: getResponseMeta(),
+    };
   }
 );

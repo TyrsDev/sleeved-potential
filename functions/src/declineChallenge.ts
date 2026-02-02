@@ -5,6 +5,7 @@ import type {
   DeclineChallengeInput,
   DeclineChallengeOutput,
 } from "@sleeved-potential/shared";
+import { getResponseMeta } from "./utils/apiMeta.js";
 
 /**
  * Decline a challenge
@@ -47,6 +48,7 @@ export const declineChallenge = onCall<DeclineChallengeInput, Promise<DeclineCha
 
     return {
       success: true,
+      _meta: getResponseMeta(),
     };
   }
 );

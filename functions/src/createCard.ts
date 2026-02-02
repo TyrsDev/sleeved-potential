@@ -5,6 +5,7 @@ import type {
   CreateCardOutput,
   CardDefinition,
 } from "@sleeved-potential/shared";
+import { getResponseMeta } from "./utils/apiMeta.js";
 
 export const createCard = onCall<CreateCardInput, Promise<CreateCardOutput>>(
   { region: "europe-west1" },
@@ -72,6 +73,9 @@ export const createCard = onCall<CreateCardInput, Promise<CreateCardOutput>>(
 
     await cardRef.set(cardDefinition);
 
-    return { card: cardDefinition };
+    return {
+      card: cardDefinition,
+      _meta: getResponseMeta(),
+    };
   }
 );

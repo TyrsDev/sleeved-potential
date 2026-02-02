@@ -27,6 +27,8 @@ import type {
   Game,
   PlayerGameState,
   Challenge,
+  ChangelogEntry,
+  ApiMetadata,
   GetOrCreateUserInput,
   GetOrCreateUserOutput,
   SetUsernameInput,
@@ -42,6 +44,7 @@ import type {
   SurrenderGameInput,
   SurrenderGameOutput,
 } from "@sleeved-potential/shared";
+import { VERSION } from "@sleeved-potential/shared";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAbOHF0kJvs51r9_6yhW0GfMWBla0TvGiU",
@@ -58,6 +61,13 @@ export const db = getFirestore(app);
 const functions = getFunctions(app, "europe-west1");
 
 const googleProvider = new GoogleAuthProvider();
+
+/**
+ * Helper to inject client version metadata into API requests
+ */
+function withMeta<T extends object>(input: T): T & { _meta: ApiMetadata } {
+  return { ...input, _meta: { clientVersion: VERSION } };
+}
 
 export async function signInWithGoogle() {
   return signInWithPopup(auth, googleProvider);
@@ -83,7 +93,7 @@ export async function getOrCreateUser(): Promise<GetOrCreateUserOutput> {
     functions,
     "getOrCreateUser"
   );
-  const result = await fn({});
+  const result = await fn(withMeta({}));
   return result.data;
 }
 
@@ -92,7 +102,7 @@ export async function getOrCreateUser(): Promise<GetOrCreateUserOutput> {
  */
 export async function setUsername(username: string): Promise<SetUsernameOutput> {
   const fn = httpsCallable<SetUsernameInput, SetUsernameOutput>(functions, "setUsername");
-  const result = await fn({ username });
+  const result = await fn(withMeta({ username }));
   return result.data;
 }
 
@@ -101,7 +111,7 @@ export async function setUsername(username: string): Promise<SetUsernameOutput> 
  */
 export async function joinGame(): Promise<JoinGameOutput> {
   const fn = httpsCallable<JoinGameInput, JoinGameOutput>(functions, "joinGame");
-  const result = await fn({});
+  const result = await fn(withMeta({}));
   return result.data;
 }
 
@@ -188,7 +198,7 @@ export async function commitCard(
   equipmentIds: string[]
 ): Promise<CommitCardOutput> {
   const fn = httpsCallable<CommitCardInput, CommitCardOutput>(functions, "commitCard");
-  const result = await fn({ gameId, sleeveId, animalId, equipmentIds });
+  const result = await fn(withMeta({ gameId, sleeveId, animalId, equipmentIds }));
   return result.data;
 }
 
@@ -297,7 +307,7 @@ export async function acceptChallenge(challengeId: string): Promise<AcceptChalle
     functions,
     "acceptChallenge"
   );
-  const result = await fn({ challengeId });
+  const result = await fn(withMeta({ challengeId }));
   return result.data;
 }
 
@@ -309,7 +319,7 @@ export async function declineChallenge(challengeId: string): Promise<DeclineChal
     functions,
     "declineChallenge"
   );
-  const result = await fn({ challengeId });
+  const result = await fn(withMeta({ challengeId }));
   return result.data;
 }
 
@@ -318,7 +328,7 @@ export async function declineChallenge(challengeId: string): Promise<DeclineChal
  */
 export async function surrenderGame(gameId: string): Promise<SurrenderGameOutput> {
   const fn = httpsCallable<SurrenderGameInput, SurrenderGameOutput>(functions, "surrenderGame");
-  const result = await fn({ gameId });
+  const result = await fn(withMeta({ gameId }));
   return result.data;
 }
 
@@ -371,6 +381,25 @@ export function subscribeToLeaderboard(
       }
     }
   );
+}
+
+/**
+ * Subscribe to published changelogs (for players to view)
+ * Sorted by version descending
+ */
+export function subscribeToPublishedChangelogs(
+  callback: (entries: ChangelogEntry[]) => void
+): () => void {
+  const changelogsQuery = query(
+    collection(db, "changelogs"),
+    where("status", "==", "published"),
+    orderBy("publishedAt", "desc")
+  );
+
+  return onSnapshot(changelogsQuery, (snapshot) => {
+    const entries = snapshot.docs.map((doc) => doc.data() as ChangelogEntry);
+    callback(entries);
+  });
 }
 
 export type { FirebaseUser, User };

@@ -10,6 +10,7 @@ import {
   generateGuestDisplayName,
   DEFAULT_ELO,
 } from "@sleeved-potential/shared";
+import { getResponseMeta } from "./utils/apiMeta.js";
 
 /**
  * Get or create a user document on login
@@ -51,6 +52,7 @@ export const getOrCreateUser = onCall<GetOrCreateUserInput, Promise<GetOrCreateU
       return {
         user: userData,
         isNewUser: false,
+        _meta: getResponseMeta(),
       };
     }
 
@@ -101,6 +103,7 @@ export const getOrCreateUser = onCall<GetOrCreateUserInput, Promise<GetOrCreateU
     return {
       user: newUser,
       isNewUser: true,
+      _meta: getResponseMeta(),
     };
   }
 );

@@ -5,6 +5,7 @@ import type {
   UpdateCardOutput,
   CardDefinition,
 } from "@sleeved-potential/shared";
+import { getResponseMeta } from "./utils/apiMeta.js";
 
 export const updateCard = onCall<UpdateCardInput, Promise<UpdateCardOutput>>(
   { region: "europe-west1" },
@@ -87,6 +88,9 @@ export const updateCard = onCall<UpdateCardInput, Promise<UpdateCardOutput>>(
     const updatedDoc = await cardRef.get();
     const updatedCard = updatedDoc.data() as CardDefinition;
 
-    return { card: updatedCard };
+    return {
+      card: updatedCard,
+      _meta: getResponseMeta(),
+    };
   }
 );

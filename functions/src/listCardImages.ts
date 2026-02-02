@@ -6,6 +6,7 @@ import type {
   ListCardImagesOutput,
   CardImageInfo,
 } from "@sleeved-potential/shared";
+import { getResponseMeta } from "./utils/apiMeta.js";
 
 export const listCardImages = onCall<ListCardImagesInput, Promise<ListCardImagesOutput>>(
   { region: "europe-west1" },
@@ -71,6 +72,9 @@ export const listCardImages = onCall<ListCardImagesInput, Promise<ListCardImages
     // Sort by updatedAt descending (newest first)
     images.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
 
-    return { images };
+    return {
+      images,
+      _meta: getResponseMeta(),
+    };
   }
 );

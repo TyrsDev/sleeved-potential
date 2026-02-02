@@ -2,6 +2,7 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import type { Game, SurrenderGameInput, SurrenderGameOutput, User } from "@sleeved-potential/shared";
 import { calculateEloChange, DEFAULT_ELO } from "@sleeved-potential/shared";
+import { getResponseMeta } from "./utils/apiMeta.js";
 
 /**
  * Surrender an active game
@@ -100,6 +101,7 @@ export const surrenderGame = onCall<SurrenderGameInput, Promise<SurrenderGameOut
 
     return {
       success: true,
+      _meta: getResponseMeta(),
     };
   }
 );

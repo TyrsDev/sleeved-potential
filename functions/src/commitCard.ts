@@ -14,6 +14,7 @@ import type {
 } from "@sleeved-potential/shared";
 import { resolveStats, findCardOfType, dealCards, shuffleArray, resolveCombat } from "./utils/gameHelpers.js";
 import { calculateEloChange, DEFAULT_ELO } from "@sleeved-potential/shared";
+import { getResponseMeta } from "./utils/apiMeta.js";
 
 /**
  * Commit a composed card for the current round
@@ -149,6 +150,7 @@ export const commitCard = onCall<CommitCardInput, Promise<CommitCardOutput>>(
       success: true,
       commit,
       bothCommitted,
+      _meta: getResponseMeta(),
     };
   }
 );

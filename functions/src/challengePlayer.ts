@@ -6,6 +6,7 @@ import type {
   ChallengePlayerInput,
   ChallengePlayerOutput,
 } from "@sleeved-potential/shared";
+import { getResponseMeta } from "./utils/apiMeta.js";
 
 /**
  * Create a direct challenge to a specific player by user ID
@@ -94,6 +95,7 @@ export const challengePlayer = onCall<ChallengePlayerInput, Promise<ChallengePla
 
     return {
       challengeId: challengeRef.id,
+      _meta: getResponseMeta(),
     };
   }
 );

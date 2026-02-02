@@ -10,6 +10,7 @@ import {
   type CardDefinition,
 } from "@sleeved-potential/shared";
 import { createGameFromChallenge } from "./utils/gameHelpers.js";
+import { getResponseMeta } from "./utils/apiMeta.js";
 
 /**
  * Matchmaking function:
@@ -98,6 +99,7 @@ export const joinGame = onCall<JoinGameInput, Promise<JoinGameOutput>>(
       return {
         type: "matched",
         gameId,
+        _meta: getResponseMeta(),
       };
     }
 
@@ -119,6 +121,7 @@ export const joinGame = onCall<JoinGameInput, Promise<JoinGameOutput>>(
     return {
       type: "waiting",
       challengeId: challengeRef.id,
+      _meta: getResponseMeta(),
     };
   }
 );
