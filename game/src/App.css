@@ -979,6 +979,31 @@ body {
   gap: 1rem;
 }
 
+.stats-grid .stat-card.elo-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.stats-grid .stat-card.elo-card .stat-value {
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.stats-grid .leaderboard-link {
+  margin-top: auto;
+  padding-top: 0.5rem;
+  font-size: 0.8rem;
+  color: #6366f1;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.stats-grid .leaderboard-link:hover {
+  text-decoration: underline;
+}
+
 .account-info {
   background: #1a1a2a;
   border-radius: 12px;
