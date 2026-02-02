@@ -16,6 +16,13 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    /* Path mapping for workspace packages */
+    "baseUrl": ".",
+    "paths": {
+      "@sleeved-potential/shared": ["../shared/src/index.ts"],
+      "@sleeved-potential/shared/*": ["../shared/src/*"]
+    },
+
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
