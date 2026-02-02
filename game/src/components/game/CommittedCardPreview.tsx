@@ -44,6 +44,21 @@ export function CommittedCardPreview({
     <div className={`composed-card-preview ${outcome ? (outcome.survived ? "outcome-survived" : "outcome-destroyed") : ""}`}>
       {label && <div className="composed-card-label">{label}</div>}
 
+      {/* Effect display for round results (shown above card when stats are hidden but outcome is shown) */}
+      {!showStats && outcome && stats.specialEffect && (
+        <div className={`effect-result ${effectTriggered ? "effect-triggered" : "effect-not-triggered"}`}>
+          {effectTriggered ? (
+            <span className="effect-icon triggered">✓</span>
+          ) : (
+            <span className="effect-icon not-triggered">✗</span>
+          )}
+          <span className="effect-text">
+            {formatTriggerName(stats.specialEffect.trigger)}:{" "}
+            {formatEffectAction(stats.specialEffect)}
+          </span>
+        </div>
+      )}
+
       <div className="composed-card-frame">
         <div className="composed-card-layers">
           {/* Sleeve layer (background) */}

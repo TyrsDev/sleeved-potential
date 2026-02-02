@@ -153,7 +153,7 @@ export interface CreateGameData {
 /**
  * Layer type in the card composition stack
  */
-export type LayerType = "sleeve_bg" | "animal" | "equipment" | "sleeve_fg";
+export type LayerType = "sleeve_bg" | "animal" | "equipment" | "sleeve_fg" | "persistent" | "initiative_mod";
 
 /**
  * Information about what stats a single layer contributes
@@ -167,6 +167,10 @@ export interface StatLayerInfo {
   initiative?: number;
   modifier?: Modifier;
   specialEffect?: SpecialEffect;
+  /** If true, this layer adds to stats instead of overwriting (persistent modifiers) */
+  isAdditive?: boolean;
+  /** Source round for persistent modifiers */
+  sourceRound?: number;
 }
 
 /**

@@ -169,11 +169,15 @@ export function resolveStats(
  * 2. Animal stats
  * 3. Equipment stats (in array order)
  * 4. Sleeve foreground stats (FG row)
+ * 5. Persistent modifiers (additive bonuses from previous rounds)
+ * 6. Initiative modifier (from special effects)
  */
 export function getStatAttribution(
   sleeve: CardDefinition | null,
   animal: CardDefinition | null,
-  equipment: CardDefinition[]
+  equipment: CardDefinition[],
+  persistentModifiers: PersistentModifier[] = [],
+  initiativeModifier: number = 0
 ): StatAttribution {
   const layers: StatLayerInfo[] = [];
 
@@ -282,6 +286,35 @@ export function getStatAttribution(
     if (fgStats.initiative !== undefined) activeLayer.initiative = sleeveFgId;
     if (fgStats.modifier !== undefined) activeLayer.modifier = sleeveFgId;
     if (fgStats.specialEffect !== undefined) activeLayer.specialEffect = sleeveFgId;
+  }
+
+  // 5. Persistent modifiers (additive bonuses from previous rounds)
+  for (const mod of persistentModifiers) {
+    const modId = `persistent_${mod.sourceRound}_${mod.stat}`;
+    const layer: StatLayerInfo = {
+      layerType: "persistent",
+      cardId: modId,
+      cardName: `Round ${mod.sourceRound}`,
+      damage: mod.stat === "damage" ? mod.amount : undefined,
+      health: mod.stat === "health" ? mod.amount : undefined,
+      isAdditive: true,
+      sourceRound: mod.sourceRound,
+    };
+    layers.push(layer);
+    // Persistent modifiers are additive, they don't "win" over base stats
+  }
+
+  // 6. Initiative modifier (from special effects, applies to next round)
+  if (initiativeModifier !== 0) {
+    const initModId = "initiative_modifier";
+    const layer: StatLayerInfo = {
+      layerType: "initiative_mod",
+      cardId: initModId,
+      cardName: "Initiative Bonus",
+      initiative: initiativeModifier,
+      isAdditive: true,
+    };
+    layers.push(layer);
   }
 
   return { layers, activeLayer };

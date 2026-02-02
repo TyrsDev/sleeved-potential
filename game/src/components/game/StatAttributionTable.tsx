@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { getStatAttribution } from "@sleeved-potential/shared";
-import type { CardDefinition, StatLayerInfo } from "@sleeved-potential/shared";
+import type { CardDefinition, StatLayerInfo, PersistentModifier } from "@sleeved-potential/shared";
 
 interface SelectedEquipment {
   card: CardDefinition;
@@ -11,6 +11,8 @@ interface StatAttributionTableProps {
   sleeve: CardDefinition | null;
   animal: CardDefinition | null;
   equipment: SelectedEquipment[];
+  persistentModifiers?: PersistentModifier[];
+  initiativeModifier?: number;
   onRemoveSleeve?: () => void;
   onRemoveAnimal?: () => void;
   onRemoveEquipment?: (order: number) => void;
@@ -58,6 +60,8 @@ export function StatAttributionTable({
   sleeve,
   animal,
   equipment,
+  persistentModifiers = [],
+  initiativeModifier = 0,
   onRemoveSleeve,
   onRemoveAnimal,
   onRemoveEquipment,
@@ -71,8 +75,8 @@ export function StatAttributionTable({
 
   // Get stat attribution
   const attribution = useMemo(
-    () => getStatAttribution(sleeve, animal, equipmentCards),
-    [sleeve, animal, equipmentCards]
+    () => getStatAttribution(sleeve, animal, equipmentCards, persistentModifiers, initiativeModifier),
+    [sleeve, animal, equipmentCards, persistentModifiers, initiativeModifier]
   );
 
   // Build a map from equipment cardId to order for remove button
@@ -111,6 +115,17 @@ export function StatAttributionTable({
     if (value === undefined || (stat !== "initiative" && value === 0)) {
       return <td className="stat-cell empty">&mdash;</td>;
     }
+
+    // Additive layers (persistent modifiers) are always shown as active with + prefix
+    if (layer.isAdditive) {
+      const displayValue = `${value >= 0 ? "+" : ""}${value}`;
+      return (
+        <td className={`stat-cell ${stat} active additive`}>
+          {displayValue}
+        </td>
+      );
+    }
+
     const active = isActive(layer, stat);
     const displayValue = stat === "initiative"
       ? `${value >= 0 ? "+" : ""}${value}`

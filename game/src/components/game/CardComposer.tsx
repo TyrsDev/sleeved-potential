@@ -272,6 +272,8 @@ export function CardComposer() {
           sleeve={selectedSleeve}
           animal={selectedAnimal}
           equipment={selectedEquipment}
+          persistentModifiers={playerState?.persistentModifiers}
+          initiativeModifier={playerState?.initiativeModifier}
           onRemoveSleeve={() => handleSleeveSelect(null)}
           onRemoveAnimal={() => handleAnimalSelect(null)}
           onRemoveEquipment={handleEquipmentRemove}
