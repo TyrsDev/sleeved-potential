@@ -1,6 +1,7 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
-import type { Game, SurrenderGameInput, SurrenderGameOutput } from "@sleeved-potential/shared";
+import type { Game, SurrenderGameInput, SurrenderGameOutput, User } from "@sleeved-potential/shared";
+import { calculateEloChange, DEFAULT_ELO } from "@sleeved-potential/shared";
 
 /**
  * Surrender an active game
@@ -50,28 +51,49 @@ export const surrenderGame = onCall<SurrenderGameInput, Promise<SurrenderGameOut
     const loserId = userId;
     const now = new Date().toISOString();
 
+    // Fetch user data for ELO calculation
+    const winnerRef = db.collection("users").doc(winnerId);
+    const loserRef = db.collection("users").doc(loserId);
+    const [winnerDoc, loserDoc] = await Promise.all([winnerRef.get(), loserRef.get()]);
+    const winnerData = winnerDoc.data() as User;
+    const loserData = loserDoc.data() as User;
+
+    // Get current ELO (default to 1500 for users without ELO)
+    const winnerElo = winnerData.stats.elo ?? DEFAULT_ELO;
+    const loserElo = loserData.stats.elo ?? DEFAULT_ELO;
+
+    // Calculate ELO changes
+    const winnerEloResult = calculateEloChange(winnerElo, loserElo, winnerData.stats.gamesPlayed, "win");
+    const loserEloResult = calculateEloChange(loserElo, winnerElo, loserData.stats.gamesPlayed, "loss");
+
     // Update game and user stats in a batch
     const batch = db.batch();
 
-    // Update game document
+    // Update game document with ELO changes
     batch.update(gameRef, {
       status: "finished",
       winner: winnerId,
       isDraw: false,
       endedAt: now,
       endReason: "surrender",
+      eloChanges: {
+        [winnerId]: { previousElo: winnerElo, newElo: winnerEloResult.newElo, change: winnerEloResult.eloChange },
+        [loserId]: { previousElo: loserElo, newElo: loserEloResult.newElo, change: loserEloResult.eloChange },
+      },
     });
 
     // Update winner stats
-    batch.update(db.collection("users").doc(winnerId), {
+    batch.update(winnerRef, {
       "stats.gamesPlayed": FieldValue.increment(1),
       "stats.wins": FieldValue.increment(1),
+      "stats.elo": winnerEloResult.newElo,
     });
 
     // Update loser (surrendering player) stats
-    batch.update(db.collection("users").doc(loserId), {
+    batch.update(loserRef, {
       "stats.gamesPlayed": FieldValue.increment(1),
       "stats.losses": FieldValue.increment(1),
+      "stats.elo": loserEloResult.newElo,
     });
 
     await batch.commit();

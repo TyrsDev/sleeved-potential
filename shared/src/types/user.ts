@@ -11,6 +11,7 @@ export interface UserStats {
   wins: number;
   losses: number;
   draws: number;
+  elo: number; // ELO rating, default 1500
 }
 
 /**

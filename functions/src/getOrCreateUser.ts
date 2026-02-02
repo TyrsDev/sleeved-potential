@@ -8,6 +8,7 @@ import type {
 import {
   generateGuestUsername,
   generateGuestDisplayName,
+  DEFAULT_ELO,
 } from "@sleeved-potential/shared";
 
 /**
@@ -36,6 +37,17 @@ export const getOrCreateUser = onCall<GetOrCreateUserInput, Promise<GetOrCreateU
     if (userDoc.exists) {
       // User exists, return it
       const userData = userDoc.data() as User;
+
+      // Migration: if user doesn't have elo field, initialize it
+      if (userData.stats.elo === undefined) {
+        const updatedStats = {
+          ...userData.stats,
+          elo: DEFAULT_ELO,
+        };
+        await userRef.update({ stats: updatedStats });
+        userData.stats = updatedStats;
+      }
+
       return {
         user: userData,
         isNewUser: false,
@@ -78,6 +90,7 @@ export const getOrCreateUser = onCall<GetOrCreateUserInput, Promise<GetOrCreateU
         wins: 0,
         losses: 0,
         draws: 0,
+        elo: DEFAULT_ELO,
       },
       createdAt: now,
       updatedAt: now,

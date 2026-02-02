@@ -17,6 +17,7 @@ import {
   orderBy,
   where,
   limit,
+  getDocs,
 } from "firebase/firestore";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import type {
@@ -319,6 +320,57 @@ export async function surrenderGame(gameId: string): Promise<SurrenderGameOutput
   const fn = httpsCallable<SurrenderGameInput, SurrenderGameOutput>(functions, "surrenderGame");
   const result = await fn({ gameId });
   return result.data;
+}
+
+/**
+ * Fetch leaderboard - top players by ELO
+ * Only includes non-guest accounts with 5+ games played
+ */
+export async function fetchLeaderboard(maxResults: number = 100): Promise<User[]> {
+  const leaderboardQuery = query(
+    collection(db, "users"),
+    where("isGuest", "==", false),
+    where("stats.gamesPlayed", ">=", 5),
+    orderBy("stats.gamesPlayed"),  // Required for the inequality filter
+    orderBy("stats.elo", "desc"),
+    limit(maxResults)
+  );
+
+  const snapshot = await getDocs(leaderboardQuery);
+  return snapshot.docs.map((doc) => doc.data() as User);
+}
+
+/**
+ * Subscribe to leaderboard updates (real-time)
+ * Only includes non-guest accounts with 5+ games played
+ */
+export function subscribeToLeaderboard(
+  callback: (users: User[]) => void,
+  onError?: (error: Error) => void,
+  maxResults: number = 100
+): () => void {
+  const leaderboardQuery = query(
+    collection(db, "users"),
+    where("isGuest", "==", false),
+    where("stats.gamesPlayed", ">=", 5),
+    orderBy("stats.gamesPlayed"),  // Required for the inequality filter
+    orderBy("stats.elo", "desc"),
+    limit(maxResults)
+  );
+
+  return onSnapshot(
+    leaderboardQuery,
+    (snapshot) => {
+      const users = snapshot.docs.map((doc) => doc.data() as User);
+      callback(users);
+    },
+    (error) => {
+      console.error("Leaderboard subscription error:", error);
+      if (onError) {
+        onError(error);
+      }
+    }
+  );
 }
 
 export type { FirebaseUser, User };

@@ -65,6 +65,15 @@ export interface CardSnapshot {
 }
 
 /**
+ * ELO change record for a player
+ */
+export interface EloChange {
+  previousElo: number;
+  newElo: number;
+  change: number;
+}
+
+/**
  * Game document stored in Firestore games/{gameId}
  */
 export interface Game {
@@ -86,6 +95,9 @@ export interface Game {
 
   // Round history
   rounds: RoundResult[];
+
+  // ELO changes (only present for ranked games that have ended)
+  eloChanges?: Record<string, EloChange>; // playerId -> ELO change
 
   createdAt: string; // ISO 8601
   startedAt: string; // ISO 8601

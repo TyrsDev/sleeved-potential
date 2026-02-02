@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useUser } from "../contexts/UserContext";
 import { setUsername as setUsernameApi } from "../firebase";
+import { DEFAULT_ELO } from "@sleeved-potential/shared";
 
 export function Profile() {
   const { user, firebaseUser, refreshUser, signInWithGoogle } = useUser();
@@ -130,6 +132,13 @@ export function Profile() {
       <div className="stats-section">
         <h3>Statistics</h3>
         <div className="stats-grid">
+          <div className="stat-card elo-card">
+            <h4>Rating</h4>
+            <p className="stat-value elo-value">{user.stats.elo ?? DEFAULT_ELO}</p>
+            <Link to="/leaderboard" className="leaderboard-link">
+              View Leaderboard
+            </Link>
+          </div>
           <div className="stat-card">
             <h4>Games Played</h4>
             <p className="stat-value">{user.stats.gamesPlayed}</p>

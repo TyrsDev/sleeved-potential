@@ -10,8 +10,10 @@ import type {
   TriggeredEffect,
   PersistentModifier,
   CardDefinition,
+  User,
 } from "@sleeved-potential/shared";
 import { resolveStats, findCardOfType, dealCards, shuffleArray, resolveCombat } from "./utils/gameHelpers.js";
+import { calculateEloChange, DEFAULT_ELO } from "@sleeved-potential/shared";
 
 /**
  * Commit a composed card for the current round
@@ -374,8 +376,8 @@ async function resolveRound(
   // Execute all updates in a batch
   const batch = db.batch();
 
-  // Update game document
-  batch.update(gameRef, {
+  // Prepare game update data
+  const gameUpdateData: Record<string, unknown> = {
     currentRound: game.currentRound + 1,
     scores: newScores,
     winner,
@@ -386,40 +388,82 @@ async function resolveRound(
     animalDeck,
     animalDiscard,
     rounds: FieldValue.arrayUnion(roundResult),
-  });
+  };
 
-  // Update player states
-  batch.update(player1StateRef, p1Cleanup);
-  batch.update(player2StateRef, p2Cleanup);
-
-  // Update user stats if game ended
+  // Update user stats and ELO if game ended
   if (status === "finished") {
     const user1Ref = db.collection("users").doc(player1Id);
     const user2Ref = db.collection("users").doc(player2Id);
 
+    // Fetch current user data for ELO calculation
+    const [user1Doc, user2Doc] = await Promise.all([user1Ref.get(), user2Ref.get()]);
+    const user1 = user1Doc.data() as User;
+    const user2 = user2Doc.data() as User;
+
+    // Get current ELO (default to 1500 for users without ELO)
+    const user1Elo = user1.stats.elo ?? DEFAULT_ELO;
+    const user2Elo = user2.stats.elo ?? DEFAULT_ELO;
+    const user1GamesPlayed = user1.stats.gamesPlayed;
+    const user2GamesPlayed = user2.stats.gamesPlayed;
+
     if (isDraw) {
+      // Calculate ELO for draw
+      const user1EloResult = calculateEloChange(user1Elo, user2Elo, user1GamesPlayed, "draw");
+      const user2EloResult = calculateEloChange(user2Elo, user1Elo, user2GamesPlayed, "draw");
+
+      // Store ELO changes in game document
+      gameUpdateData.eloChanges = {
+        [player1Id]: { previousElo: user1Elo, newElo: user1EloResult.newElo, change: user1EloResult.eloChange },
+        [player2Id]: { previousElo: user2Elo, newElo: user2EloResult.newElo, change: user2EloResult.eloChange },
+      };
+
       batch.update(user1Ref, {
         "stats.gamesPlayed": FieldValue.increment(1),
         "stats.draws": FieldValue.increment(1),
+        "stats.elo": user1EloResult.newElo,
       });
       batch.update(user2Ref, {
         "stats.gamesPlayed": FieldValue.increment(1),
         "stats.draws": FieldValue.increment(1),
+        "stats.elo": user2EloResult.newElo,
       });
     } else {
       const winnerId = winner!;
       const loserId = winnerId === player1Id ? player2Id : player1Id;
+      const winnerElo = winnerId === player1Id ? user1Elo : user2Elo;
+      const loserElo = winnerId === player1Id ? user2Elo : user1Elo;
+      const winnerGamesPlayed = winnerId === player1Id ? user1GamesPlayed : user2GamesPlayed;
+      const loserGamesPlayed = winnerId === player1Id ? user2GamesPlayed : user1GamesPlayed;
+
+      // Calculate ELO changes
+      const winnerEloResult = calculateEloChange(winnerElo, loserElo, winnerGamesPlayed, "win");
+      const loserEloResult = calculateEloChange(loserElo, winnerElo, loserGamesPlayed, "loss");
+
+      // Store ELO changes in game document
+      gameUpdateData.eloChanges = {
+        [winnerId]: { previousElo: winnerElo, newElo: winnerEloResult.newElo, change: winnerEloResult.eloChange },
+        [loserId]: { previousElo: loserElo, newElo: loserEloResult.newElo, change: loserEloResult.eloChange },
+      };
 
       batch.update(db.collection("users").doc(winnerId), {
         "stats.gamesPlayed": FieldValue.increment(1),
         "stats.wins": FieldValue.increment(1),
+        "stats.elo": winnerEloResult.newElo,
       });
       batch.update(db.collection("users").doc(loserId), {
         "stats.gamesPlayed": FieldValue.increment(1),
         "stats.losses": FieldValue.increment(1),
+        "stats.elo": loserEloResult.newElo,
       });
     }
   }
+
+  // Update game document
+  batch.update(gameRef, gameUpdateData);
+
+  // Update player states
+  batch.update(player1StateRef, p1Cleanup);
+  batch.update(player2StateRef, p2Cleanup);
 
   await batch.commit();
 }

@@ -25,6 +25,9 @@ export function GameOverScreen() {
     ? Math.round((endTime.getTime() - startTime.getTime()) / 1000 / 60)
     : null;
 
+  // Get ELO change from game data (if available)
+  const myEloChange = userId && game?.eloChanges?.[userId];
+
   return (
     <div className="game-over-screen">
       <div className="game-over-content">
@@ -73,6 +76,20 @@ export function GameOverScreen() {
             </div>
           )}
         </div>
+
+        {myEloChange && (
+          <div className="elo-change-section">
+            <div className="elo-display">
+              <span className="elo-label">Rating</span>
+              <span className="elo-previous">{myEloChange.previousElo}</span>
+              <span className="elo-arrow">→</span>
+              <span className="elo-new">{myEloChange.newElo}</span>
+              <span className={`elo-change ${myEloChange.change >= 0 ? "positive" : "negative"}`}>
+                ({myEloChange.change >= 0 ? "+" : ""}{myEloChange.change})
+              </span>
+            </div>
+          </div>
+        )}
 
         <div className="game-over-actions">
           <Link to="/play" className="btn btn-primary btn-large">
