@@ -7,6 +7,7 @@ import {
 } from "@sleeved-potential/shared";
 import type { CardDefinition, CardStats, ResolvedStats } from "@sleeved-potential/shared";
 import { ComposedCardPreview } from "./ComposedCardPreview";
+import { StatAttributionTable } from "./StatAttributionTable";
 
 interface SelectedEquipment {
   card: CardDefinition;
@@ -266,44 +267,15 @@ export function CardComposer() {
           </div>
         )}
 
-        {/* Selected cards list */}
-        <div className="selected-cards-list">
-          <div className="selected-card-item">
-            <span className="card-type-label sleeve">Sleeve:</span>
-            {selectedSleeve ? (
-              <>
-                <span>{selectedSleeve.name}</span>
-                <button onClick={() => handleSleeveSelect(null)} className="remove-btn">
-                  &times;
-                </button>
-              </>
-            ) : (
-              <span className="not-selected">Not selected</span>
-            )}
-          </div>
-          <div className="selected-card-item">
-            <span className="card-type-label animal">Animal:</span>
-            {selectedAnimal ? (
-              <>
-                <span>{selectedAnimal.name}</span>
-                <button onClick={() => handleAnimalSelect(null)} className="remove-btn">
-                  &times;
-                </button>
-              </>
-            ) : (
-              <span className="not-selected">Not selected</span>
-            )}
-          </div>
-          {sortedEquipment.map((e, i) => (
-            <div key={e.order} className="selected-card-item">
-              <span className="card-type-label equipment">Equip {i + 1}:</span>
-              <span>{e.card.name}</span>
-              <button onClick={() => handleEquipmentRemove(e.order)} className="remove-btn">
-                &times;
-              </button>
-            </div>
-          ))}
-        </div>
+        {/* Stat Attribution Table */}
+        <StatAttributionTable
+          sleeve={selectedSleeve}
+          animal={selectedAnimal}
+          equipment={selectedEquipment}
+          onRemoveSleeve={() => handleSleeveSelect(null)}
+          onRemoveAnimal={() => handleAnimalSelect(null)}
+          onRemoveEquipment={handleEquipmentRemove}
+        />
 
         {/* Action buttons */}
         <div className="composer-actions">

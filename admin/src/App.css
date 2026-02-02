@@ -2442,3 +2442,162 @@ legend {
   padding-top: 0.75rem;
   border-top: 1px solid #333;
 }
+
+/* =========================
+   STAT ATTRIBUTION TABLE
+   ========================= */
+
+.stat-attribution-section {
+  background: #2a2a2a;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.stat-attribution-section h4 {
+  margin: 0 0 0.75rem;
+  font-size: 0.875rem;
+  color: #888;
+}
+
+.stat-attribution-table-container {
+  background: #1a1a1a;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.stat-attribution-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.stat-attribution-table th {
+  text-align: left;
+  padding: 0.5rem;
+  background: #222;
+  color: #666;
+  font-weight: 500;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #333;
+}
+
+.stat-attribution-table td {
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid #222;
+}
+
+.stat-attribution-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.stat-attribution-table .stat-cell {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stat-attribution-table .stat-cell.layer-name {
+  font-weight: 500;
+  color: #ccc;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stat-attribution-table .stat-cell.empty {
+  color: #555;
+}
+
+.stat-attribution-table .stat-cell.active {
+  font-weight: 600;
+}
+
+.stat-attribution-table .stat-cell.overwritten {
+  text-decoration: line-through;
+  opacity: 0.5;
+}
+
+.stat-attribution-table .stat-cell.damage.active {
+  color: #f66;
+}
+
+.stat-attribution-table .stat-cell.health.active {
+  color: #6f6;
+}
+
+.stat-attribution-table .stat-cell.initiative.active {
+  color: #c8f;
+}
+
+.stat-attribution-table .stat-cell.effect.active {
+  color: #8cf;
+}
+
+.stat-attribution-table .stat-cell.modifier.active {
+  color: #fc8;
+}
+
+.stat-attribution-table .stat-cell.remove {
+  width: 1.5rem;
+  text-align: center;
+  padding: 0.25rem;
+}
+
+/* Layer type row colors */
+.stat-attribution-table .layer-row.layer-sleeve_bg .layer-name,
+.stat-attribution-table .layer-row.layer-sleeve_fg .layer-name {
+  color: #9966cc;
+}
+
+.stat-attribution-table .layer-row.layer-animal .layer-name {
+  color: #339966;
+}
+
+.stat-attribution-table .layer-row.layer-equipment .layer-name {
+  color: #996633;
+}
+
+.stat-attribution-table .layer-row.layer-sleeve_fg {
+  background: rgba(153, 102, 204, 0.05);
+}
+
+.stat-attribution-table .col-layer {
+  width: 28%;
+}
+
+.stat-attribution-table .col-effect {
+  width: 22%;
+}
+
+.stat-attribution-table .col-modifier {
+  width: 14%;
+}
+
+.stat-attribution-table .col-damage,
+.stat-attribution-table .col-health,
+.stat-attribution-table .col-init {
+  width: 9%;
+  text-align: center;
+}
+
+.stat-attribution-table td.damage,
+.stat-attribution-table td.health,
+.stat-attribution-table td.initiative {
+  text-align: center;
+}
+
+.stat-attribution-table .col-remove {
+  width: 2rem;
+}
+
+.stat-attribution-empty {
+  padding: 1rem;
+  text-align: center;
+  color: #666;
+  font-size: 0.85rem;
+  font-style: italic;
+  background: #1a1a1a;
+  border-radius: 4px;
+}

@@ -15,6 +15,8 @@ import type {
   TriggeredEffect,
   PersistentModifier,
   SpecialEffectTrigger,
+  StatAttribution,
+  StatLayerInfo,
 } from "./types/index.js";
 
 // ============================================================================
@@ -154,6 +156,135 @@ export function resolveStats(
     modifier,
     specialEffect,
   };
+}
+
+/**
+ * Get stat attribution information for a card composition
+ *
+ * Returns which layer contributes which stats and which layer "wins" for each stat.
+ * Used for UI display to show overwritten vs active values.
+ *
+ * Layering order (bottom to top):
+ * 1. Sleeve background stats (BG row)
+ * 2. Animal stats
+ * 3. Equipment stats (in array order)
+ * 4. Sleeve foreground stats (FG row)
+ */
+export function getStatAttribution(
+  sleeve: CardDefinition | null,
+  animal: CardDefinition | null,
+  equipment: CardDefinition[]
+): StatAttribution {
+  const layers: StatLayerInfo[] = [];
+
+  // Track which layer "wins" for each stat (last non-zero/non-undefined value)
+  const activeLayer = {
+    damage: null as string | null,
+    health: null as string | null,
+    initiative: null as string | null,
+    modifier: null as string | null,
+    specialEffect: null as string | null,
+  };
+
+  // Helper to create a unique ID for sleeve bg/fg layers
+  const sleeveBgId = sleeve ? `${sleeve.id}_bg` : null;
+  const sleeveFgId = sleeve ? `${sleeve.id}_fg` : null;
+
+  // 1. Sleeve background stats
+  if (sleeve?.backgroundStats) {
+    const bgStats = sleeve.backgroundStats;
+    const layer: StatLayerInfo = {
+      layerType: "sleeve_bg",
+      cardId: sleeveBgId!,
+      cardName: `${sleeve.name} (BG)`,
+      damage: bgStats.damage,
+      health: bgStats.health,
+      initiative: bgStats.initiative,
+      modifier: bgStats.modifier,
+      specialEffect: bgStats.specialEffect,
+    };
+    layers.push(layer);
+
+    // Update active layer tracking
+    if (bgStats.damage !== undefined && bgStats.damage !== 0) activeLayer.damage = sleeveBgId;
+    if (bgStats.health !== undefined && bgStats.health !== 0) activeLayer.health = sleeveBgId;
+    if (bgStats.initiative !== undefined) activeLayer.initiative = sleeveBgId;
+    if (bgStats.modifier !== undefined) activeLayer.modifier = sleeveBgId;
+    if (bgStats.specialEffect !== undefined) activeLayer.specialEffect = sleeveBgId;
+  }
+
+  // 2. Animal stats
+  if (animal?.stats) {
+    const animalStats = animal.stats;
+    const layer: StatLayerInfo = {
+      layerType: "animal",
+      cardId: animal.id,
+      cardName: animal.name,
+      damage: animalStats.damage,
+      health: animalStats.health,
+      initiative: animalStats.initiative,
+      modifier: animalStats.modifier,
+      specialEffect: animalStats.specialEffect,
+    };
+    layers.push(layer);
+
+    // Update active layer tracking
+    if (animalStats.damage !== undefined && animalStats.damage !== 0) activeLayer.damage = animal.id;
+    if (animalStats.health !== undefined && animalStats.health !== 0) activeLayer.health = animal.id;
+    if (animalStats.initiative !== undefined) activeLayer.initiative = animal.id;
+    if (animalStats.modifier !== undefined) activeLayer.modifier = animal.id;
+    if (animalStats.specialEffect !== undefined) activeLayer.specialEffect = animal.id;
+  }
+
+  // 3. Equipment stats (in stacking order)
+  for (const equip of equipment) {
+    if (equip.stats) {
+      const equipStats = equip.stats;
+      const layer: StatLayerInfo = {
+        layerType: "equipment",
+        cardId: equip.id,
+        cardName: equip.name,
+        damage: equipStats.damage,
+        health: equipStats.health,
+        initiative: equipStats.initiative,
+        modifier: equipStats.modifier,
+        specialEffect: equipStats.specialEffect,
+      };
+      layers.push(layer);
+
+      // Update active layer tracking
+      if (equipStats.damage !== undefined && equipStats.damage !== 0) activeLayer.damage = equip.id;
+      if (equipStats.health !== undefined && equipStats.health !== 0) activeLayer.health = equip.id;
+      if (equipStats.initiative !== undefined) activeLayer.initiative = equip.id;
+      if (equipStats.modifier !== undefined) activeLayer.modifier = equip.id;
+      if (equipStats.specialEffect !== undefined) activeLayer.specialEffect = equip.id;
+    }
+  }
+
+  // 4. Sleeve foreground stats (guaranteed to overwrite)
+  if (sleeve?.foregroundStats) {
+    const fgStats = sleeve.foregroundStats;
+    const layer: StatLayerInfo = {
+      layerType: "sleeve_fg",
+      cardId: sleeveFgId!,
+      cardName: `${sleeve.name} (FG)`,
+      damage: fgStats.damage,
+      health: fgStats.health,
+      initiative: fgStats.initiative,
+      modifier: fgStats.modifier,
+      specialEffect: fgStats.specialEffect,
+    };
+    layers.push(layer);
+
+    // Update active layer tracking
+    if (fgStats.damage !== undefined && fgStats.damage !== 0) activeLayer.damage = sleeveFgId;
+    if (fgStats.health !== undefined && fgStats.health !== 0) activeLayer.health = sleeveFgId;
+    if (fgStats.initiative !== undefined) activeLayer.initiative = sleeveFgId;
+    if (fgStats.modifier !== undefined) activeLayer.modifier = sleeveFgId;
+    if (fgStats.specialEffect !== undefined) activeLayer.specialEffect = sleeveFgId;
+  }
+
+  return { layers, activeLayer };
 }
 
 // ============================================================================

@@ -4,6 +4,7 @@ import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase";
 import { formatEffectAction, formatTriggerName, resolveStats } from "@sleeved-potential/shared";
 import type { CardDefinition, ResolvedStats } from "@sleeved-potential/shared";
+import { StatAttributionTable } from "../components/StatAttributionTable";
 
 /**
  * Composite Card Viewer
@@ -318,38 +319,17 @@ export function CompositeCardViewer() {
             )}
           </div>
 
-          {/* Layer Order Info */}
-          <div className="layer-order-info">
-            <h4>Selected Cards (Layer Order)</h4>
-            <ol className="layer-list">
-              {selectedSleeve && (
-                <li className="layer-item layer-bg">
-                  <span className="layer-type">Sleeve:</span> {selectedSleeve.name}
-                  <button onClick={() => setSelectedSleeve(null)} className="layer-remove">
-                    &times;
-                  </button>
-                </li>
-              )}
-              {selectedAnimal && (
-                <li className="layer-item layer-animal-item">
-                  <span className="layer-type">Animal:</span> {selectedAnimal.name}
-                  <button onClick={() => setSelectedAnimal(null)} className="layer-remove">
-                    &times;
-                  </button>
-                </li>
-              )}
-              {sortedEquipment.map((equip, index) => (
-                <li key={equip.order} className="layer-item layer-equip-item">
-                  <span className="layer-type">Equipment {index + 1}:</span> {equip.card.name}
-                  <button
-                    onClick={() => handleRemoveEquipment(equip.order)}
-                    className="layer-remove"
-                  >
-                    &times;
-                  </button>
-                </li>
-              ))}
-            </ol>
+          {/* Stat Attribution Table */}
+          <div className="stat-attribution-section">
+            <h4>Stat Attribution</h4>
+            <StatAttributionTable
+              sleeve={selectedSleeve}
+              animal={selectedAnimal}
+              equipment={selectedEquipment}
+              onRemoveSleeve={() => setSelectedSleeve(null)}
+              onRemoveAnimal={() => setSelectedAnimal(null)}
+              onRemoveEquipment={handleRemoveEquipment}
+            />
           </div>
         </div>
 

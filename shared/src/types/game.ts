@@ -145,3 +145,42 @@ export interface CreateGameData {
   rulesSnapshot: GameRules;
   cardSnapshot: CardSnapshot;
 }
+
+// ============================================================================
+// STAT ATTRIBUTION (for UI display of which layer contributes what)
+// ============================================================================
+
+/**
+ * Layer type in the card composition stack
+ */
+export type LayerType = "sleeve_bg" | "animal" | "equipment" | "sleeve_fg";
+
+/**
+ * Information about what stats a single layer contributes
+ */
+export interface StatLayerInfo {
+  layerType: LayerType;
+  cardId: string;
+  cardName: string;
+  damage?: number;
+  health?: number;
+  initiative?: number;
+  modifier?: Modifier;
+  specialEffect?: SpecialEffect;
+}
+
+/**
+ * Complete stat attribution for a card composition
+ * Shows which layer contributes which stats and which layer "wins" for each
+ */
+export interface StatAttribution {
+  layers: StatLayerInfo[];
+  /** Tracks which layer's cardId is the "active" (winning) source for each stat */
+  activeLayer: {
+    damage: string | null;
+    health: string | null;
+    initiative: string | null;
+    modifier: string | null;
+    specialEffect: string | null;
+  };
+}
