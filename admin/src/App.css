@@ -2258,3 +2258,187 @@ legend {
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+/* =========================
+   MODAL OVERLAY
+   ========================= */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: #2a2a2a;
+  border-radius: 8px;
+  padding: 1.5rem;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+}
+
+.modal h3 {
+  margin: 0 0 1rem;
+  font-size: 1.25rem;
+}
+
+.modal p {
+  margin: 0 0 1.5rem;
+  color: #aaa;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+/* =========================
+   CHANGELOG EDITOR STYLES
+   ========================= */
+
+.changelog-editor-page {
+  max-width: 1200px;
+}
+
+.changelog-editor-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .changelog-editor-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.changelog-form-section {
+  background: #2a2a2a;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.changelog-form-section h3 {
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
+}
+
+.changelog-list-section h3 {
+  margin: 1.5rem 0 0.75rem;
+  font-size: 1rem;
+  color: #888;
+}
+
+.changelog-list-section h3:first-child {
+  margin-top: 0;
+}
+
+.changelog-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.changelog-list-item {
+  background: #2a2a2a;
+  border-radius: 8px;
+  padding: 1rem;
+  border: 2px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.changelog-list-item:hover {
+  border-color: #444;
+}
+
+.changelog-list-item.editing {
+  border-color: #0066cc;
+}
+
+.changelog-list-item.published {
+  background: #1a2a1a;
+  border-color: #224422;
+}
+
+.changelog-item-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.changelog-version {
+  font-family: monospace;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #fff;
+  background: #333;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.badge-feature {
+  background: #0066cc;
+  color: #fff;
+}
+
+.badge-balance {
+  background: #996633;
+  color: #fff;
+}
+
+.badge-bugfix {
+  background: #993366;
+  color: #fff;
+}
+
+.badge-other {
+  background: #666;
+  color: #fff;
+}
+
+.badge-draft {
+  background: #665200;
+  color: #ffc107;
+}
+
+.badge-published {
+  background: #006600;
+  color: #44ff44;
+}
+
+.changelog-item-title {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.changelog-item-summary {
+  font-size: 0.875rem;
+  color: #888;
+  margin-bottom: 0.5rem;
+}
+
+.changelog-item-date {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.changelog-item-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #333;
+}

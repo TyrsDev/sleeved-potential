@@ -71,5 +71,16 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow write: if isAdmin();
     }
+
+    // Changelogs collection
+    // Read: admins can read all, others can read published only
+    // Write: Cloud Functions only
+    match /changelogs/{changelogId} {
+      allow read: if isSignedIn() && (
+        isAdmin() ||
+        resource.data.status == 'published'
+      );
+      allow write: if false;
+    }
   }
 }

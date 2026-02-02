@@ -50,6 +50,12 @@ export function ChangelogEditor() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>(EMPTY_FORM);
 
+  // Confirmation state (replaces browser confirm dialogs)
+  const [pendingAction, setPendingAction] = useState<{
+    type: "publish" | "delete";
+    entry: ChangelogEntry;
+  } | null>(null);
+
   useEffect(() => {
     const unsubscribe = subscribeToChangelogs((entries) => {
       setChangelogs(entries);
@@ -141,51 +147,46 @@ export function ChangelogEditor() {
     }
   };
 
-  const handlePublish = async (entry: ChangelogEntry) => {
+  const requestPublish = (entry: ChangelogEntry) => {
     if (entry.status === "published") return;
-
-    if (!confirm(`Publish "${entry.title}" (v${entry.version})? This cannot be undone.`)) {
-      return;
-    }
-
-    setError(null);
-    setSuccess(null);
-    setSaving(true);
-
-    try {
-      await publishChangelog(entry.id);
-      setSuccess("Changelog published successfully");
-      setTimeout(() => setSuccess(null), 3000);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to publish changelog");
-    } finally {
-      setSaving(false);
-    }
+    setPendingAction({ type: "publish", entry });
   };
 
-  const handleDelete = async (entry: ChangelogEntry) => {
+  const requestDelete = (entry: ChangelogEntry) => {
     if (entry.status === "published") {
       setError("Cannot delete published changelogs");
       return;
     }
+    setPendingAction({ type: "delete", entry });
+  };
 
-    if (!confirm(`Delete draft "${entry.title}"? This cannot be undone.`)) {
-      return;
-    }
+  const cancelPendingAction = () => {
+    setPendingAction(null);
+  };
 
+  const confirmPendingAction = async () => {
+    if (!pendingAction) return;
+
+    const { type, entry } = pendingAction;
+    setPendingAction(null);
     setError(null);
     setSuccess(null);
     setSaving(true);
 
     try {
-      await deleteChangelog(entry.id);
-      if (editingId === entry.id) {
-        resetForm();
+      if (type === "publish") {
+        await publishChangelog(entry.id);
+        setSuccess("Changelog published successfully");
+      } else {
+        await deleteChangelog(entry.id);
+        if (editingId === entry.id) {
+          resetForm();
+        }
+        setSuccess("Changelog deleted successfully");
       }
-      setSuccess("Changelog deleted successfully");
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete changelog");
+      setError(err instanceof Error ? err.message : `Failed to ${type} changelog`);
     } finally {
       setSaving(false);
     }
@@ -322,14 +323,14 @@ export function ChangelogEditor() {
                     </button>
                     <button
                       className="btn btn-small btn-primary"
-                      onClick={() => handlePublish(entry)}
+                      onClick={() => requestPublish(entry)}
                       disabled={saving}
                     >
                       Publish
                     </button>
                     <button
                       className="btn btn-small btn-danger"
-                      onClick={() => handleDelete(entry)}
+                      onClick={() => requestDelete(entry)}
                       disabled={saving}
                     >
                       Delete
@@ -365,6 +366,33 @@ export function ChangelogEditor() {
           )}
         </section>
       </div>
+
+      {/* Confirmation Modal */}
+      {pendingAction && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h3>
+              {pendingAction.type === "publish" ? "Publish Changelog" : "Delete Draft"}
+            </h3>
+            <p>
+              {pendingAction.type === "publish"
+                ? `Publish "${pendingAction.entry.title}" (v${pendingAction.entry.version})? This cannot be undone.`
+                : `Delete draft "${pendingAction.entry.title}"? This cannot be undone.`}
+            </p>
+            <div className="modal-actions">
+              <button className="btn" onClick={cancelPendingAction}>
+                Cancel
+              </button>
+              <button
+                className={`btn ${pendingAction.type === "delete" ? "btn-danger" : "btn-primary"}`}
+                onClick={confirmPendingAction}
+              >
+                {pendingAction.type === "publish" ? "Publish" : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

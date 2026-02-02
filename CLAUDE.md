@@ -77,6 +77,7 @@ This is a 1v1 card game with real-time Firestore updates. pnpm workspace monorep
 - Challenge: `acceptChallenge`, `declineChallenge`
 - Game: `commitCard` (validates, resolves stats, triggers round resolution when both commit)
 - Admin: `createCard`, `updateCard`, `deleteCard`, `uploadCardImage`, `listCardImages`, `updateRules`
+- Changelog: `createChangelog`, `updateChangelog`, `publishChangelog`, `deleteChangelog`
 
 ## Firestore Collections
 
@@ -87,6 +88,7 @@ This is a 1v1 card game with real-time Firestore updates. pnpm workspace monorep
 - `games/{gameId}/playerState/{playerId}` - Private player state (hands, decks, commits, persistent modifiers)
 - `cards/{cardId}` - Card definitions: sleeves, animals, equipment (admin-editable)
 - `rules/current` - Game rules configuration (admin-editable)
+- `changelogs/{changelogId}` - Version changelog entries (draft/published status, admin-editable)
 
 ## Combat System
 
@@ -195,6 +197,24 @@ Every complete feature or set of bug fixes should result in a version bump. Use 
 1. Update `VERSION` in `shared/src/version.ts`
 2. Create a changelog entry (draft) in the admin panel describing the changes
 3. Publish the changelog entry when deploying
+
+## UI Confirmation Patterns
+
+**IMPORTANT: Never use `window.confirm()`, `window.alert()`, or `window.prompt()` for confirmation dialogs.**
+
+Browser alert/confirm/prompt dialogs block the event loop and cannot be interacted with by automated tools (including Claude Code's browser automation). Instead, use React-based modal components for confirmations.
+
+**Wrong:**
+```typescript
+if (!confirm("Are you sure?")) return; // ❌ Blocks automation
+```
+
+**Correct:**
+```typescript
+// Use a React state-based confirmation modal instead
+const [showConfirm, setShowConfirm] = useState(false);
+// ... render a modal component that can be interacted with programmatically
+```
 
 ## Cloud Functions Initialization
 
