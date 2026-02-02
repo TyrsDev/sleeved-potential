@@ -199,14 +199,17 @@ body {
 }
 
 .btn-surrender {
-  background: rgba(239, 68, 68, 0.2);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  margin-top: 0.5rem;
+  background: transparent;
+  color: #888;
+  border: none;
+  font-size: 0.8rem;
+  padding: 0.25rem 0.5rem;
 }
 
 .btn-surrender:hover {
-  background: rgba(239, 68, 68, 0.3);
+  background: transparent;
+  color: #f87171;
+  text-decoration: underline;
 }
 
 /* Badges */
@@ -2041,6 +2044,38 @@ body {
   color: #f87171;
 }
 
+.player-score {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.score-change {
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.score-change.positive {
+  color: #4ade80;
+}
+
+.score-change.zero {
+  color: #666;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  justify-content: center;
+}
+
+.header-status {
+  font-size: 0.85rem;
+  color: #888;
+  font-style: italic;
+}
+
 .game-header-center {
   text-align: center;
 }
@@ -2386,7 +2421,11 @@ body {
 }
 
 .round-result .btn-large {
-  margin-top: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.round-result .combat-display {
+  margin-top: 1rem;
 }
 
 /* Game Over Screen */
@@ -2580,4 +2619,281 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* =========================
+   COMPOSED CARD PREVIEW
+   ========================= */
+
+.composed-card-preview {
+  margin-bottom: 1rem;
+}
+
+.composed-card-frame {
+  position: relative;
+  width: 100%;
+  max-width: 200px;
+  margin: 0 auto;
+  aspect-ratio: 2 / 3;
+  background: linear-gradient(135deg, #1a1a2a 0%, #0a0a15 100%);
+  border: 2px solid #2a2a3a;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.composed-card-empty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #444;
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 1rem;
+}
+
+.composed-card-layers {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.composed-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.layer-sleeve {
+  z-index: 10;
+}
+
+.layer-animal {
+  z-index: 20;
+}
+
+.layer-equipment {
+  /* z-index set dynamically via style prop: 30+ */
+}
+
+.composed-stats-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0.5rem;
+  pointer-events: none;
+}
+
+.composed-overlay-top {
+  display: flex;
+  justify-content: center;
+}
+
+.composed-effect {
+  background: rgba(0, 0, 0, 0.8);
+  color: #93c5fd;
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  text-align: center;
+  max-width: 90%;
+  text-shadow: 0 1px 2px #000;
+}
+
+.composed-overlay-middle {
+  display: flex;
+  justify-content: center;
+}
+
+.composed-modifier {
+  background: rgba(0, 0, 0, 0.8);
+  color: #fcd34d;
+  font-size: 0.75rem;
+  font-weight: bold;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  text-shadow: 0 1px 2px #000;
+}
+
+.composed-overlay-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.composed-stat {
+  background: rgba(0, 0, 0, 0.8);
+  font-size: 1.25rem;
+  font-weight: bold;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  min-width: 2rem;
+  text-align: center;
+  text-shadow: 0 1px 2px #000;
+}
+
+.composed-stat.damage {
+  color: #f87171;
+}
+
+.composed-stat.initiative {
+  color: #c084fc;
+  font-size: 0.9rem;
+}
+
+.composed-stat.health {
+  color: #4ade80;
+}
+
+.composed-card-labels {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  margin-top: 0.5rem;
+  font-size: 0.7rem;
+}
+
+.composed-card-labels .label-sleeve {
+  color: #c084fc;
+}
+
+.composed-card-labels .label-animal {
+  color: #86efac;
+}
+
+.composed-card-labels .label-equipment {
+  color: #fcd34d;
+}
+
+/* Label above preview (for combat display) */
+.composed-card-label {
+  font-size: 0.75rem;
+  color: #888;
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.05em;
+}
+
+/* Larger cards in combat display */
+.combat-display .composed-card-preview {
+  flex: 1;
+  max-width: 280px;
+}
+
+.combat-display .composed-card-frame {
+  max-width: 100%;
+  width: 100%;
+}
+
+.combat-display .composed-stat {
+  font-size: 1.5rem;
+  padding: 0.4rem 0.75rem;
+  min-width: 2.5rem;
+}
+
+.combat-display .composed-stat.initiative {
+  font-size: 1.1rem;
+}
+
+.combat-display .composed-effect {
+  font-size: 0.75rem;
+  padding: 0.35rem 0.6rem;
+}
+
+.combat-display .composed-modifier {
+  font-size: 0.9rem;
+  padding: 0.35rem 0.6rem;
+}
+
+.combat-display .composed-card-labels {
+  font-size: 0.85rem;
+  margin-top: 0.75rem;
+  gap: 0.25rem;
+}
+
+/* Outcome overlay on cards */
+.outcome-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 110;
+  padding: 0.75rem;
+  text-align: center;
+  backdrop-filter: blur(4px);
+}
+
+.outcome-overlay.survived {
+  background: linear-gradient(to top, rgba(34, 197, 94, 0.9), rgba(34, 197, 94, 0.5));
+}
+
+.outcome-overlay.destroyed {
+  background: linear-gradient(to top, rgba(239, 68, 68, 0.9), rgba(239, 68, 68, 0.5));
+}
+
+.outcome-status {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.outcome-hp {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.outcome-defeated {
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #fbbf24;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  margin-top: 0.25rem;
+}
+
+/* Effect triggered styling */
+.composed-effect.effect-triggered {
+  background: rgba(34, 197, 94, 0.9);
+  color: #fff;
+  animation: effect-pulse 0.5s ease-out;
+}
+
+.effect-check {
+  color: #86efac;
+}
+
+@keyframes effect-pulse {
+  0% {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.8);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: none;
+  }
+}
+
+/* Card border glow for outcome */
+.composed-card-preview.outcome-survived .composed-card-frame {
+  border-color: #22c55e;
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
+}
+
+.composed-card-preview.outcome-destroyed .composed-card-frame {
+  border-color: #ef4444;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
 }

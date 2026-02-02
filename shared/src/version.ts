@@ -1,7 +1,7 @@
 /**
  * Version constant shared across all packages
  */
-export const VERSION = "1.1.1";
+export const VERSION = "1.1.3";
 
 export interface VersionInfo {
   version: string;

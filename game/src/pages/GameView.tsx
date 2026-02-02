@@ -15,6 +15,7 @@ function GameViewContent() {
     error,
     showingResult,
     setShowingResult,
+    hasCommitted,
   } = useGame();
 
   if (currentPhase === "loading") {
@@ -55,13 +56,31 @@ function GameViewContent() {
     );
   }
 
+  // Determine the action button based on current state
+  let actionButton = null;
+  if (showingResult) {
+    actionButton = (
+      <button
+        onClick={() => setShowingResult(false)}
+        className="btn btn-primary"
+      >
+        Continue
+      </button>
+    );
+  } else if (hasCommitted) {
+    actionButton = (
+      <span className="header-status">Waiting for opponent...</span>
+    );
+  }
+  // Note: Commit button stays in CardComposer since it needs the selection state
+
   return (
     <div className="game-view active">
-      <GameHeader />
+      <GameHeader actionButton={actionButton} />
 
       <div className="game-content">
         {showingResult ? (
-          <RoundResult onContinue={() => setShowingResult(false)} />
+          <RoundResult />
         ) : currentPhase === "waiting" ? (
           <WaitingForOpponent />
         ) : (

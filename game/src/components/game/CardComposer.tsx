@@ -6,6 +6,7 @@ import {
   formatTriggerName,
 } from "@sleeved-potential/shared";
 import type { CardDefinition, CardStats, ResolvedStats } from "@sleeved-potential/shared";
+import { ComposedCardPreview } from "./ComposedCardPreview";
 
 interface SelectedEquipment {
   card: CardDefinition;
@@ -227,6 +228,14 @@ export function CardComposer() {
   return (
     <div className="card-composer">
       <div className="composer-main">
+        {/* Visual Card Preview */}
+        <ComposedCardPreview
+          sleeve={selectedSleeve}
+          animal={selectedAnimal}
+          equipment={selectedEquipment}
+          resolvedStats={resolvedStats}
+        />
+
         {/* Stats Preview */}
         <div className="composer-stats-preview">
           <div className="stat-box damage">
