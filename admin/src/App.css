@@ -2739,5 +2739,137 @@ legend {
 
 .round-selection-header {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.hand-info {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+/* =========================
+   STARTING HAND SETUP
+   ========================= */
+
+.starting-hand-setup {
+  background: #2a2a2a;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+}
+
+.starting-hand-setup h4 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+}
+
+.hand-setup-section {
+  margin-bottom: 1rem;
+}
+
+.hand-setup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.hand-counter {
+  font-size: 0.8rem;
+  font-weight: bold;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  background: #444;
+  color: #aaa;
+}
+
+.hand-counter.complete {
+  background: #226644;
+  color: #6f6;
+}
+
+/* =========================
+   DRAW PHASE
+   ========================= */
+
+.draw-phase {
+  background: #1a2a3a;
+  border: 1px solid #2a4a6a;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.draw-phase h4 {
+  margin: 0 0 0.25rem;
+  font-size: 0.95rem;
+  color: #8cf;
+}
+
+.draw-section {
+  margin-bottom: 0.75rem;
+}
+
+/* =========================
+   SETUP SUMMARY
+   ========================= */
+
+.setup-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #1a2a1a;
+  border: 1px solid #224422;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+  font-size: 0.875rem;
+  color: #6f6;
+}
+
+/* =========================
+   UNAVAILABLE CARDS
+   ========================= */
+
+.mini-selection-item.unavailable {
+  cursor: not-allowed;
+  opacity: 0.35;
+  filter: grayscale(0.7);
+}
+
+.mini-selection-item.unavailable:hover,
+.mini-selection-item.exhausted:hover {
+  border-color: transparent;
+  transform: none;
+}
+
+.mini-selection-item.exhausted {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.unavailable-label {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.85);
+  color: #888;
+  font-size: 0.55rem;
+  text-align: center;
+  padding: 0.1rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* =========================
+   ROUND STATUS: NEEDS DRAW
+   ========================= */
+
+.round-status.needs-draw {
+  background: #1a2a3a;
+  color: #8cf;
 }
