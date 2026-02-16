@@ -1,11 +1,7 @@
 import { useMemo } from "react";
 import { getStatAttribution } from "@sleeved-potential/shared";
 import type { CardDefinition, StatLayerInfo } from "@sleeved-potential/shared";
-
-interface SelectedEquipment {
-  card: CardDefinition;
-  order: number;
-}
+import type { SelectedEquipment } from "./types";
 
 interface StatAttributionTableProps {
   sleeve: CardDefinition | null;

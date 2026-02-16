@@ -2,9 +2,10 @@ import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase";
-import { formatEffectAction, formatTriggerName, resolveStats } from "@sleeved-potential/shared";
-import type { CardDefinition, ResolvedStats } from "@sleeved-potential/shared";
-import { StatAttributionTable } from "../components/StatAttributionTable";
+import type { CardDefinition } from "@sleeved-potential/shared";
+import { CompositionPreview } from "../components/CompositionPreview";
+import { MiniCardDisplay } from "../components/MiniCardDisplay";
+import type { SelectedEquipment } from "../components/types";
 
 /**
  * Composite Card Viewer
@@ -19,142 +20,6 @@ import { StatAttributionTable } from "../components/StatAttributionTable";
  * 2. Animal
  * 3. Equipment (in added order, on top)
  */
-
-/**
- * Mini card display with stats overlay - consistent sizing with or without image
- */
-function MiniCardDisplay({ card }: { card: CardDefinition }) {
-  const stats =
-    card.type === "sleeve"
-      ? { ...card.backgroundStats, ...card.foregroundStats }
-      : card.stats;
-
-  const typeLabel = card.type.toUpperCase();
-  const typeClass = `fallback-${card.type}`;
-
-  const effectText =
-    stats?.specialEffect
-      ? `${formatTriggerName(stats.specialEffect.trigger)}: ${formatEffectAction(stats.specialEffect)}`
-      : null;
-
-  const modifierText = stats?.modifier
-    ? `${stats.modifier.amount > 0 ? "+" : ""}${stats.modifier.amount} ${stats.modifier.type === "damage" ? "dmg" : "hp"}`
-    : null;
-
-  return (
-    <div className={`mini-card-display ${typeClass}`}>
-      <div className="mini-card-label">{typeLabel}</div>
-      <div className="mini-card-content">
-        {card.imageUrl ? (
-          <img src={card.imageUrl} alt={card.name} className="mini-card-image" />
-        ) : (
-          <div className="mini-card-placeholder" />
-        )}
-        <div className="mini-card-overlay">
-          <div className="mini-card-top">
-            {effectText && <div className="mini-card-effect">{effectText}</div>}
-          </div>
-          <div className="mini-card-middle">
-            {modifierText && <div className="mini-card-modifier">{modifierText}</div>}
-          </div>
-          <div className="mini-card-stats">
-            <span className="mini-stat damage">
-              {stats?.damage !== undefined && stats.damage !== 0 ? stats.damage : ""}
-            </span>
-            <span className="mini-stat initiative">
-              {stats?.initiative !== undefined && stats.initiative !== 0
-                ? `${stats.initiative > 0 ? "+" : ""}${stats.initiative}`
-                : ""}
-            </span>
-            <span className="mini-stat health">
-              {stats?.health !== undefined && stats.health !== 0 ? stats.health : ""}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-interface SelectedEquipment {
-  card: CardDefinition;
-  order: number;
-}
-
-/**
- * Unified stats overlay that displays the final resolved values.
- * Shows on top of all image layers.
- */
-function ResolvedStatsOverlay({ stats }: { stats: ResolvedStats }) {
-  const hasEffect = stats.specialEffect !== null;
-  const hasModifier = stats.modifier !== null;
-  const hasDamage = stats.damage > 0;
-  const hasHealth = stats.health > 0;
-  const hasInit = stats.initiative !== 0;
-
-  return (
-    <div className="resolved-stats-overlay">
-      {/* Top: Special Effect */}
-      <div className="overlay-cell overlay-top">
-        {hasEffect && (
-          <span className="overlay-effect">
-            {formatTriggerShort(stats.specialEffect!.trigger)}: {formatActionShort(stats.specialEffect!.effect)}
-          </span>
-        )}
-      </div>
-
-      {/* Middle: Modifier or Initiative */}
-      <div className="overlay-cell overlay-middle">
-        {hasModifier && (
-          <span className="overlay-modifier">
-            {stats.modifier!.amount > 0 ? "+" : ""}{stats.modifier!.amount} {stats.modifier!.type.toUpperCase()}
-          </span>
-        )}
-        {hasInit && !hasModifier && (
-          <span className="overlay-initiative">INIT {stats.initiative}</span>
-        )}
-      </div>
-
-      {/* Bottom Left: Damage */}
-      <div className="overlay-cell overlay-bottom-left">
-        {hasDamage && (
-          <span className="overlay-damage">{stats.damage}</span>
-        )}
-      </div>
-
-      {/* Bottom Right: Health */}
-      <div className="overlay-cell overlay-bottom-right">
-        {hasHealth && (
-          <span className="overlay-health">{stats.health}</span>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function formatTriggerShort(trigger: string): string {
-  const triggerMap: Record<string, string> = {
-    on_play: "PLAY",
-    if_survives: "SURV",
-    if_destroyed: "DEAD",
-    if_defeats: "KILL",
-    if_doesnt_defeat: "MISS",
-  };
-  return triggerMap[trigger] || trigger.slice(0, 4).toUpperCase();
-}
-
-function formatActionShort(effect: { type: string; count?: number; amount?: number; stat?: string }): string {
-  switch (effect.type) {
-    case "draw_cards":
-      return `+${effect.count} CARD`;
-    case "modify_initiative":
-      return `${effect.amount! > 0 ? "+" : ""}${effect.amount} SPD`;
-    case "add_persistent_modifier":
-      return `${effect.amount! > 0 ? "+" : ""}${effect.amount} ${effect.stat === "damage" ? "DMG" : "HP"}`;
-    default:
-      return effect.type.slice(0, 8);
-  }
-}
 
 export function CompositeCardViewer() {
   const [cards, setCards] = useState<CardDefinition[]>([]);
@@ -204,13 +69,6 @@ export function CompositeCardViewer() {
     setNextEquipmentOrder(0);
   }, []);
 
-  // Sort equipment by order added
-  const sortedEquipment = [...selectedEquipment].sort((a, b) => a.order - b.order);
-  const equipmentCards = sortedEquipment.map((e) => e.card);
-
-  // Calculate resolved stats using shared function
-  const resolvedStats = resolveStats(selectedSleeve, selectedAnimal, equipmentCards);
-
   if (loading) {
     return <div className="loading">Loading cards...</div>;
   }
@@ -235,103 +93,15 @@ export function CompositeCardViewer() {
       </p>
 
       <div className="composite-viewer-layout">
-        {/* Preview Panel */}
-        <div className="composite-preview-panel">
-          <h3>Composition Preview</h3>
-          <div className="composite-preview-container">
-            {/* Layer stack - images only, then one unified stats overlay */}
-            <div className="composite-layer-stack">
-              {/* Layer 1: Sleeve image (background) */}
-              {selectedSleeve?.imageUrl && (
-                <img
-                  src={selectedSleeve.imageUrl}
-                  alt={selectedSleeve.name}
-                  className="composite-layer"
-                  style={{ zIndex: 1 }}
-                />
-              )}
-
-              {/* Layer 2: Animal image */}
-              {selectedAnimal?.imageUrl && (
-                <img
-                  src={selectedAnimal.imageUrl}
-                  alt={selectedAnimal.name}
-                  className="composite-layer"
-                  style={{ zIndex: 10 }}
-                />
-              )}
-
-              {/* Layer 3+: Equipment images (in order) */}
-              {sortedEquipment.map((equip, index) => (
-                equip.card.imageUrl && (
-                  <img
-                    key={equip.order}
-                    src={equip.card.imageUrl}
-                    alt={equip.card.name}
-                    className="composite-layer"
-                    style={{ zIndex: 20 + index }}
-                  />
-                )
-              ))}
-
-              {/* Final layer: Unified stats overlay showing resolved values */}
-              {(selectedSleeve || selectedAnimal || selectedEquipment.length > 0) && (
-                <ResolvedStatsOverlay stats={resolvedStats} />
-              )}
-
-              {/* Placeholder when nothing selected */}
-              {!selectedSleeve && !selectedAnimal && selectedEquipment.length === 0 && (
-                <div className="composite-placeholder">
-                  Select cards to preview composition
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Resolved Stats */}
-          <div className="composite-stats-panel">
-            <h4>Resolved Stats</h4>
-            <div className="composite-stats-grid">
-              <div className="composite-stat">
-                <span className="stat-label">Damage</span>
-                <span className="stat-value">{resolvedStats.damage}</span>
-              </div>
-              <div className="composite-stat">
-                <span className="stat-label">Health</span>
-                <span className="stat-value">{resolvedStats.health}</span>
-              </div>
-              <div className="composite-stat">
-                <span className="stat-label">Initiative</span>
-                <span className="stat-value">{resolvedStats.initiative}</span>
-              </div>
-            </div>
-            {resolvedStats.modifier && (
-              <div className="composite-modifier">
-                <strong>Modifier:</strong> {resolvedStats.modifier.amount > 0 ? "+" : ""}
-                {resolvedStats.modifier.amount} {resolvedStats.modifier.type}
-              </div>
-            )}
-            {resolvedStats.specialEffect && (
-              <div className="composite-effect">
-                <strong>Special Effect:</strong> {resolvedStats.specialEffect.trigger} -&gt;{" "}
-                {resolvedStats.specialEffect.effect.type}
-              </div>
-            )}
-          </div>
-
-          {/* Stat Attribution Table */}
-          <div className="stat-attribution-section">
-            <h4>Stat Attribution</h4>
-            <StatAttributionTable
-              sleeve={selectedSleeve}
-              animal={selectedAnimal}
-              equipment={selectedEquipment}
-              onRemoveSleeve={() => setSelectedSleeve(null)}
-              onRemoveAnimal={() => setSelectedAnimal(null)}
-              onRemoveEquipment={handleRemoveEquipment}
-            />
-          </div>
-        </div>
+        {/* Preview Panel — shared component */}
+        <CompositionPreview
+          sleeve={selectedSleeve}
+          animal={selectedAnimal}
+          equipment={selectedEquipment}
+          onRemoveSleeve={() => setSelectedSleeve(null)}
+          onRemoveAnimal={() => setSelectedAnimal(null)}
+          onRemoveEquipment={handleRemoveEquipment}
+        />
 
         {/* Card Selection Panel */}
         <div className="composite-selection-panel">

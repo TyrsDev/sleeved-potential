@@ -2601,3 +2601,143 @@ legend {
   background: #1a1a1a;
   border-radius: 4px;
 }
+
+/* ======================== */
+/* Round Composer Accordion */
+/* ======================== */
+
+.round-composers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.round-composer {
+  border: 1px solid #333;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #1e1e1e;
+}
+
+.round-composer.expanded {
+  border-color: #0066cc;
+}
+
+.round-composer-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  background: #2a2a2a;
+  transition: background 0.15s;
+  user-select: none;
+}
+
+.round-composer-header:hover {
+  background: #333;
+}
+
+.round-number {
+  font-weight: bold;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.round-status {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+
+.round-status.complete {
+  background: #226644;
+  color: #6f6;
+}
+
+.round-status.incomplete {
+  background: #664422;
+  color: #fc6;
+}
+
+.round-summary {
+  flex: 1;
+  font-size: 0.8rem;
+  color: #999;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.round-stats-preview {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.stat-badge {
+  font-size: 0.7rem;
+  font-weight: bold;
+  padding: 0.15rem 0.4rem;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.stat-badge.damage {
+  color: #f66;
+}
+
+.stat-badge.health {
+  color: #6f6;
+}
+
+.stat-badge.initiative {
+  color: #c084fc;
+}
+
+.round-expand-icon {
+  font-size: 0.7rem;
+  color: #666;
+}
+
+.round-composer-content {
+  padding: 1rem;
+  border-top: 1px solid #333;
+}
+
+.round-composer-layout {
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  gap: 2rem;
+}
+
+@media (max-width: 768px) {
+  .round-composer-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.round-preview-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.round-selection-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.round-selection-header {
+  display: flex;
+  justify-content: flex-end;
+}
