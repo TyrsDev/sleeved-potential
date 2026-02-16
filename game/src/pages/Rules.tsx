@@ -36,8 +36,8 @@ export function Rules() {
         <p>
           Sleeved Potential is a 1v1 composite card game where you "build" cards by layering
           transparent components inside sleeves. Each round, both players commit a composed card
-          (Sleeve + Animal + optional Equipment), then cards fight. First to reach the point
-          threshold wins.
+          (Sleeve + Animal + optional Equipment), then cards fight. After {rules.maxRounds} rounds,
+          the player with more points wins.
         </p>
       </section>
 
@@ -45,17 +45,25 @@ export function Rules() {
         <h3>Scoring</h3>
         <div className="rules-grid">
           <div className="rule-item">
-            <span className="rule-label">Points for Surviving</span>
-            <span className="rule-value">{rules.pointsForSurviving}</span>
+            <span className="rule-label">Rounds per Game</span>
+            <span className="rule-value">{rules.maxRounds}</span>
           </div>
           <div className="rule-item">
-            <span className="rule-label">Points for Defeating</span>
-            <span className="rule-value">{rules.pointsForDefeating}</span>
+            <span className="rule-label">Kill Bonus</span>
+            <span className="rule-value">+{rules.pointsForKill}</span>
           </div>
           <div className="rule-item">
-            <span className="rule-label">Points to Win</span>
-            <span className="rule-value">{rules.pointsToWin}</span>
+            <span className="rule-label">Per Overkill HP</span>
+            <span className="rule-value">+{rules.pointsPerOverkill}</span>
           </div>
+          <div className="rule-item">
+            <span className="rule-label">Per Damage Absorbed</span>
+            <span className="rule-value">+{rules.pointsPerAbsorbed}</span>
+          </div>
+        </div>
+        <div className="rules-explanation">
+          <p>If your card is destroyed, you score 0 points for that round. If you survive, you earn
+            points for damage absorbed plus kill/overkill bonuses.</p>
         </div>
       </section>
 
@@ -133,11 +141,11 @@ export function Rules() {
             <li>When all used, graveyard returns</li>
           </ul>
 
-          <h4>Animals (9 total, shared deck)</h4>
+          <h4>Animals (per-player deck)</h4>
           <ul>
-            <li>Shared pool - drawing reveals info about what opponent can't have</li>
+            <li>Each player gets their own shuffled copy of all animals</li>
             <li>Hand: Always hold {rules.startingAnimalHand} Animals</li>
-            <li>Used Animals go to shared discard</li>
+            <li>Used Animals go to your own discard pile</li>
           </ul>
 
           <h4>Equipment (20 total, per-player deck)</h4>

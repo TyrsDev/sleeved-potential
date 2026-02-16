@@ -46,7 +46,7 @@ export function Play() {
 
     try {
       const result = await joinGame();
-      if (result.type === "matched" && result.gameId) {
+      if ((result.type === "matched" || result.type === "async_matched") && result.gameId) {
         // Game created, navigate to it
         navigate(`/game/${result.gameId}`);
       } else if (result.type === "waiting" && result.challengeId) {

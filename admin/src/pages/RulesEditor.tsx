@@ -19,6 +19,10 @@ export function RulesEditor() {
   const [equipmentDrawPerRound, setEquipmentDrawPerRound] = useState("");
   const [startingAnimalHand, setStartingAnimalHand] = useState("");
   const [defaultInitiative, setDefaultInitiative] = useState("");
+  const [maxRounds, setMaxRounds] = useState("");
+  const [pointsForKill, setPointsForKill] = useState("");
+  const [pointsPerOverkill, setPointsPerOverkill] = useState("");
+  const [pointsPerAbsorbed, setPointsPerAbsorbed] = useState("");
 
   useEffect(() => {
     const unsubscribe = onSnapshot(doc(db, "rules", "current"), (snapshot) => {
@@ -32,6 +36,10 @@ export function RulesEditor() {
         setEquipmentDrawPerRound(data.equipmentDrawPerRound.toString());
         setStartingAnimalHand(data.startingAnimalHand.toString());
         setDefaultInitiative(data.defaultInitiative.toString());
+        setMaxRounds((data.maxRounds ?? DEFAULT_GAME_RULES.maxRounds).toString());
+        setPointsForKill((data.pointsForKill ?? DEFAULT_GAME_RULES.pointsForKill).toString());
+        setPointsPerOverkill((data.pointsPerOverkill ?? DEFAULT_GAME_RULES.pointsPerOverkill).toString());
+        setPointsPerAbsorbed((data.pointsPerAbsorbed ?? DEFAULT_GAME_RULES.pointsPerAbsorbed).toString());
       } else {
         // Use defaults
         setPointsForSurviving(DEFAULT_GAME_RULES.pointsForSurviving.toString());
@@ -41,6 +49,10 @@ export function RulesEditor() {
         setEquipmentDrawPerRound(DEFAULT_GAME_RULES.equipmentDrawPerRound.toString());
         setStartingAnimalHand(DEFAULT_GAME_RULES.startingAnimalHand.toString());
         setDefaultInitiative(DEFAULT_GAME_RULES.defaultInitiative.toString());
+        setMaxRounds(DEFAULT_GAME_RULES.maxRounds.toString());
+        setPointsForKill(DEFAULT_GAME_RULES.pointsForKill.toString());
+        setPointsPerOverkill(DEFAULT_GAME_RULES.pointsPerOverkill.toString());
+        setPointsPerAbsorbed(DEFAULT_GAME_RULES.pointsPerAbsorbed.toString());
       }
       setLoading(false);
     });
@@ -63,6 +75,10 @@ export function RulesEditor() {
         equipmentDrawPerRound: parseInt(equipmentDrawPerRound, 10),
         startingAnimalHand: parseInt(startingAnimalHand, 10),
         defaultInitiative: parseInt(defaultInitiative, 10),
+        maxRounds: parseInt(maxRounds, 10),
+        pointsForKill: parseInt(pointsForKill, 10),
+        pointsPerOverkill: parseInt(pointsPerOverkill, 10),
+        pointsPerAbsorbed: parseInt(pointsPerAbsorbed, 10),
       });
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
@@ -96,7 +112,61 @@ export function RulesEditor() {
 
       <form onSubmit={handleSubmit}>
         <fieldset>
-          <legend>Scoring</legend>
+          <legend>Scoring (v1.2.0)</legend>
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="maxRounds">Max Rounds</label>
+              <input
+                id="maxRounds"
+                type="number"
+                value={maxRounds}
+                onChange={(e) => setMaxRounds(e.target.value)}
+                min="1"
+                required
+              />
+              <small>Number of rounds per game</small>
+            </div>
+            <div className="form-group">
+              <label htmlFor="pointsForKill">Points for Kill</label>
+              <input
+                id="pointsForKill"
+                type="number"
+                value={pointsForKill}
+                onChange={(e) => setPointsForKill(e.target.value)}
+                min="0"
+                required
+              />
+              <small>Bonus points for killing opponent's card</small>
+            </div>
+            <div className="form-group">
+              <label htmlFor="pointsPerOverkill">Points per Overkill HP</label>
+              <input
+                id="pointsPerOverkill"
+                type="number"
+                value={pointsPerOverkill}
+                onChange={(e) => setPointsPerOverkill(e.target.value)}
+                min="0"
+                required
+              />
+              <small>Points per excess damage beyond lethal</small>
+            </div>
+            <div className="form-group">
+              <label htmlFor="pointsPerAbsorbed">Points per Absorbed HP</label>
+              <input
+                id="pointsPerAbsorbed"
+                type="number"
+                value={pointsPerAbsorbed}
+                onChange={(e) => setPointsPerAbsorbed(e.target.value)}
+                min="0"
+                required
+              />
+              <small>Points per damage taken if survived</small>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Scoring (Legacy)</legend>
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="pointsForSurviving">Points for Surviving</label>
@@ -108,7 +178,7 @@ export function RulesEditor() {
                 min="0"
                 required
               />
-              <small>Points awarded when your card survives combat</small>
+              <small>Legacy: Points awarded when your card survives combat</small>
             </div>
             <div className="form-group">
               <label htmlFor="pointsForDefeating">Points for Defeating</label>
@@ -120,7 +190,7 @@ export function RulesEditor() {
                 min="0"
                 required
               />
-              <small>Points awarded when you destroy opponent's card</small>
+              <small>Legacy: Points awarded when you destroy opponent's card</small>
             </div>
             <div className="form-group">
               <label htmlFor="pointsToWin">Points to Win</label>
@@ -132,7 +202,7 @@ export function RulesEditor() {
                 min="1"
                 required
               />
-              <small>First player to reach this score wins</small>
+              <small>Legacy: First player to reach this score wins</small>
             </div>
           </div>
         </fieldset>

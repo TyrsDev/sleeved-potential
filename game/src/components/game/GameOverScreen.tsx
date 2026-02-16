@@ -4,7 +4,7 @@ import { useUser } from "../../contexts/UserContext";
 import { useMemo } from "react";
 
 export function GameOverScreen() {
-  const { game, myScore, opponentScore } = useGame();
+  const { game, myScore, opponentScore, isAsync, snapshotOpponentName } = useGame();
   const { user } = useUser();
 
   const userId = user?.id;
@@ -34,20 +34,30 @@ export function GameOverScreen() {
         {isDraw ? (
           <>
             <h2 className="game-over-title draw">Draw!</h2>
-            <p className="game-over-subtitle">Neither player reached the goal</p>
+            <p className="game-over-subtitle">
+              {endReason === "rounds_complete" ? `Match tied after ${roundsPlayed} rounds` : "Neither player reached the goal"}
+            </p>
           </>
         ) : isWinner ? (
           <>
             <h2 className="game-over-title winner">Victory!</h2>
             <p className="game-over-subtitle">
-              {endReason === "surrender" ? "Your opponent surrendered" : `You reached ${myScore} points first`}
+              {endReason === "surrender"
+                ? (isAsync ? `${snapshotOpponentName ?? "Snapshot"}'s strategy fell short` : "Your opponent surrendered")
+                : endReason === "rounds_complete"
+                  ? `${myScore} - ${opponentScore} after ${roundsPlayed} rounds`
+                  : `You reached ${myScore} points first`}
             </p>
           </>
         ) : (
           <>
             <h2 className="game-over-title loser">Defeat</h2>
             <p className="game-over-subtitle">
-              {endReason === "surrender" ? "You surrendered" : `Your opponent reached ${opponentScore} points first`}
+              {endReason === "surrender"
+                ? "You surrendered"
+                : endReason === "rounds_complete"
+                  ? `${opponentScore} - ${myScore} after ${roundsPlayed} rounds`
+                  : `Your opponent reached ${opponentScore} points first`}
             </p>
           </>
         )}
@@ -59,7 +69,7 @@ export function GameOverScreen() {
           </div>
           <div className="score-vs">-</div>
           <div className={`score-card ${!isWinner && !isDraw ? "winner" : ""}`}>
-            <div className="score-label">Opponent</div>
+            <div className="score-label">{isAsync ? (snapshotOpponentName ?? "Snapshot") : "Opponent"}</div>
             <div className="score-value">{opponentScore}</div>
           </div>
         </div>

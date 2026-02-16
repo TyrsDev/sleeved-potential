@@ -19,6 +19,7 @@ import { RulesEditor } from "./pages/RulesEditor";
 import { PlayerList } from "./pages/PlayerList";
 import { Playtest } from "./pages/Playtest";
 import { ChangelogEditor } from "./pages/ChangelogEditor";
+import { SnapshotManager } from "./pages/SnapshotManager";
 import "./App.css";
 
 function App() {
@@ -94,6 +95,7 @@ function App() {
             <Route path="players" element={<PlayerList />} />
             <Route path="playtest" element={<Playtest />} />
             <Route path="changelog" element={<ChangelogEditor />} />
+            <Route path="snapshots" element={<SnapshotManager />} />
           </Route>
         </Routes>
       </BrowserRouter>

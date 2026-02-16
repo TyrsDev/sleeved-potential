@@ -10,7 +10,7 @@ interface GameHeaderProps {
 }
 
 export function GameHeader({ actionButton }: GameHeaderProps) {
-  const { game, myScore, opponentScore, opponentId, latestRound, showingResult } = useGame();
+  const { game, myScore, opponentScore, opponentId, latestRound, showingResult, isAsync, snapshotOpponentName, maxRounds } = useGame();
   const { user } = useUser();
   const navigate = useNavigate();
   const [opponent, setOpponent] = useState<User | null>(null);
@@ -18,10 +18,11 @@ export function GameHeader({ actionButton }: GameHeaderProps) {
   const [surrendering, setSurrendering] = useState(false);
 
   useEffect(() => {
-    if (!opponentId) return;
+    // For async games, don't subscribe to user doc for the snapshot player
+    if (!opponentId || isAsync) return;
     const unsubscribe = subscribeToUser(opponentId, setOpponent);
     return unsubscribe;
-  }, [opponentId]);
+  }, [opponentId, isAsync]);
 
   // Calculate score changes from latest round
   const scoreChanges = useMemo(() => {
@@ -59,7 +60,6 @@ export function GameHeader({ actionButton }: GameHeaderProps) {
 
   if (!game) return null;
 
-  const pointsToWin = game.rulesSnapshot.pointsToWin;
   const currentRound = game.currentRound;
 
   return (
@@ -78,8 +78,7 @@ export function GameHeader({ actionButton }: GameHeaderProps) {
         </div>
 
         <div className="game-header-center">
-          <div className="round-info">Round {currentRound}</div>
-          <div className="points-to-win">First to {pointsToWin}</div>
+          <div className="round-info">Round {currentRound} / {maxRounds}</div>
           <div className="header-actions">
             {actionButton}
             {game.status === "active" && (
@@ -95,7 +94,7 @@ export function GameHeader({ actionButton }: GameHeaderProps) {
         </div>
 
         <div className="game-header-player opponent">
-          <div className="player-name">{opponent?.displayName ?? "Opponent"}</div>
+          <div className="player-name">{isAsync ? (snapshotOpponentName ?? "Snapshot") : (opponent?.displayName ?? "Opponent")}</div>
           <div className="player-score">
             {opponentScore}
             {scoreChanges.opponent !== null && (

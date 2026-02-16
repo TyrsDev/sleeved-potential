@@ -14,6 +14,7 @@ import type {
   CreateChangelogData,
   UpdateChangelogData,
 } from "./changelog.js";
+import type { SnapshotCommit } from "./snapshot.js";
 
 // =============================================================================
 // API Metadata (versioning)
@@ -78,7 +79,7 @@ export interface JoinGameInput {
 }
 
 export interface JoinGameOutput {
-  type: "matched" | "waiting";
+  type: "matched" | "waiting" | "async_matched";
   gameId?: string;
   challengeId?: string;
   _meta: ApiResponseMeta;
@@ -316,6 +317,37 @@ export interface PublishChangelogInput {
 
 export interface PublishChangelogOutput {
   changelog: ChangelogEntry;
+  _meta: ApiResponseMeta;
+}
+
+// =============================================================================
+// Admin Snapshot/Migration Functions
+// =============================================================================
+
+/**
+ * seedBotSnapshot - Create a bot snapshot for async matchmaking (ADMIN)
+ */
+export interface SeedBotSnapshotInput {
+  botName: string;
+  elo: number;
+  commits: SnapshotCommit[]; // Card IDs only
+  _meta?: ApiMetadata;
+}
+
+export interface SeedBotSnapshotOutput {
+  snapshotId: string;
+  _meta: ApiResponseMeta;
+}
+
+/**
+ * migrateGames - Delete old format games (ADMIN)
+ */
+export interface MigrateGamesInput {
+  _meta?: ApiMetadata;
+}
+
+export interface MigrateGamesOutput {
+  deletedCount: number;
   _meta: ApiResponseMeta;
 }
 

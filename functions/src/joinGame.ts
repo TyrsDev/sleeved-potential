@@ -1,25 +1,30 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore } from "firebase-admin/firestore";
 import {
-  DEFAULT_GAME_RULES,
+  DEFAULT_ELO,
   type Challenge,
   type User,
   type JoinGameInput,
   type JoinGameOutput,
-  type GameRules,
-  type CardDefinition,
+  type Game,
 } from "@sleeved-potential/shared";
-import { createGameFromChallenge } from "./utils/gameHelpers.js";
+import {
+  createGameFromChallenge,
+  fetchRulesAndCards,
+  validateCardCounts,
+  findMatchingSnapshot,
+  createAsyncGame,
+} from "./utils/gameHelpers.js";
 import { getResponseMeta } from "./utils/apiMeta.js";
 
 /**
  * Matchmaking function:
  * 1. Validate enough cards exist to start a game
- * 2. Look for existing matchmaking challenges (not created by this user)
- * 3. If found: Create full game with card/rules snapshots, update challenge
- * 4. If not found: Create new matchmaking challenge
- *
- * Note: Available to all users including guests (unlike direct challenges)
+ * 2. Check if player has an active async game already
+ * 3. Look for existing matchmaking challenges (not created by this user)
+ * 4. If found: Create full game with card/rules snapshots, update challenge
+ * 5. If not found: Try async matching against a snapshot
+ * 6. If no snapshot: Create new matchmaking challenge (waiting)
  */
 export const joinGame = onCall<JoinGameInput, Promise<JoinGameOutput>>(
   { region: "europe-west1" },
@@ -32,44 +37,33 @@ export const joinGame = onCall<JoinGameInput, Promise<JoinGameOutput>>(
     const userId = request.auth.uid;
     const now = new Date().toISOString();
 
-    // Validate we have enough cards to start a game BEFORE creating/matching challenges
-    const rulesDoc = await db.doc("rules/current").get();
-    const rules: GameRules = rulesDoc.exists
-      ? (rulesDoc.data() as GameRules)
-      : { id: "current", ...DEFAULT_GAME_RULES, updatedAt: now, updatedBy: "system" };
+    // Fetch rules and cards
+    const { rules, cardSnapshot } = await fetchRulesAndCards(db);
+    validateCardCounts(cardSnapshot, rules);
 
-    const cardsSnapshot = await db.collection("cards").get();
-    let sleeveCount = 0;
-    let animalCount = 0;
-
-    cardsSnapshot.docs.forEach((doc) => {
-      const card = doc.data() as CardDefinition;
-      if (card.active === false) return;
-      if (card.type === "sleeve") sleeveCount++;
-      else if (card.type === "animal") animalCount++;
-    });
-
-    if (sleeveCount === 0) {
-      throw new HttpsError(
-        "failed-precondition",
-        "Cannot start game: no sleeves defined. Admin must create sleeves first."
-      );
-    }
-
-    const requiredAnimals = rules.startingAnimalHand * 2;
-    if (animalCount < requiredAnimals) {
-      throw new HttpsError(
-        "failed-precondition",
-        `Cannot start game: need at least ${requiredAnimals} animals, found ${animalCount}`
-      );
-    }
-
-    // Get current user's info for challenge creation
+    // Get current user's info
     const userDoc = await db.collection("users").doc(userId).get();
     if (!userDoc.exists) {
       throw new HttpsError("not-found", "User not found. Call getOrCreateUser first.");
     }
     const userData = userDoc.data() as User;
+
+    // Check if player already has an active game
+    const activeGames = await db
+      .collection("games")
+      .where("players", "array-contains", userId)
+      .where("status", "==", "active")
+      .limit(1)
+      .get();
+
+    if (!activeGames.empty) {
+      const existingGame = activeGames.docs[0].data() as Game;
+      return {
+        type: existingGame.isAsync ? "async_matched" : "matched",
+        gameId: existingGame.id,
+        _meta: getResponseMeta(),
+      };
+    }
 
     // Look for an existing matchmaking challenge
     const challengesRef = db.collection("challenges");
@@ -92,12 +86,25 @@ export const joinGame = onCall<JoinGameInput, Promise<JoinGameOutput>>(
         db,
         availableChallenge.ref,
         challengeData,
-        challengeData.creatorId, // player1 = challenge creator
-        userId // player2 = this user (the matcher)
+        challengeData.creatorId,
+        userId
       );
 
       return {
         type: "matched",
+        gameId,
+        _meta: getResponseMeta(),
+      };
+    }
+
+    // No live match — try async matching against a snapshot
+    const playerElo = userData.stats.elo ?? DEFAULT_ELO;
+    const snapshot = await findMatchingSnapshot(db, userId, playerElo);
+
+    if (snapshot) {
+      const gameId = await createAsyncGame(db, userId, snapshot, rules, cardSnapshot);
+      return {
+        type: "async_matched",
         gameId,
         _meta: getResponseMeta(),
       };

@@ -24,6 +24,7 @@ export function Layout({ user, onLogout }: LayoutProps) {
             <NavLink to="/players">Players</NavLink>
             <NavLink to="/playtest">Playtest</NavLink>
             <NavLink to="/changelog">Changelog</NavLink>
+            <NavLink to="/snapshots">Snapshots</NavLink>
           </nav>
           <div className="user-info">
             <span>{user.displayName}</span>

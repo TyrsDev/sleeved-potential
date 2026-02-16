@@ -10,7 +10,7 @@ export type GameStatus = "active" | "finished";
 /**
  * Reason the game ended
  */
-export type GameEndReason = "points" | "surrender";
+export type GameEndReason = "points" | "surrender" | "rounds_complete";
 
 /**
  * Resolved stats after card composition
@@ -38,7 +38,10 @@ export interface CommittedCard {
  * Outcome for a player in a round
  */
 export interface RoundOutcome {
-  pointsEarned: number;
+  pointsEarned: number; // total (absorption + kill + overkill, or 0 if died)
+  damageDealt: number; // damage stat if attacked, 0 if didn't attack
+  damageAbsorbed: number; // damage taken if survived
+  killBonus: number; // pointsForKill + overkill if killed opponent
   survived: boolean;
   defeated: boolean; // Did this card defeat the opponent's card
   finalHealth: number;
@@ -78,26 +81,36 @@ export interface EloChange {
  */
 export interface Game {
   id: string;
-  players: [string, string]; // User IDs
+  players: [string, string]; // User IDs (or snapshot player ID for async)
   status: GameStatus;
   currentRound: number;
   scores: Record<string, number>; // playerId -> score
   winner: string | null; // User ID, null if draw or ongoing
   isDraw: boolean;
+  ranked: boolean; // If false, no ELO changes
 
   // Snapshots at game start (immune to admin edits)
   rulesSnapshot: GameRules;
   cardSnapshot: CardSnapshot;
 
-  // Shared Animal state
-  animalDeck: string[]; // Card IDs remaining in shared deck
-  animalDiscard: string[]; // Used animals
-
   // Round history
   rounds: RoundResult[];
+  maxRounds: number; // 5 for all new games
 
   // ELO changes (only present for ranked games that have ended)
   eloChanges?: Record<string, EloChange>; // playerId -> ELO change
+
+  // Async game fields (only present for async games)
+  isAsync?: boolean;
+  snapshotId?: string;
+  snapshotSourcePlayerId?: string;
+  snapshotSourcePlayerName?: string;
+
+  // Snapshot accumulated state (only for async games, updated each round)
+  snapshotState?: {
+    persistentModifiers: PersistentModifier[];
+    initiativeModifier: number;
+  };
 
   createdAt: string; // ISO 8601
   startedAt: string; // ISO 8601
@@ -118,6 +131,10 @@ export interface PlayerGameState {
   animalHand: string[]; // Card IDs (typically 3)
   equipmentHand: string[]; // Card IDs (no limit)
 
+  // Per-player animal deck/discard (independent copies)
+  animalDeck: string[];
+  animalDiscard: string[];
+
   // Equipment deck/discard
   equipmentDeck: string[];
   equipmentDiscard: string[];
@@ -135,6 +152,21 @@ export interface PlayerGameState {
   // Current round commit
   currentCommit: CommittedCard | null;
   hasCommitted: boolean;
+
+  // Replay data (logged before each round)
+  roundSnapshots: RoundSnapshot[];
+}
+
+/**
+ * Replay data snapshot for a single round (private to each player)
+ */
+export interface RoundSnapshot {
+  roundNumber: number;
+  animalHand: string[];
+  equipmentHand: string[];
+  availableSleeves: string[];
+  animalsDrawn: string[];
+  equipmentDrawn: string[];
 }
 
 /**
@@ -144,6 +176,24 @@ export interface CreateGameData {
   players: [string, string];
   rulesSnapshot: GameRules;
   cardSnapshot: CardSnapshot;
+}
+
+// ============================================================================
+// SNAPSHOT PLAYER ID HELPERS
+// ============================================================================
+
+export const SNAPSHOT_PLAYER_PREFIX = "snapshot:";
+
+export function isSnapshotPlayer(playerId: string): boolean {
+  return playerId.startsWith(SNAPSHOT_PLAYER_PREFIX);
+}
+
+export function getSnapshotIdFromPlayer(playerId: string): string {
+  return playerId.slice(SNAPSHOT_PLAYER_PREFIX.length);
+}
+
+export function makeSnapshotPlayerId(snapshotId: string): string {
+  return `${SNAPSHOT_PLAYER_PREFIX}${snapshotId}`;
 }
 
 // ============================================================================

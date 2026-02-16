@@ -410,6 +410,10 @@ export function Playtest() {
           equipmentDrawPerRound: 1,
           startingAnimalHand: 3,
           defaultInitiative: 0,
+          maxRounds: 5,
+          pointsForKill: 3,
+          pointsPerOverkill: 1,
+          pointsPerAbsorbed: 1,
           updatedAt: new Date().toISOString(),
           updatedBy: "system",
         });
@@ -507,8 +511,10 @@ export function Playtest() {
       <div className="page-header">
         <h2>Playtest - Battle Simulator</h2>
         <div className="rules-info">
-          <span>Survive: +{rules?.pointsForSurviving}</span>
-          <span>Defeat: +{rules?.pointsForDefeating}</span>
+          <span>Kill: +{rules?.pointsForKill}</span>
+          <span>Overkill: +{rules?.pointsPerOverkill}/hp</span>
+          <span>Absorbed: +{rules?.pointsPerAbsorbed}/hp</span>
+          <span>Rounds: {rules?.maxRounds}</span>
         </div>
       </div>
 
@@ -575,8 +581,15 @@ export function Playtest() {
               <div className="result-points">
                 +{battleResult.player1.outcome.pointsEarned} points
               </div>
-              {battleResult.player1.outcome.defeated && (
-                <div className="result-badge">Defeated opponent</div>
+              {battleResult.player1.outcome.survived && (
+                <div className="result-scoring">
+                  {battleResult.player1.outcome.damageAbsorbed > 0 && (
+                    <span>Absorbed: +{battleResult.player1.outcome.damageAbsorbed}</span>
+                  )}
+                  {battleResult.player1.outcome.killBonus > 0 && (
+                    <span>Kill bonus: +{battleResult.player1.outcome.killBonus}</span>
+                  )}
+                </div>
               )}
             </div>
 
@@ -595,8 +608,15 @@ export function Playtest() {
               <div className="result-points">
                 +{battleResult.player2.outcome.pointsEarned} points
               </div>
-              {battleResult.player2.outcome.defeated && (
-                <div className="result-badge">Defeated opponent</div>
+              {battleResult.player2.outcome.survived && (
+                <div className="result-scoring">
+                  {battleResult.player2.outcome.damageAbsorbed > 0 && (
+                    <span>Absorbed: +{battleResult.player2.outcome.damageAbsorbed}</span>
+                  )}
+                  {battleResult.player2.outcome.killBonus > 0 && (
+                    <span>Kill bonus: +{battleResult.player2.outcome.killBonus}</span>
+                  )}
+                </div>
               )}
             </div>
           </div>

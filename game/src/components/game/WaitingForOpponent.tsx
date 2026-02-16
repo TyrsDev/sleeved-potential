@@ -2,7 +2,7 @@ import { useGame } from "../../contexts/GameContext";
 import { CommittedCardPreview } from "./CommittedCardPreview";
 
 export function WaitingForOpponent() {
-  const { playerState, getSleeve, getAnimal, getEquipment } = useGame();
+  const { playerState, getSleeve, getAnimal, getEquipment, isAsync } = useGame();
 
   const commit = playerState?.currentCommit;
 
@@ -10,7 +10,7 @@ export function WaitingForOpponent() {
     <div className="waiting-for-opponent">
       <div className="waiting-spinner">
         <div className="spinner" />
-        <p>Waiting for opponent to commit...</p>
+        <p>{isAsync ? "Resolving round..." : "Waiting for opponent to commit..."}</p>
       </div>
 
       {commit && (

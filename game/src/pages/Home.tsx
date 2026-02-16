@@ -10,6 +10,7 @@ import {
   declineChallenge,
 } from "../firebase";
 import type { Game, Challenge, User } from "@sleeved-potential/shared";
+import { isSnapshotPlayer } from "@sleeved-potential/shared";
 import { auth } from "../firebase";
 
 export function Home() {
@@ -40,7 +41,7 @@ export function Home() {
 
     const opponentIds = activeGames
       .map((g) => g.players.find((p) => p !== userId))
-      .filter((id): id is string => !!id);
+      .filter((id): id is string => !!id && !isSnapshotPlayer(id));
 
     const unsubscribes: (() => void)[] = [];
 
@@ -79,6 +80,9 @@ export function Home() {
 
   const getOpponentId = (game: Game) => game.players.find((p) => p !== userId);
   const getOpponentName = (game: Game) => {
+    if (game.isAsync && game.snapshotSourcePlayerName) {
+      return game.snapshotSourcePlayerName;
+    }
     const oppId = getOpponentId(game);
     return oppId ? opponentNames[oppId] ?? "Opponent" : "Opponent";
   };

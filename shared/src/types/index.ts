@@ -6,6 +6,7 @@ export * from "./card.js";
 export * from "./rules.js";
 export * from "./effects.js";
 export * from "./changelog.js";
+export * from "./snapshot.js";
 
 // Function I/O interfaces
 export * from "./functions.js";

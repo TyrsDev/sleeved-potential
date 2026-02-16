@@ -419,6 +419,10 @@ export function Playtest() {
           equipmentDrawPerRound: 1,
           startingAnimalHand: 3,
           defaultInitiative: 0,
+          maxRounds: 5,
+          pointsForKill: 3,
+          pointsPerOverkill: 1,
+          pointsPerAbsorbed: 1,
           updatedAt: new Date().toISOString(),
           updatedBy: "system",
         });
@@ -530,13 +534,16 @@ export function Playtest() {
 
       <div className="rules-info-bar">
         <span>
-          Survive: <strong>+{rules?.pointsForSurviving}</strong>
+          Kill: <strong>+{rules?.pointsForKill}</strong>
         </span>
         <span>
-          Defeat: <strong>+{rules?.pointsForDefeating}</strong>
+          Overkill: <strong>+{rules?.pointsPerOverkill}/hp</strong>
         </span>
         <span>
-          Win at: <strong>{rules?.pointsToWin} pts</strong>
+          Absorbed: <strong>+{rules?.pointsPerAbsorbed}/hp</strong>
+        </span>
+        <span>
+          Rounds: <strong>{rules?.maxRounds}</strong>
         </span>
       </div>
 
@@ -596,8 +603,15 @@ export function Playtest() {
                 {battleResult.player1.outcome.finalHealth} HP remaining
               </div>
               <div className="result-points">+{battleResult.player1.outcome.pointsEarned} points</div>
-              {battleResult.player1.outcome.defeated && (
-                <div className="result-badge">Defeated opponent</div>
+              {battleResult.player1.outcome.survived && (
+                <div className="result-scoring">
+                  {battleResult.player1.outcome.damageAbsorbed > 0 && (
+                    <span>Absorbed: +{battleResult.player1.outcome.damageAbsorbed}</span>
+                  )}
+                  {battleResult.player1.outcome.killBonus > 0 && (
+                    <span>Kill bonus: +{battleResult.player1.outcome.killBonus}</span>
+                  )}
+                </div>
               )}
             </div>
 
@@ -616,8 +630,15 @@ export function Playtest() {
                 {battleResult.player2.outcome.finalHealth} HP remaining
               </div>
               <div className="result-points">+{battleResult.player2.outcome.pointsEarned} points</div>
-              {battleResult.player2.outcome.defeated && (
-                <div className="result-badge">Defeated opponent</div>
+              {battleResult.player2.outcome.survived && (
+                <div className="result-scoring">
+                  {battleResult.player2.outcome.damageAbsorbed > 0 && (
+                    <span>Absorbed: +{battleResult.player2.outcome.damageAbsorbed}</span>
+                  )}
+                  {battleResult.player2.outcome.killBonus > 0 && (
+                    <span>Kill bonus: +{battleResult.player2.outcome.killBonus}</span>
+                  )}
+                </div>
               )}
             </div>
           </div>

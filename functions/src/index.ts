@@ -36,3 +36,7 @@ export { createChangelog } from "./createChangelog.js";
 export { updateChangelog } from "./updateChangelog.js";
 export { publishChangelog } from "./publishChangelog.js";
 export { deleteChangelog } from "./deleteChangelog.js";
+
+// Snapshot/Migration functions (ADMIN role required)
+export { seedBotSnapshot } from "./seedBotSnapshot.js";
+export { migrateGames } from "./migrateGames.js";

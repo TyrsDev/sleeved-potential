@@ -16,14 +16,6 @@ export type SpecialEffectTrigger =
   | "if_doesnt_defeat"; // After combat, if opponent survives
 
 /**
- * Draw cards from equipment deck
- */
-export interface DrawCardsAction {
-  type: "draw_cards";
-  count: number; // 1-3 typically
-}
-
-/**
  * Modify initiative (affects attack order)
  */
 export interface ModifyInitiativeAction {
@@ -49,7 +41,6 @@ export interface AddPersistentModifierAction {
  * Union of all possible effect actions
  */
 export type SpecialEffectAction =
-  | DrawCardsAction
   | ModifyInitiativeAction
   | AddPersistentModifierAction;
 

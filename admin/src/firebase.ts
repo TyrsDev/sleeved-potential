@@ -46,7 +46,12 @@ import type {
   CreateCardData,
   UpdateCardData,
   UpdateRulesData,
+  SeedBotSnapshotInput,
+  SeedBotSnapshotOutput,
+  MigrateGamesInput,
+  MigrateGamesOutput,
 } from "@sleeved-potential/shared";
+import type { SnapshotCommit } from "@sleeved-potential/shared";
 import { VERSION } from "@sleeved-potential/shared";
 
 const firebaseConfig = {
@@ -205,6 +210,29 @@ export function subscribeToChangelogs(
     const entries = snapshot.docs.map((doc) => doc.data() as ChangelogEntry);
     callback(entries);
   });
+}
+
+// =============================================================================
+// Snapshot & Migration Functions
+// =============================================================================
+
+export async function seedBotSnapshot(
+  botName: string,
+  elo: number,
+  commits: SnapshotCommit[]
+): Promise<SeedBotSnapshotOutput> {
+  const fn = httpsCallable<SeedBotSnapshotInput, SeedBotSnapshotOutput>(
+    functions,
+    "seedBotSnapshot"
+  );
+  const result = await fn(withMeta({ botName, elo, commits }));
+  return result.data;
+}
+
+export async function migrateGames(): Promise<MigrateGamesOutput> {
+  const fn = httpsCallable<MigrateGamesInput, MigrateGamesOutput>(functions, "migrateGames");
+  const result = await fn(withMeta({}));
+  return result.data;
 }
 
 export type { FirebaseUser, User };

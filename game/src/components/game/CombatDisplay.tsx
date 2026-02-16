@@ -2,6 +2,29 @@ import { useMemo } from "react";
 import { useGame } from "../../contexts/GameContext";
 import { useUser } from "../../contexts/UserContext";
 import { CommittedCardPreview } from "./CommittedCardPreview";
+import type { RoundOutcome } from "@sleeved-potential/shared";
+
+function ScoreBreakdown({ outcome }: { outcome: RoundOutcome }) {
+  if (!outcome.survived) {
+    return (
+      <div className="score-breakdown destroyed">
+        <span className="score-total">0 points</span>
+        <span className="score-detail">(destroyed)</span>
+      </div>
+    );
+  }
+
+  const parts: string[] = [];
+  if (outcome.damageAbsorbed > 0) parts.push(`${outcome.damageAbsorbed} absorbed`);
+  if (outcome.killBonus > 0) parts.push(`${outcome.killBonus} kill`);
+
+  return (
+    <div className="score-breakdown survived">
+      <span className="score-total">+{outcome.pointsEarned} points</span>
+      {parts.length > 0 && <span className="score-detail">({parts.join(" + ")})</span>}
+    </div>
+  );
+}
 
 export function CombatDisplay() {
   const { latestRound, getSleeve, getAnimal, getEquipment, opponentId } = useGame();
@@ -46,29 +69,35 @@ export function CombatDisplay() {
 
   return (
     <div className="combat-display">
-      <CommittedCardPreview
-        commit={myCommit}
-        getSleeve={getSleeve}
-        getAnimal={getAnimal}
-        getEquipment={getEquipment}
-        label="You"
-        outcome={myOutcome}
-        effectTriggered={myEffectTriggered}
-        showStats={false}
-      />
+      <div className="combat-player">
+        <CommittedCardPreview
+          commit={myCommit}
+          getSleeve={getSleeve}
+          getAnimal={getAnimal}
+          getEquipment={getEquipment}
+          label="You"
+          outcome={myOutcome}
+          effectTriggered={myEffectTriggered}
+          showStats={false}
+        />
+        {myOutcome && <ScoreBreakdown outcome={myOutcome} />}
+      </div>
 
       <div className="combat-vs">VS</div>
 
-      <CommittedCardPreview
-        commit={opponentCommit}
-        getSleeve={getSleeve}
-        getAnimal={getAnimal}
-        getEquipment={getEquipment}
-        label="Opponent"
-        outcome={opponentOutcome}
-        effectTriggered={opponentEffectTriggered}
-        showStats={false}
-      />
+      <div className="combat-player">
+        <CommittedCardPreview
+          commit={opponentCommit}
+          getSleeve={getSleeve}
+          getAnimal={getAnimal}
+          getEquipment={getEquipment}
+          label="Opponent"
+          outcome={opponentOutcome}
+          effectTriggered={opponentEffectTriggered}
+          showStats={false}
+        />
+        {opponentOutcome && <ScoreBreakdown outcome={opponentOutcome} />}
+      </div>
     </div>
   );
 }

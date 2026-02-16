@@ -14,7 +14,7 @@ import type {
   SpecialEffect,
 } from "@sleeved-potential/shared";
 
-type EffectActionType = "draw_cards" | "modify_initiative" | "add_persistent_modifier";
+type EffectActionType = "modify_initiative" | "add_persistent_modifier";
 
 /**
  * Component for editing stats (damage, health, initiative, modifier, special effect)
@@ -40,8 +40,6 @@ function StatsEditor({
   setEffectTrigger,
   effectActionType,
   setEffectActionType,
-  effectCount,
-  setEffectCount,
   effectAmount,
   setEffectAmount,
   effectStat,
@@ -66,8 +64,6 @@ function StatsEditor({
   setEffectTrigger: (v: SpecialEffectTrigger) => void;
   effectActionType: EffectActionType;
   setEffectActionType: (v: EffectActionType) => void;
-  effectCount: string;
-  setEffectCount: (v: string) => void;
   effectAmount: string;
   setEffectAmount: (v: string) => void;
   effectStat: "damage" | "health";
@@ -183,27 +179,12 @@ function StatsEditor({
               value={effectActionType}
               onChange={(e) => setEffectActionType(e.target.value as EffectActionType)}
             >
-              <option value="draw_cards">Draw Cards</option>
               <option value="modify_initiative">Modify Initiative</option>
               <option value="add_persistent_modifier">Add Persistent Modifier</option>
             </select>
           </div>
 
           {/* Conditional inputs based on effect action type */}
-          {effectActionType === "draw_cards" && (
-            <div className="form-group">
-              <label htmlFor={`${prefix}EffectCount`}>Cards to Draw</label>
-              <input
-                id={`${prefix}EffectCount`}
-                type="number"
-                min="1"
-                max="5"
-                value={effectCount}
-                onChange={(e) => setEffectCount(e.target.value)}
-              />
-            </div>
-          )}
-
           {effectActionType === "modify_initiative" && (
             <div className="form-group">
               <label htmlFor={`${prefix}EffectAmount`}>Initiative Change (+/-)</label>
@@ -273,7 +254,7 @@ export function CardForm() {
   const [modifierAmount, setModifierAmount] = useState<string>("");
   const [hasSpecialEffect, setHasSpecialEffect] = useState(false);
   const [effectTrigger, setEffectTrigger] = useState<SpecialEffectTrigger>("on_play");
-  const [effectActionType, setEffectActionType] = useState<EffectActionType>("draw_cards");
+  const [effectActionType, setEffectActionType] = useState<EffectActionType>("modify_initiative");
   const [effectCount, setEffectCount] = useState<string>("1");
   const [effectAmount, setEffectAmount] = useState<string>("1");
   const [effectStat, setEffectStat] = useState<"damage" | "health">("damage");
@@ -287,7 +268,7 @@ export function CardForm() {
   const [bgModifierAmount, setBgModifierAmount] = useState<string>("");
   const [bgHasSpecialEffect, setBgHasSpecialEffect] = useState(false);
   const [bgEffectTrigger, setBgEffectTrigger] = useState<SpecialEffectTrigger>("on_play");
-  const [bgEffectActionType, setBgEffectActionType] = useState<EffectActionType>("draw_cards");
+  const [bgEffectActionType, setBgEffectActionType] = useState<EffectActionType>("modify_initiative");
   const [bgEffectCount, setBgEffectCount] = useState<string>("1");
   const [bgEffectAmount, setBgEffectAmount] = useState<string>("1");
   const [bgEffectStat, setBgEffectStat] = useState<"damage" | "health">("damage");
@@ -301,7 +282,7 @@ export function CardForm() {
   const [fgModifierAmount, setFgModifierAmount] = useState<string>("");
   const [fgHasSpecialEffect, setFgHasSpecialEffect] = useState(false);
   const [fgEffectTrigger, setFgEffectTrigger] = useState<SpecialEffectTrigger>("on_play");
-  const [fgEffectActionType, setFgEffectActionType] = useState<EffectActionType>("draw_cards");
+  const [fgEffectActionType, setFgEffectActionType] = useState<EffectActionType>("modify_initiative");
   const [fgEffectCount, setFgEffectCount] = useState<string>("1");
   const [fgEffectAmount, setFgEffectAmount] = useState<string>("1");
   const [fgEffectStat, setFgEffectStat] = useState<"damage" | "health">("damage");
@@ -334,7 +315,7 @@ export function CardForm() {
         setters.setModifierAmount("");
         setters.setHasSpecialEffect(false);
         setters.setEffectTrigger("on_play");
-        setters.setEffectActionType("draw_cards");
+        setters.setEffectActionType("modify_initiative");
         setters.setEffectCount("1");
         setters.setEffectAmount("1");
         setters.setEffectStat("damage");
@@ -362,9 +343,7 @@ export function CardForm() {
         const action = stats.specialEffect.effect;
         setters.setEffectActionType(action.type);
 
-        if (action.type === "draw_cards") {
-          setters.setEffectCount(action.count.toString());
-        } else if (action.type === "modify_initiative") {
+        if (action.type === "modify_initiative") {
           setters.setEffectAmount(action.amount.toString());
         } else if (action.type === "add_persistent_modifier") {
           setters.setEffectStat(action.stat);
@@ -373,7 +352,7 @@ export function CardForm() {
       } else {
         setters.setHasSpecialEffect(false);
         setters.setEffectTrigger("on_play");
-        setters.setEffectActionType("draw_cards");
+        setters.setEffectActionType("modify_initiative");
         setters.setEffectCount("1");
         setters.setEffectAmount("1");
         setters.setEffectStat("damage");
@@ -512,13 +491,11 @@ export function CardForm() {
   const buildEffectAction = useCallback(
     (
       actionType: EffectActionType,
-      count: string,
+      _count: string,
       amount: string,
       stat: "damage" | "health"
     ): SpecialEffectAction => {
       switch (actionType) {
-        case "draw_cards":
-          return { type: "draw_cards", count: parseInt(count, 10) || 1 };
         case "modify_initiative":
           return { type: "modify_initiative", amount: parseInt(amount, 10) || 0 };
         case "add_persistent_modifier":
@@ -842,8 +819,6 @@ export function CardForm() {
                 setEffectTrigger={setBgEffectTrigger}
                 effectActionType={bgEffectActionType}
                 setEffectActionType={setBgEffectActionType}
-                effectCount={bgEffectCount}
-                setEffectCount={setBgEffectCount}
                 effectAmount={bgEffectAmount}
                 setEffectAmount={setBgEffectAmount}
                 effectStat={bgEffectStat}
@@ -873,8 +848,6 @@ export function CardForm() {
                 setEffectTrigger={setFgEffectTrigger}
                 effectActionType={fgEffectActionType}
                 setEffectActionType={setFgEffectActionType}
-                effectCount={fgEffectCount}
-                setEffectCount={setFgEffectCount}
                 effectAmount={fgEffectAmount}
                 setEffectAmount={setFgEffectAmount}
                 effectStat={fgEffectStat}
@@ -905,8 +878,6 @@ export function CardForm() {
               setEffectTrigger={setEffectTrigger}
               effectActionType={effectActionType}
               setEffectActionType={setEffectActionType}
-              effectCount={effectCount}
-              setEffectCount={setEffectCount}
               effectAmount={effectAmount}
               setEffectAmount={setEffectAmount}
               effectStat={effectStat}

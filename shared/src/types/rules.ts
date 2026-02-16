@@ -21,6 +21,12 @@ export interface GameRules {
   // Combat
   defaultInitiative: number; // default: 0
 
+  // New scoring (v1.2.0)
+  maxRounds: number; // default: 5
+  pointsForKill: number; // default: 3
+  pointsPerOverkill: number; // default: 1
+  pointsPerAbsorbed: number; // default: 1
+
   // Future extensibility
   customRules?: Record<string, unknown>;
 
@@ -40,6 +46,10 @@ export const DEFAULT_GAME_RULES: Omit<GameRules, "id" | "updatedAt" | "updatedBy
   equipmentDrawPerRound: 1,
   startingAnimalHand: 3,
   defaultInitiative: 0,
+  maxRounds: 5,
+  pointsForKill: 3,
+  pointsPerOverkill: 1,
+  pointsPerAbsorbed: 1,
 };
 
 /**
@@ -53,5 +63,9 @@ export interface UpdateRulesData {
   equipmentDrawPerRound?: number;
   startingAnimalHand?: number;
   defaultInitiative?: number;
+  maxRounds?: number;
+  pointsForKill?: number;
+  pointsPerOverkill?: number;
+  pointsPerAbsorbed?: number;
   customRules?: Record<string, unknown>;
 }

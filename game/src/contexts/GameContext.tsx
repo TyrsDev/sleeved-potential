@@ -48,6 +48,11 @@ interface GameContextValue {
   myScore: number;
   opponentScore: number;
 
+  // Async game info
+  isAsync: boolean;
+  snapshotOpponentName: string | null;
+  maxRounds: number;
+
   // Card lookup (from cardSnapshot)
   getCard: (cardId: string) => CardDefinition | undefined;
   getSleeve: (cardId: string) => CardDefinition | undefined;
@@ -213,6 +218,10 @@ export function GameProvider({ gameId, children }: GameProviderProps) {
     [gameId]
   );
 
+  const isAsync = game?.isAsync ?? false;
+  const snapshotOpponentName = game?.snapshotSourcePlayerName ?? null;
+  const maxRounds = game?.maxRounds ?? 5;
+
   const value: GameContextValue = {
     game,
     playerState,
@@ -224,6 +233,9 @@ export function GameProvider({ gameId, children }: GameProviderProps) {
     latestRound,
     myScore,
     opponentScore,
+    isAsync,
+    snapshotOpponentName,
+    maxRounds,
     getCard,
     getSleeve,
     getAnimal,

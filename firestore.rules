@@ -66,6 +66,12 @@ service cloud.firestore {
       }
     }
 
+    // Snapshots — Cloud Functions only (clients must NOT see future commits)
+    match /snapshots/{snapshotId} {
+      allow read: if false;
+      allow write: if false;
+    }
+
     // Cards collection (admin-editable)
     match /cards/{cardId} {
       allow read: if isSignedIn();

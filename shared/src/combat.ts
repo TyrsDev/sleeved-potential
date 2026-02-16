@@ -391,6 +391,8 @@ export function resolveCombat(input: CombatInput): CombatResult {
   // Combat resolution
   let p1Health = p1Stats.health;
   let p2Health = p2Stats.health;
+  let p1DamageDealt = 0;
+  let p2DamageDealt = 0;
 
   combatLog.push(`\n=== COMBAT ===`);
 
@@ -399,15 +401,19 @@ export function resolveCombat(input: CombatInput): CombatResult {
     combatLog.push(`Initiative tied (${p1Stats.initiative}) - Simultaneous attack!`);
     p1Health -= p2Stats.damage;
     p2Health -= p1Stats.damage;
+    p1DamageDealt = p1Stats.damage;
+    p2DamageDealt = p2Stats.damage;
     combatLog.push(`${player1.playerId} deals ${p1Stats.damage} damage (${p2Stats.health} -> ${p2Health})`);
     combatLog.push(`${player2.playerId} deals ${p2Stats.damage} damage (${p1Stats.health} -> ${p1Health})`);
   } else if (p1Stats.initiative > p2Stats.initiative) {
     // Player 1 attacks first
     combatLog.push(`${player1.playerId} has higher initiative (${p1Stats.initiative} > ${p2Stats.initiative})`);
     p2Health -= p1Stats.damage;
+    p1DamageDealt = p1Stats.damage;
     combatLog.push(`${player1.playerId} attacks first: ${p1Stats.damage} damage (${p2Stats.health} -> ${p2Health})`);
     if (p2Health > 0) {
       p1Health -= p2Stats.damage;
+      p2DamageDealt = p2Stats.damage;
       combatLog.push(`${player2.playerId} counterattacks: ${p2Stats.damage} damage (${p1Stats.health} -> ${p1Health})`);
     } else {
       combatLog.push(`${player2.playerId} is destroyed before attacking!`);
@@ -416,9 +422,11 @@ export function resolveCombat(input: CombatInput): CombatResult {
     // Player 2 attacks first
     combatLog.push(`${player2.playerId} has higher initiative (${p2Stats.initiative} > ${p1Stats.initiative})`);
     p1Health -= p2Stats.damage;
+    p2DamageDealt = p2Stats.damage;
     combatLog.push(`${player2.playerId} attacks first: ${p2Stats.damage} damage (${p1Stats.health} -> ${p1Health})`);
     if (p1Health > 0) {
       p2Health -= p1Stats.damage;
+      p1DamageDealt = p1Stats.damage;
       combatLog.push(`${player1.playerId} counterattacks: ${p1Stats.damage} damage (${p2Stats.health} -> ${p2Health})`);
     } else {
       combatLog.push(`${player1.playerId} is destroyed before attacking!`);
@@ -461,23 +469,37 @@ export function resolveCombat(input: CombatInput): CombatResult {
     }
   }
 
-  // Calculate points
-  let p1Points = 0;
-  let p2Points = 0;
+  // New scoring: absorption + kill bonus + overkill
+  // damageTaken = opponent's damage stat if they attacked, else 0
+  const p1DamageTaken = p2DamageDealt;
+  const p2DamageTaken = p1DamageDealt;
 
-  if (p1Survived) p1Points += rules.pointsForSurviving;
-  if (p2Survived) p2Points += rules.pointsForSurviving;
-  if (p1Defeated) p1Points += rules.pointsForDefeating;
-  if (p2Defeated) p2Points += rules.pointsForDefeating;
+  function calcScore(survived: boolean, killed: boolean, damageDealt: number,
+                     damageTaken: number, opponentHP: number) {
+    if (!survived) return { points: 0, absorbed: 0, killBonus: 0 };
+    const absorbed = damageTaken * (rules.pointsPerAbsorbed ?? 1);
+    let killBonus = 0;
+    if (killed) {
+      const overkill = Math.max(0, damageDealt - opponentHP);
+      killBonus = (rules.pointsForKill ?? 3) + overkill * (rules.pointsPerOverkill ?? 1);
+    }
+    return { points: absorbed + killBonus, absorbed, killBonus };
+  }
+
+  const p1Score = calcScore(p1Survived, p1Defeated, p1DamageDealt, p1DamageTaken, p2Stats.health);
+  const p2Score = calcScore(p2Survived, p2Defeated, p2DamageDealt, p2DamageTaken, p1Stats.health);
 
   combatLog.push(`\n=== SCORING ===`);
-  combatLog.push(`${player1.playerId}: ${p1Points} points${p1Survived ? ` (+${rules.pointsForSurviving} survive)` : ""}${p1Defeated ? ` (+${rules.pointsForDefeating} defeat)` : ""}`);
-  combatLog.push(`${player2.playerId}: ${p2Points} points${p2Survived ? ` (+${rules.pointsForSurviving} survive)` : ""}${p2Defeated ? ` (+${rules.pointsForDefeating} defeat)` : ""}`);
+  combatLog.push(`${player1.playerId}: ${p1Score.points} points${p1Survived ? ` (absorbed: ${p1Score.absorbed}, kill: ${p1Score.killBonus})` : " (destroyed)"}`);
+  combatLog.push(`${player2.playerId}: ${p2Score.points} points${p2Survived ? ` (absorbed: ${p2Score.absorbed}, kill: ${p2Score.killBonus})` : " (destroyed)"}`);
 
   return {
     player1: {
       outcome: {
-        pointsEarned: p1Points,
+        pointsEarned: p1Score.points,
+        damageDealt: p1DamageDealt,
+        damageAbsorbed: p1Survived ? p1DamageTaken : 0,
+        killBonus: p1Score.killBonus,
         survived: p1Survived,
         defeated: p1Defeated,
         finalHealth: Math.max(0, p1Health),
@@ -486,7 +508,10 @@ export function resolveCombat(input: CombatInput): CombatResult {
     },
     player2: {
       outcome: {
-        pointsEarned: p2Points,
+        pointsEarned: p2Score.points,
+        damageDealt: p2DamageDealt,
+        damageAbsorbed: p2Survived ? p2DamageTaken : 0,
+        killBonus: p2Score.killBonus,
         survived: p2Survived,
         defeated: p2Defeated,
         finalHealth: Math.max(0, p2Health),
@@ -564,8 +589,6 @@ export function findCardOfType(
 export function formatEffectAction(effect: SpecialEffect): string {
   const action = effect.effect;
   switch (action.type) {
-    case "draw_cards":
-      return `Draw ${action.count} cards`;
     case "modify_initiative":
       return `${action.amount > 0 ? "+" : ""}${action.amount} Initiative next round`;
     case "add_persistent_modifier":
