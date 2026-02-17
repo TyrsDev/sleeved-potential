@@ -476,8 +476,7 @@ export function resolveCombat(input: CombatInput): CombatResult {
 
   function calcScore(survived: boolean, killed: boolean, damageDealt: number,
                      damageTaken: number, opponentHP: number) {
-    if (!survived) return { points: 0, absorbed: 0, killBonus: 0 };
-    const absorbed = damageTaken * (rules.pointsPerAbsorbed ?? 1);
+    const absorbed = survived ? damageTaken * (rules.pointsPerAbsorbed ?? 1) : 0;
     let killBonus = 0;
     if (killed) {
       const overkill = Math.max(0, damageDealt - opponentHP);
@@ -490,8 +489,8 @@ export function resolveCombat(input: CombatInput): CombatResult {
   const p2Score = calcScore(p2Survived, p2Defeated, p2DamageDealt, p2DamageTaken, p1Stats.health);
 
   combatLog.push(`\n=== SCORING ===`);
-  combatLog.push(`${player1.playerId}: ${p1Score.points} points${p1Survived ? ` (absorbed: ${p1Score.absorbed}, kill: ${p1Score.killBonus})` : " (destroyed)"}`);
-  combatLog.push(`${player2.playerId}: ${p2Score.points} points${p2Survived ? ` (absorbed: ${p2Score.absorbed}, kill: ${p2Score.killBonus})` : " (destroyed)"}`);
+  combatLog.push(`${player1.playerId}: ${p1Score.points} points (absorbed: ${p1Score.absorbed}, kill: ${p1Score.killBonus})${!p1Survived ? " [destroyed]" : ""}`);
+  combatLog.push(`${player2.playerId}: ${p2Score.points} points (absorbed: ${p2Score.absorbed}, kill: ${p2Score.killBonus})${!p2Survived ? " [destroyed]" : ""}`);
 
   return {
     player1: {

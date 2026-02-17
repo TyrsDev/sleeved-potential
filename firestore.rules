@@ -66,9 +66,9 @@ service cloud.firestore {
       }
     }
 
-    // Snapshots — Cloud Functions only (clients must NOT see future commits)
+    // Snapshots — admins can read, writes via Cloud Functions only
     match /snapshots/{snapshotId} {
-      allow read: if false;
+      allow read: if isAdmin();
       allow write: if false;
     }
 

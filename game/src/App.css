@@ -2134,7 +2134,8 @@ body {
 
 .composer-stats-preview .stat-box,
 .commit-stats .stat-box,
-.combat-card-stats .stat-box {
+.combat-card-stats .stat-box,
+.combat-stats-preview .stat-box {
   flex: 1;
   padding: 0.5rem;
   background: #0a0a0f;
@@ -2145,7 +2146,8 @@ body {
 
 .composer-stats-preview .stat-box .stat-label,
 .commit-stats .stat-box .stat-label,
-.combat-card-stats .stat-box .stat-label {
+.combat-card-stats .stat-box .stat-label,
+.combat-stats-preview .stat-box .stat-label {
   display: block;
   font-size: 0.65rem;
   color: #888;
@@ -2155,7 +2157,8 @@ body {
 
 .composer-stats-preview .stat-box .stat-value,
 .commit-stats .stat-box .stat-value,
-.combat-card-stats .stat-box .stat-value {
+.combat-card-stats .stat-box .stat-value,
+.combat-stats-preview .stat-box .stat-value {
   display: block;
   font-size: 1.5rem;
   font-weight: bold;
@@ -2163,19 +2166,22 @@ body {
 
 .composer-stats-preview .stat-box.damage .stat-value,
 .commit-stats .stat-box.damage .stat-value,
-.combat-card-stats .stat-box.damage .stat-value {
+.combat-card-stats .stat-box.damage .stat-value,
+.combat-stats-preview .stat-box.damage .stat-value {
   color: #f87171;
 }
 
 .composer-stats-preview .stat-box.health .stat-value,
 .commit-stats .stat-box.health .stat-value,
-.combat-card-stats .stat-box.health .stat-value {
+.combat-card-stats .stat-box.health .stat-value,
+.combat-stats-preview .stat-box.health .stat-value {
   color: #4ade80;
 }
 
 .composer-stats-preview .stat-box.initiative .stat-value,
 .commit-stats .stat-box.initiative .stat-value,
-.combat-card-stats .stat-box.initiative .stat-value {
+.combat-card-stats .stat-box.initiative .stat-value,
+.combat-stats-preview .stat-box.initiative .stat-value {
   color: #c084fc;
 }
 
@@ -2430,6 +2436,42 @@ body {
   margin: 1.5rem 0;
 }
 
+.combat-stats-preview {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.score-breakdown {
+  text-align: center;
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+
+.score-breakdown .score-total {
+  font-weight: 600;
+}
+
+.score-breakdown.survived .score-total {
+  color: #4ade80;
+}
+
+.score-breakdown.destroyed .score-total {
+  color: #f87171;
+}
+
+.score-breakdown .score-detail {
+  color: #888;
+  margin-left: 0.25rem;
+  font-size: 0.8rem;
+}
+
+.score-breakdown .destroyed-label {
+  color: #f87171;
+  font-size: 0.75rem;
+}
+
 .round-result .combat-display {
   margin-top: 1rem;
 }
@@ -2597,6 +2639,138 @@ body {
 .elo-change.negative {
   color: #ef4444;
   background: rgba(239, 68, 68, 0.15);
+}
+
+/* Round breakdown table */
+.round-breakdown {
+  margin-bottom: 2rem;
+  background: #1a1a2a;
+  border-radius: 12px;
+  padding: 1rem;
+  border: 1px solid #2a2a3a;
+}
+
+.round-breakdown table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.round-breakdown thead th {
+  font-size: 0.75rem;
+  color: #888;
+  text-transform: uppercase;
+  padding: 0.25rem 0.25rem 0.5rem;
+}
+
+.round-breakdown .col-round {
+  text-align: center;
+}
+
+.round-breakdown .col-points {
+  text-align: right;
+  padding-right: 0.25rem;
+}
+
+.round-breakdown .col-detail {
+  text-align: left;
+  padding-left: 0.25rem;
+}
+
+.round-breakdown .breakdown-legend {
+  font-size: 0.6rem;
+  color: #555;
+  text-transform: lowercase;
+  font-weight: normal;
+  grid-column: 1 / -1;
+  text-align: center;
+}
+
+.round-breakdown tbody tr {
+  border-top: 1px solid #2a2a3a;
+}
+
+.round-breakdown .round-number {
+  font-size: 0.75rem;
+  color: #666;
+  text-align: center;
+  padding: 0.5rem 0.25rem;
+}
+
+.round-breakdown .round-points {
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #fff;
+  text-align: right;
+  padding: 0.5rem 0.25rem 0.5rem 0.5rem;
+}
+
+.round-breakdown .round-detail {
+  font-size: 0.75rem;
+  text-align: left;
+  white-space: nowrap;
+  padding: 0.5rem 0.5rem 0.5rem 0.25rem;
+}
+
+.round-breakdown .detail-split {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: baseline;
+  gap: 0 0.2rem;
+}
+
+.round-breakdown .detail-left {
+  text-align: right;
+}
+
+.round-breakdown .detail-sep {
+  text-align: center;
+  color: #444;
+}
+
+.round-breakdown .detail-right {
+  text-align: left;
+}
+
+.round-breakdown .kill-points {
+  color: #a855f7;
+}
+
+.round-breakdown .absorbed-points {
+  color: #22c55e;
+}
+
+.round-breakdown .zero-points {
+  color: #444;
+}
+
+.round-breakdown .round-points.zero {
+  color: #888;
+}
+
+.round-breakdown .round-points.too-slow,
+.round-breakdown .round-detail.too-slow {
+  opacity: 0.4;
+}
+
+.round-breakdown .too-slow-label {
+  font-size: 0.65rem;
+  color: #666;
+  font-style: italic;
+  white-space: nowrap;
+  grid-column: 1 / -1;
+  text-align: center;
+}
+
+.round-breakdown tfoot tr {
+  border-top: 2px solid #3a3a4a;
+}
+
+.round-breakdown .round-points.round-total {
+  font-size: 1.2rem;
+}
+
+.round-breakdown .round-detail.round-total {
+  font-size: 0.75rem;
 }
 
 .game-over-actions {

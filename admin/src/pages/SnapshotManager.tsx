@@ -1,8 +1,8 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useData } from "../hooks/useData";
-import { seedBotSnapshot } from "../firebase";
+import { seedBotSnapshot, subscribeToSnapshots, deleteSnapshot } from "../firebase";
 import { resolveStats, DEFAULT_GAME_RULES } from "@sleeved-potential/shared";
-import type { CardDefinition, SnapshotCommit } from "@sleeved-potential/shared";
+import type { CardDefinition, SnapshotCommit, GameSnapshot } from "@sleeved-potential/shared";
 import { CompositionPreview } from "../components/CompositionPreview";
 import { MiniCardDisplay } from "../components/MiniCardDisplay";
 import { formatCardTooltip } from "../components/cardUtils";
@@ -644,11 +644,184 @@ function RoundComposer({
 }
 
 // ============================================================================
+// SNAPSHOT LIST
+// ============================================================================
+
+function SnapshotList({ cards }: { cards: CardDefinition[] }) {
+  const [snapshots, setSnapshots] = useState<GameSnapshot[]>([]);
+  const [snapshotsLoading, setSnapshotsLoading] = useState(true);
+  const [expandedSnapshot, setExpandedSnapshot] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  const cardMap = useMemo(() => {
+    const map = new Map<string, CardDefinition>();
+    for (const c of cards) map.set(c.id, c);
+    return map;
+  }, [cards]);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToSnapshots((data) => {
+      setSnapshots(data);
+      setSnapshotsLoading(false);
+    });
+    return unsubscribe;
+  }, []);
+
+  const handleDelete = async (snapshotId: string) => {
+    setDeletingId(snapshotId);
+    try {
+      await deleteSnapshot(snapshotId);
+      setConfirmDeleteId(null);
+    } catch {
+      // Snapshot may already be deleted
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const getCardName = (cardId: string): string => {
+    return cardMap.get(cardId)?.name ?? "Unknown card";
+  };
+
+  const formatDate = (iso: string): string => {
+    return new Date(iso).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  if (snapshotsLoading) {
+    return <div className="loading">Loading snapshots...</div>;
+  }
+
+  return (
+    <div className="snapshot-list">
+      <h3>Existing Snapshots ({snapshots.length})</h3>
+
+      {snapshots.length === 0 && (
+        <div className="empty-state">No snapshots yet. Create one above.</div>
+      )}
+
+      {snapshots.map((snap) => {
+        const isExpanded = expandedSnapshot === snap.id;
+        const isDeleting = deletingId === snap.id;
+        const isConfirming = confirmDeleteId === snap.id;
+
+        return (
+          <div key={snap.id} className={`snapshot-card ${isExpanded ? "expanded" : ""}`}>
+            <div
+              className="snapshot-header"
+              onClick={() => setExpandedSnapshot(isExpanded ? null : snap.id)}
+            >
+              <div className="snapshot-name">
+                <strong>{snap.sourcePlayerName}</strong>
+                {snap.isBot && <span className="badge role">BOT</span>}
+              </div>
+              <div className="snapshot-meta">
+                <span>ELO {snap.elo}</span>
+                <span>
+                  {snap.wins}W / {snap.losses}L / {snap.draws}D
+                </span>
+                <span>{snap.gamesPlayed} games</span>
+                <span>{formatDate(snap.createdAt)}</span>
+              </div>
+              <div className="snapshot-actions" onClick={(e) => e.stopPropagation()}>
+                {isConfirming ? (
+                  <span className="confirm-delete">
+                    <button
+                      className="btn btn-danger btn-small"
+                      disabled={isDeleting}
+                      onClick={() => handleDelete(snap.id)}
+                    >
+                      {isDeleting ? "Deleting..." : "Confirm"}
+                    </button>
+                    <button
+                      className="btn btn-small"
+                      onClick={() => setConfirmDeleteId(null)}
+                    >
+                      Cancel
+                    </button>
+                  </span>
+                ) : (
+                  <button
+                    className="btn btn-danger btn-small"
+                    onClick={() => setConfirmDeleteId(snap.id)}
+                  >
+                    Delete
+                  </button>
+                )}
+              </div>
+              <span className="round-expand-icon">{isExpanded ? "\u25BC" : "\u25B6"}</span>
+            </div>
+
+            {isExpanded && (
+              <div className="snapshot-rounds">
+                {snap.commits.map((commit, i) => {
+                  const sleeve = cardMap.get(commit.sleeveId) ?? null;
+                  const animal = cardMap.get(commit.animalId) ?? null;
+                  const equipmentCards = commit.equipmentIds
+                    .map((id) => cardMap.get(id) ?? null)
+                    .filter(Boolean) as CardDefinition[];
+                  const stats = resolveStats(sleeve, animal, equipmentCards);
+
+                  return (
+                    <div key={i} className="snapshot-round-row">
+                      <div className="snapshot-round-number">R{i + 1}</div>
+                      <div className="snapshot-round-cards">
+                        <span className="card-type-label sleeve">
+                          {getCardName(commit.sleeveId)}
+                        </span>
+                        {" + "}
+                        <span className="card-type-label animal">
+                          {getCardName(commit.animalId)}
+                        </span>
+                        {commit.equipmentIds.length > 0 && (
+                          <>
+                            {" + "}
+                            <span className="card-type-label equipment">
+                              {commit.equipmentIds.map((id) => getCardName(id)).join(", ")}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                      <div className="snapshot-round-stats">
+                        <span className="stat-badge damage">DMG {stats.damage}</span>
+                        <span className="stat-badge health">HP {stats.health}</span>
+                        {stats.initiative !== 0 && (
+                          <span className="stat-badge initiative">
+                            INIT {stats.initiative > 0 ? "+" : ""}{stats.initiative}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ============================================================================
 // SNAPSHOT MANAGER (main export)
 // ============================================================================
 
 export function SnapshotManager() {
   const { cards } = useData();
+
+  // Inactive card filter
+  const [showInactive, setShowInactive] = useState(false);
+  const activeCards = useMemo(
+    () => (showInactive ? cards : cards.filter((c) => c.active)),
+    [cards, showInactive]
+  );
 
   // Bot info
   const [botName, setBotName] = useState("");
@@ -675,13 +848,28 @@ export function SnapshotManager() {
   const [seedResult, setSeedResult] = useState<string | null>(null);
   const [seedError, setSeedError] = useState<string | null>(null);
 
+  // Reset setup when toggling inactive filter (skip initial render)
+  const [showInactiveInitialized, setShowInactiveInitialized] = useState(false);
+  useEffect(() => {
+    if (!showInactiveInitialized) {
+      setShowInactiveInitialized(true);
+      return;
+    }
+    setSetupComplete(false);
+    setInitialAnimalHand([]);
+    setInitialEquipmentHand([]);
+    setRounds(Array.from({ length: maxRounds }, () => emptyRound()));
+    setRoundDraws(Array.from({ length: maxRounds }, () => null));
+    setExpandedRound(0);
+  }, [showInactive]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Compute deck state for each round
   const deckStates = useMemo(() => {
     if (!setupComplete) return [];
     return Array.from({ length: maxRounds }, (_, i) =>
-      computeDeckState(cards, initialAnimalHand, initialEquipmentHand, rounds, roundDraws, i)
+      computeDeckState(activeCards, initialAnimalHand, initialEquipmentHand, rounds, roundDraws, i)
     );
-  }, [cards, initialAnimalHand, initialEquipmentHand, rounds, roundDraws, setupComplete]);
+  }, [activeCards, initialAnimalHand, initialEquipmentHand, rounds, roundDraws, setupComplete]);
 
   const handleSetupComplete = useCallback((animalHand: string[], equipmentHand: string[]) => {
     setInitialAnimalHand(animalHand);
@@ -845,9 +1033,19 @@ export function SnapshotManager() {
           </div>
         </div>
 
+        {/* Inactive card filter toggle */}
+        <label className="toggle-inactive">
+          <input
+            type="checkbox"
+            checked={showInactive}
+            onChange={(e) => setShowInactive(e.target.checked)}
+          />
+          Show inactive cards
+        </label>
+
         {/* Starting Hand Setup */}
         {!setupComplete && (
-          <StartingHandSetup cards={cards} onComplete={handleSetupComplete} />
+          <StartingHandSetup cards={activeCards} onComplete={handleSetupComplete} />
         )}
 
         {/* Round Composers (visible after setup) */}
@@ -875,7 +1073,7 @@ export function SnapshotManager() {
                     composition={round}
                     isExpanded={expandedRound === i}
                     onToggleExpand={() => setExpandedRound(expandedRound === i ? -1 : i)}
-                    cards={cards}
+                    cards={activeCards}
                     deckState={ds}
                     needsDraws={needsDraws}
                     drawsComplete={drawsComplete}
@@ -900,6 +1098,8 @@ export function SnapshotManager() {
           </>
         )}
       </form>
+
+      <SnapshotList cards={cards} />
     </div>
   );
 }

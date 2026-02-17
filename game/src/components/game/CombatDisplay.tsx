@@ -2,26 +2,39 @@ import { useMemo } from "react";
 import { useGame } from "../../contexts/GameContext";
 import { useUser } from "../../contexts/UserContext";
 import { CommittedCardPreview } from "./CommittedCardPreview";
-import type { RoundOutcome } from "@sleeved-potential/shared";
+import type { RoundOutcome, ResolvedStats } from "@sleeved-potential/shared";
 
 function ScoreBreakdown({ outcome }: { outcome: RoundOutcome }) {
-  if (!outcome.survived) {
-    return (
-      <div className="score-breakdown destroyed">
-        <span className="score-total">0 points</span>
-        <span className="score-detail">(destroyed)</span>
-      </div>
-    );
-  }
-
   const parts: string[] = [];
   if (outcome.damageAbsorbed > 0) parts.push(`${outcome.damageAbsorbed} absorbed`);
   if (outcome.killBonus > 0) parts.push(`${outcome.killBonus} kill`);
 
+  const prefix = outcome.pointsEarned > 0 ? "+" : "";
+
   return (
-    <div className="score-breakdown survived">
-      <span className="score-total">+{outcome.pointsEarned} points</span>
+    <div className={`score-breakdown ${outcome.survived ? "survived" : "destroyed"}`}>
+      <span className="score-total">{prefix}{outcome.pointsEarned} points</span>
       {parts.length > 0 && <span className="score-detail">({parts.join(" + ")})</span>}
+      {!outcome.survived && <span className="score-detail destroyed-label">[destroyed]</span>}
+    </div>
+  );
+}
+
+function StatsPreview({ stats }: { stats: ResolvedStats }) {
+  return (
+    <div className="combat-stats-preview">
+      <div className="stat-box damage">
+        <span className="stat-label">DMG</span>
+        <span className="stat-value">{stats.damage}</span>
+      </div>
+      <div className="stat-box health">
+        <span className="stat-label">HP</span>
+        <span className="stat-value">{stats.health}</span>
+      </div>
+      <div className="stat-box initiative">
+        <span className="stat-label">INIT</span>
+        <span className="stat-value">{stats.initiative}</span>
+      </div>
     </div>
   );
 }
@@ -80,6 +93,7 @@ export function CombatDisplay() {
           effectTriggered={myEffectTriggered}
           showStats={false}
         />
+        <StatsPreview stats={myCommit.finalStats} />
         {myOutcome && <ScoreBreakdown outcome={myOutcome} />}
       </div>
 
@@ -96,6 +110,7 @@ export function CombatDisplay() {
           effectTriggered={opponentEffectTriggered}
           showStats={false}
         />
+        <StatsPreview stats={opponentCommit.finalStats} />
         {opponentOutcome && <ScoreBreakdown outcome={opponentOutcome} />}
       </div>
     </div>

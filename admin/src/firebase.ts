@@ -48,8 +48,9 @@ import type {
   UpdateRulesData,
   SeedBotSnapshotInput,
   SeedBotSnapshotOutput,
-  MigrateGamesInput,
-  MigrateGamesOutput,
+  DeleteSnapshotInput,
+  DeleteSnapshotOutput,
+  GameSnapshot,
 } from "@sleeved-potential/shared";
 import type { SnapshotCommit } from "@sleeved-potential/shared";
 import { VERSION } from "@sleeved-potential/shared";
@@ -229,10 +230,31 @@ export async function seedBotSnapshot(
   return result.data;
 }
 
-export async function migrateGames(): Promise<MigrateGamesOutput> {
-  const fn = httpsCallable<MigrateGamesInput, MigrateGamesOutput>(functions, "migrateGames");
-  const result = await fn(withMeta({}));
+export async function deleteSnapshot(snapshotId: string): Promise<DeleteSnapshotOutput> {
+  const fn = httpsCallable<DeleteSnapshotInput, DeleteSnapshotOutput>(
+    functions,
+    "deleteSnapshot"
+  );
+  const result = await fn(withMeta({ snapshotId }));
   return result.data;
+}
+
+/**
+ * Subscribe to all snapshots (real-time)
+ * For admin to view and manage bot snapshots
+ */
+export function subscribeToSnapshots(
+  callback: (snapshots: GameSnapshot[]) => void
+): () => void {
+  const snapshotsQuery = query(
+    collection(db, "snapshots"),
+    orderBy("createdAt", "desc")
+  );
+
+  return onSnapshot(snapshotsQuery, (snapshot) => {
+    const snapshots = snapshot.docs.map((doc) => doc.data() as GameSnapshot);
+    callback(snapshots);
+  });
 }
 
 export type { FirebaseUser, User };

@@ -38,7 +38,7 @@ export interface CommittedCard {
  * Outcome for a player in a round
  */
 export interface RoundOutcome {
-  pointsEarned: number; // total (absorption + kill + overkill, or 0 if died)
+  pointsEarned: number; // total (absorption + kill + overkill)
   damageDealt: number; // damage stat if attacked, 0 if didn't attack
   damageAbsorbed: number; // damage taken if survived
   killBonus: number; // pointsForKill + overkill if killed opponent

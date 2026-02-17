@@ -352,6 +352,19 @@ export interface MigrateGamesOutput {
 }
 
 /**
+ * deleteSnapshot - Delete a bot snapshot (ADMIN)
+ */
+export interface DeleteSnapshotInput {
+  snapshotId: string;
+  _meta?: ApiMetadata;
+}
+
+export interface DeleteSnapshotOutput {
+  success: boolean;
+  _meta: ApiResponseMeta;
+}
+
+/**
  * deleteChangelog - Delete a draft changelog entry
  */
 export interface DeleteChangelogInput {

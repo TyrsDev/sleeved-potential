@@ -2873,3 +2873,131 @@ legend {
   background: #1a2a3a;
   color: #8cf;
 }
+
+/* =========================
+   SNAPSHOT LIST
+   ========================= */
+
+.snapshot-list {
+  margin-top: 2rem;
+  border-top: 1px solid #333;
+  padding-top: 1.5rem;
+}
+
+.snapshot-list h3 {
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
+}
+
+.snapshot-card {
+  border: 1px solid #333;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #1e1e1e;
+  margin-bottom: 0.5rem;
+  transition: border-color 0.15s;
+}
+
+.snapshot-card.expanded {
+  border-color: #0066cc;
+}
+
+.snapshot-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  background: #2a2a2a;
+  transition: background 0.15s;
+  user-select: none;
+}
+
+.snapshot-header:hover {
+  background: #333;
+}
+
+.snapshot-name {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  font-size: 0.9rem;
+}
+
+.snapshot-meta {
+  flex: 1;
+  display: flex;
+  gap: 1rem;
+  font-size: 0.75rem;
+  color: #888;
+  flex-wrap: wrap;
+}
+
+.snapshot-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.confirm-delete {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.snapshot-rounds {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.snapshot-round-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.4rem 0.5rem;
+  background: #222;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.snapshot-round-number {
+  font-weight: bold;
+  color: #888;
+  min-width: 1.5rem;
+}
+
+.snapshot-round-cards {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.snapshot-round-stats {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* =========================
+   TOGGLE INACTIVE CARDS
+   ========================= */
+
+.toggle-inactive {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #aaa;
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+
+.toggle-inactive input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  cursor: pointer;
+}
