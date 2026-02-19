@@ -1870,16 +1870,84 @@ body {
 
 /* Sleeve stat color coding - bg stats are dimmer, fg stats are brighter */
 .bg-stat {
-  opacity: 0.7;
+  opacity: 0.55;
   border-style: dashed !important;
-  border-color: rgba(168, 85, 247, 0.4) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
 .fg-stat {
-  opacity: 1;
-  outline: 2px solid rgba(168, 85, 247, 0.6);
-  outline-offset: -2px;
-  box-shadow: inset 0 0 8px rgba(168, 85, 247, 0.2);
+  background: rgba(99, 102, 241, 0.18) !important;
+  border-color: rgba(99, 102, 241, 0.5) !important;
+}
+
+/* Inline stat source indicators — used in mini card overlay and image overlay */
+.stat-source-fg {
+  background: rgba(99, 102, 241, 0.22);
+  border-radius: 3px;
+  padding: 1px 3px;
+  border: 1px solid rgba(99, 102, 241, 0.4);
+}
+
+.stat-source-bg {
+  opacity: 0.5;
+  border-radius: 3px;
+  padding: 1px 3px;
+  border: 1px dashed rgba(255, 255, 255, 0.22);
+}
+
+.mini-card-effect.stat-source-fg,
+.mini-card-modifier.stat-source-fg {
+  background: rgba(99, 102, 241, 0.25);
+  border-left: 2px solid rgba(99, 102, 241, 0.6);
+}
+
+.mini-card-effect.stat-source-bg,
+.mini-card-modifier.stat-source-bg {
+  opacity: 0.5;
+  border-left: 2px dashed rgba(255, 255, 255, 0.25);
+}
+
+.overlay-stat.stat-source-fg {
+  background: rgba(99, 102, 241, 0.2);
+  border-radius: 4px;
+  outline: 1px solid rgba(99, 102, 241, 0.4);
+}
+
+.overlay-stat.stat-source-bg {
+  opacity: 0.5;
+  outline: 1px dashed rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
+}
+
+.overlay-effect.stat-source-fg,
+.overlay-modifier.stat-source-fg {
+  background: rgba(99, 102, 241, 0.35) !important;
+  border-left: 3px solid rgba(99, 102, 241, 0.7);
+}
+
+.overlay-effect.stat-source-bg,
+.overlay-modifier.stat-source-bg {
+  opacity: 0.5;
+  border-left: 3px dashed rgba(255, 255, 255, 0.25);
+}
+
+/* Detail modal section labels for sleeve fg/bg */
+.stats-label-fg {
+  display: inline-block;
+  background: rgba(99, 102, 241, 0.15);
+  border-radius: 4px;
+  padding: 2px 8px;
+  border-left: 3px solid rgba(99, 102, 241, 0.55);
+  color: #a5b4fc;
+  font-size: 0.85rem;
+}
+
+.stats-label-bg {
+  display: inline-block;
+  opacity: 0.7;
+  padding: 2px 8px;
+  border-left: 3px dashed rgba(255, 255, 255, 0.3);
+  font-size: 0.85rem;
 }
 
 /* =========================
@@ -2116,7 +2184,7 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
   gap: 0.5rem;
-  max-height: 280px;
+  max-height: 380px;
   overflow-y: auto;
   margin-top: 0.5rem;
   padding-right: 0.25rem;
@@ -2197,12 +2265,6 @@ body {
 .selection-fallback .grid-bottom-left .stat-label,
 .selection-fallback .grid-bottom-right .stat-label {
   display: none;
-}
-
-/* Tighter outline for selection fallback */
-.selection-fallback .fg-stat {
-  outline-width: 1px;
-  outline-offset: -1px;
 }
 
 .selection-fallback .bg-stat {

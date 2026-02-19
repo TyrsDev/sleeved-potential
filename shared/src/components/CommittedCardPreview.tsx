@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import type { CommittedCard, CardDefinition, RoundOutcome } from "@sleeved-potential/shared";
-import { formatTriggerName, formatEffectAction } from "@sleeved-potential/shared";
+import type { CommittedCard, CardDefinition, RoundOutcome } from "../types/index.js";
+import { formatTriggerName, formatEffectAction } from "../combat.js";
 
 interface CommittedCardPreviewProps {
   commit: CommittedCard;
@@ -11,11 +11,12 @@ interface CommittedCardPreviewProps {
   outcome?: RoundOutcome;
   effectTriggered?: boolean;
   showStats?: boolean;
+  className?: string;
 }
 
 /**
  * Visual preview of a committed card with layered images.
- * Similar to ComposedCardPreview but works with CommittedCard data.
+ * Similar to ComposedCardPreview but uses CommittedCard data (IDs + finalStats).
  * Optionally shows outcome (survived/destroyed) and effect trigger status.
  */
 export function CommittedCardPreview({
@@ -27,6 +28,7 @@ export function CommittedCardPreview({
   outcome,
   effectTriggered,
   showStats = true,
+  className = "",
 }: CommittedCardPreviewProps) {
   const sleeve = useMemo(() => getSleeve(commit.sleeveId), [commit.sleeveId, getSleeve]);
   const animal = useMemo(() => getAnimal(commit.animalId), [commit.animalId, getAnimal]);
@@ -41,108 +43,91 @@ export function CommittedCardPreview({
   const stats = commit.finalStats;
 
   return (
-    <div className={`composed-card-preview ${outcome ? (outcome.survived ? "outcome-survived" : "outcome-destroyed") : ""}`}>
-      {label && <div className="composed-card-label">{label}</div>}
+    <div className={`sp-composed-card-preview ${outcome ? (outcome.survived ? "sp-outcome-survived" : "sp-outcome-destroyed") : ""} ${className}`}>
+      {label && <div className="sp-composed-card-label">{label}</div>}
 
-      {/* Effect display for round results (shown above card when stats are hidden but outcome is shown) */}
       {!showStats && outcome && stats.specialEffect && (
-        <div className={`effect-result ${effectTriggered ? "effect-triggered" : "effect-not-triggered"}`}>
+        <div className={`sp-effect-result ${effectTriggered ? "sp-effect-triggered" : "sp-effect-not-triggered"}`}>
           {effectTriggered ? (
-            <span className="effect-icon triggered">✓</span>
+            <span className="sp-effect-icon triggered">✓</span>
           ) : (
-            <span className="effect-icon not-triggered">✗</span>
+            <span className="sp-effect-icon not-triggered">✗</span>
           )}
-          <span className="effect-text">
+          <span className="sp-effect-text">
             {formatTriggerName(stats.specialEffect.trigger)}:{" "}
             {formatEffectAction(stats.specialEffect)}
           </span>
         </div>
       )}
 
-      <div className="composed-card-frame">
-        <div className="composed-card-layers">
-          {/* Sleeve layer (background) */}
+      <div className="sp-composed-card-frame">
+        <div className="sp-composed-card-layers">
           {sleeve?.imageUrl && (
-            <img
-              src={sleeve.imageUrl}
-              alt={sleeve.name}
-              className="composed-layer layer-sleeve"
-            />
+            <img src={sleeve.imageUrl} alt={sleeve.name} className="sp-composed-layer sp-layer-sleeve" />
           )}
-
-          {/* Animal layer */}
           {animal?.imageUrl && (
-            <img
-              src={animal.imageUrl}
-              alt={animal.name}
-              className="composed-layer layer-animal"
-            />
+            <img src={animal.imageUrl} alt={animal.name} className="sp-composed-layer sp-layer-animal" />
           )}
-
-          {/* Equipment layers (in order, bottom to top) */}
           {equipment.map((eq, index) =>
             eq.imageUrl ? (
               <img
                 key={index}
                 src={eq.imageUrl}
                 alt={eq.name}
-                className="composed-layer layer-equipment"
+                className="sp-composed-layer sp-layer-equipment"
                 style={{ zIndex: 30 + index }}
               />
             ) : null
           )}
 
-          {/* Stats overlay */}
           {showStats && (
-            <div className="composed-stats-overlay">
-              <div className="composed-overlay-top">
+            <div className="sp-composed-stats-overlay">
+              <div className="sp-composed-overlay-top">
                 {stats.specialEffect && (
-                  <div className={`composed-effect ${effectTriggered ? "effect-triggered" : ""}`}>
-                    {effectTriggered && <span className="effect-check">✓ </span>}
+                  <div className={`sp-composed-effect ${effectTriggered ? "sp-effect-triggered" : ""}`}>
+                    {effectTriggered && <span className="sp-effect-check">✓ </span>}
                     {formatTriggerName(stats.specialEffect.trigger)}:{" "}
                     {formatEffectAction(stats.specialEffect)}
                   </div>
                 )}
               </div>
-              <div className="composed-overlay-middle">
+              <div className="sp-composed-overlay-middle">
                 {stats.modifier && (
-                  <div className="composed-modifier">
+                  <div className="sp-composed-modifier">
                     {stats.modifier.amount > 0 ? "+" : ""}
                     {stats.modifier.amount}{" "}
                     {stats.modifier.type === "damage" ? "DMG" : "HP"}
                   </div>
                 )}
               </div>
-              <div className="composed-overlay-bottom">
-                <span className="composed-stat damage">{stats.damage}</span>
-                <span className="composed-stat initiative">
+              <div className="sp-composed-overlay-bottom">
+                <span className="sp-composed-stat damage">{stats.damage}</span>
+                <span className="sp-composed-stat initiative">
                   {stats.initiative !== 0
                     ? `${stats.initiative > 0 ? "+" : ""}${stats.initiative}`
                     : ""}
                 </span>
-                <span className="composed-stat health">{stats.health}</span>
+                <span className="sp-composed-stat health">{stats.health}</span>
               </div>
             </div>
           )}
 
-          {/* Outcome overlay */}
           {outcome && (
-            <div className={`outcome-overlay ${outcome.survived ? "survived" : "destroyed"}`}>
-              <div className="outcome-status">
+            <div className={`sp-outcome-overlay ${outcome.survived ? "survived" : "destroyed"}`}>
+              <div className="sp-outcome-status">
                 {outcome.survived ? "SURVIVED" : "DESTROYED"}
               </div>
-              <div className="outcome-hp">{outcome.finalHealth} HP</div>
+              <div className="sp-outcome-hp">{outcome.finalHealth} HP</div>
             </div>
           )}
         </div>
       </div>
 
-      {/* Card name labels */}
-      <div className="composed-card-labels">
-        {sleeve && <span className="label-sleeve">{sleeve.name}</span>}
-        {animal && <span className="label-animal">{animal.name}</span>}
+      <div className="sp-composed-card-labels">
+        {sleeve && <span className="sp-label-sleeve">{sleeve.name}</span>}
+        {animal && <span className="sp-label-animal">{animal.name}</span>}
         {equipment.map((eq, i) => (
-          <span key={i} className="label-equipment">
+          <span key={i} className="sp-label-equipment">
             {eq.name}
           </span>
         ))}

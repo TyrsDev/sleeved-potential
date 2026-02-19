@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import { subscribeToCards } from "../firebase";
-import { CardStatsFallback } from "../components/CardStatsFallback";
-import { formatTriggerName, formatEffectAction } from "@sleeved-potential/shared";
-import type { CardDefinition, CardType, CardStats } from "@sleeved-potential/shared";
+import type { CardDefinition, CardType } from "@sleeved-potential/shared";
+import {
+  CardStatsFallback,
+  StatsOverlay,
+  CardDetailView,
+} from "@sleeved-potential/shared/components";
 
 type FilterType = "all" | CardType;
 
@@ -125,25 +128,6 @@ interface CardItemProps {
 }
 
 function CardItem({ card, onClick }: CardItemProps) {
-  // Get stats for overlay
-  const stats: CardStats | undefined =
-    card.type === "sleeve"
-      ? { ...card.backgroundStats, ...card.foregroundStats }
-      : card.stats;
-
-  const effectText =
-    stats?.specialEffect
-      ? `${formatTriggerName(stats.specialEffect.trigger)}: ${formatEffectAction(stats.specialEffect)}`
-      : null;
-
-  const modifierText = stats?.modifier
-    ? `${stats.modifier.amount > 0 ? "+" : ""}${stats.modifier.amount} ${stats.modifier.type === "damage" ? "dmg" : "hp"}`
-    : null;
-
-  const hasDamage = stats?.damage !== undefined && stats.damage !== 0;
-  const hasHealth = stats?.health !== undefined && stats.health !== 0;
-  const hasInit = stats?.initiative !== undefined && stats.initiative !== 0;
-
   return (
     <div className="card-item" onClick={onClick}>
       <div className="card-image-container">
@@ -153,43 +137,7 @@ function CardItem({ card, onClick }: CardItemProps) {
           <CardStatsFallback card={card} />
         )}
         {card.imageUrl && (
-          <div className="card-stats-overlay">
-            <div className="overlay-header">{card.name}</div>
-            <div className="overlay-top">
-              {effectText && <div className="overlay-effect">{effectText}</div>}
-            </div>
-            <div className="overlay-middle">
-              {modifierText && <div className="overlay-modifier">{modifierText}</div>}
-            </div>
-            <div className="overlay-bottom">
-              <div className="overlay-stat damage">
-                {hasDamage && (
-                  <>
-                    <span className="stat-value">{stats!.damage}</span>
-                    <span className="stat-label">DMG</span>
-                  </>
-                )}
-              </div>
-              <div className="overlay-stat initiative">
-                {hasInit && (
-                  <>
-                    <span className="stat-value">
-                      {stats!.initiative! > 0 ? "+" : ""}{stats!.initiative}
-                    </span>
-                    <span className="stat-label">INIT</span>
-                  </>
-                )}
-              </div>
-              <div className="overlay-stat health">
-                {hasHealth && (
-                  <>
-                    <span className="stat-value">{stats!.health}</span>
-                    <span className="stat-label">HP</span>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
+          <StatsOverlay card={card} showName={true} />
         )}
       </div>
       <div className="card-info">
@@ -212,81 +160,8 @@ function CardDetailModal({ card, onClose }: CardDetailModalProps) {
         <button className="modal-close" onClick={onClose}>
           &times;
         </button>
-        <div className="card-detail-layout">
-          <div className="card-detail-image">
-            {card.imageUrl ? (
-              <img src={card.imageUrl} alt={card.name} />
-            ) : (
-              <CardStatsFallback card={card} className="large" />
-            )}
-          </div>
-          <div className="card-detail-info">
-            <span className={`card-type type-${card.type}`}>{card.type}</span>
-            <h2>{card.name}</h2>
-            {card.description && <p className="card-description">{card.description}</p>}
-            <div className="card-stats-detail">
-              <CardStatsDetail card={card} />
-            </div>
-          </div>
-        </div>
+        <CardDetailView card={card} />
       </div>
     </div>
   );
-}
-
-function StatsDisplay({ stats, label }: { stats: CardStats | undefined; label?: string }) {
-  const hasInit = stats?.initiative !== undefined && stats.initiative !== 0;
-  const hasModifier = stats?.modifier !== undefined;
-  const hasEffect = stats?.specialEffect !== undefined;
-
-  return (
-    <div className="stats-display">
-      {label && <h4>{label}</h4>}
-      <div className="stats-row">
-        <div className="stat">
-          <span className="stat-label">Damage</span>
-          <span className="stat-value">{stats?.damage ?? "-"}</span>
-        </div>
-        <div className="stat">
-          <span className="stat-label">Health</span>
-          <span className="stat-value">{stats?.health ?? "-"}</span>
-        </div>
-        {hasInit && (
-          <div className="stat">
-            <span className="stat-label">Initiative</span>
-            <span className="stat-value">
-              {stats!.initiative! > 0 ? "+" : ""}{stats!.initiative}
-            </span>
-          </div>
-        )}
-      </div>
-      {hasModifier && (
-        <div className="stat-effect">
-          <span className="stat-label">Modifier</span>
-          <span className="stat-value">
-            {stats!.modifier!.amount > 0 ? "+" : ""}{stats!.modifier!.amount} {stats!.modifier!.type}
-          </span>
-        </div>
-      )}
-      {hasEffect && (
-        <div className="stat-effect">
-          <span className="stat-label">{formatTriggerName(stats!.specialEffect!.trigger)}</span>
-          <span className="stat-value">{formatEffectAction(stats!.specialEffect!)}</span>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function CardStatsDetail({ card }: { card: CardDefinition }) {
-  if (card.type === "sleeve") {
-    return (
-      <>
-        <StatsDisplay stats={card.backgroundStats} label="Background Stats (easily overwritten)" />
-        <StatsDisplay stats={card.foregroundStats} label="Foreground Stats (guaranteed)" />
-      </>
-    );
-  }
-
-  return <StatsDisplay stats={card.stats} />;
 }

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useGame } from "../../contexts/GameContext";
 import { useUser } from "../../contexts/UserContext";
-import { CommittedCardPreview } from "./CommittedCardPreview";
+import { CommittedCardPreview } from "@sleeved-potential/shared/components";
 import type { RoundOutcome, ResolvedStats } from "@sleeved-potential/shared";
 
 function ScoreBreakdown({ outcome }: { outcome: RoundOutcome }) {

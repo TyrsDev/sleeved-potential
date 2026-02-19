@@ -10,6 +10,7 @@ import { Playtest } from "./pages/Playtest";
 import { GameView } from "./pages/GameView";
 import { Leaderboard } from "./pages/Leaderboard";
 import { Changelog } from "./pages/Changelog";
+import "@sleeved-potential/shared/components/cards.css";
 import "./App.css";
 
 function AuthGate({ children }: { children: React.ReactNode }) {

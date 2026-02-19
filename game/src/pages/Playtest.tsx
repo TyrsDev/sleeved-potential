@@ -9,125 +9,17 @@ import {
 } from "@sleeved-potential/shared";
 import type {
   CardDefinition,
-  CardStats,
   ResolvedStats,
   RoundOutcome,
   GameRules,
   TriggeredEffect,
 } from "@sleeved-potential/shared";
-
-/**
- * Format a card's stats into a tooltip string
- */
-function formatCardTooltip(card: CardDefinition): string {
-  const lines: string[] = [card.name];
-
-  if (card.type === "sleeve") {
-    if (card.backgroundStats) {
-      lines.push("", "Background:");
-      lines.push(...formatStatsLines(card.backgroundStats));
-    }
-    if (card.foregroundStats) {
-      lines.push("", "Foreground:");
-      lines.push(...formatStatsLines(card.foregroundStats));
-    }
-  } else if (card.stats) {
-    lines.push(...formatStatsLines(card.stats));
-  }
-
-  if (card.description) {
-    lines.push("", card.description);
-  }
-
-  return lines.join("\n");
-}
-
-function formatStatsLines(stats: CardStats): string[] {
-  const lines: string[] = [];
-  if (stats.damage !== undefined) lines.push(`  Damage: ${stats.damage}`);
-  if (stats.health !== undefined) lines.push(`  Health: ${stats.health}`);
-  if (stats.initiative !== undefined && stats.initiative !== 0) {
-    lines.push(`  Initiative: ${stats.initiative > 0 ? "+" : ""}${stats.initiative}`);
-  }
-  if (stats.modifier) {
-    lines.push(
-      `  Modifier: ${stats.modifier.amount > 0 ? "+" : ""}${stats.modifier.amount} ${stats.modifier.type}`
-    );
-  }
-  if (stats.specialEffect) {
-    lines.push(
-      `  Effect: ${formatTriggerName(stats.specialEffect.trigger)} → ${formatEffectAction(stats.specialEffect)}`
-    );
-  }
-  return lines;
-}
-
-/**
- * Mini card display with label, image (if available), and stats overlay
- */
-function MiniCardDisplay({ card }: { card: CardDefinition }) {
-  // Get the stats to display
-  const stats =
-    card.type === "sleeve"
-      ? { ...card.backgroundStats, ...card.foregroundStats }
-      : card.stats;
-
-  const typeLabel = card.type.toUpperCase();
-  const typeClass = `fallback-${card.type}`;
-
-  // Format effect for display
-  const effectText =
-    stats?.specialEffect
-      ? `${formatTriggerName(stats.specialEffect.trigger)}: ${formatEffectAction(stats.specialEffect)}`
-      : null;
-
-  // Format modifier for display
-  const modifierText = stats?.modifier
-    ? `${stats.modifier.amount > 0 ? "+" : ""}${stats.modifier.amount} ${stats.modifier.type === "damage" ? "dmg" : "hp"}`
-    : null;
-
-  return (
-    <div className={`mini-card-display ${typeClass}`}>
-      <div className="mini-card-label">{typeLabel}</div>
-      <div className="mini-card-content">
-        {card.imageUrl ? (
-          <img src={card.imageUrl} alt={card.name} className="mini-card-image" />
-        ) : (
-          <div className="mini-card-placeholder" />
-        )}
-        <div className="mini-card-overlay">
-          {/* TOP: Special Effect */}
-          <div className="mini-card-top">
-            {effectText && <div className="mini-card-effect">{effectText}</div>}
-          </div>
-          {/* MIDDLE: Modifier */}
-          <div className="mini-card-middle">
-            {modifierText && <div className="mini-card-modifier">{modifierText}</div>}
-          </div>
-          {/* BOTTOM: Combat stats */}
-          <div className="mini-card-stats">
-            <span className="mini-stat damage">
-              {stats?.damage !== undefined && stats.damage !== 0 ? stats.damage : ""}
-            </span>
-            <span className="mini-stat initiative">
-              {stats?.initiative !== undefined && stats.initiative !== 0
-                ? `${stats.initiative > 0 ? "+" : ""}${stats.initiative}`
-                : ""}
-            </span>
-            <span className="mini-stat health">
-              {stats?.health !== undefined && stats.health !== 0 ? stats.health : ""}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-interface SelectedEquipment {
-  card: CardDefinition;
-  order: number;
-}
+import {
+  MiniCardDisplay,
+  CardTooltip,
+  CardTooltipContent,
+  type SelectedEquipment,
+} from "@sleeved-potential/shared/components";
 
 interface PlayerComposition {
   sleeve: CardDefinition | null;
@@ -316,9 +208,10 @@ function PlayerCardSelector({
                 key={card.id}
                 className={`mini-selection-item ${composition.sleeve?.id === card.id ? "selected" : ""}`}
                 onClick={() => onSleeveSelect(card)}
-                title={formatCardTooltip(card)}
               >
-                <MiniCardDisplay card={card} />
+                <CardTooltip content={<CardTooltipContent card={card} />}>
+                  <MiniCardDisplay card={card} />
+                </CardTooltip>
               </div>
             ))}
           </div>
@@ -332,9 +225,10 @@ function PlayerCardSelector({
                 key={card.id}
                 className={`mini-selection-item ${composition.animal?.id === card.id ? "selected" : ""}`}
                 onClick={() => onAnimalSelect(card)}
-                title={formatCardTooltip(card)}
               >
-                <MiniCardDisplay card={card} />
+                <CardTooltip content={<CardTooltipContent card={card} />}>
+                  <MiniCardDisplay card={card} />
+                </CardTooltip>
               </div>
             ))}
           </div>
@@ -353,9 +247,10 @@ function PlayerCardSelector({
                   onClick={() =>
                     isSelected ? onEquipmentRemove(equipped.order) : onEquipmentAdd(card)
                   }
-                  title={formatCardTooltip(card)}
                 >
-                  <MiniCardDisplay card={card} />
+                  <CardTooltip content={<CardTooltipContent card={card} />}>
+                    <MiniCardDisplay card={card} />
+                  </CardTooltip>
                 </div>
               );
             })}

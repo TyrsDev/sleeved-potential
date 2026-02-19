@@ -20,6 +20,7 @@ import { PlayerList } from "./pages/PlayerList";
 import { Playtest } from "./pages/Playtest";
 import { ChangelogEditor } from "./pages/ChangelogEditor";
 import { SnapshotManager } from "./pages/SnapshotManager";
+import "@sleeved-potential/shared/components/cards.css";
 import "./App.css";
 
 function App() {

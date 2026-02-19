@@ -15,9 +15,12 @@ import type {
   GameRules,
   TriggeredEffect,
 } from "@sleeved-potential/shared";
-import { MiniCardDisplay } from "../components/MiniCardDisplay";
-import { formatCardTooltip } from "../components/cardUtils";
-import type { SelectedEquipment } from "../components/types";
+import {
+  MiniCardDisplay,
+  CardTooltip,
+  CardTooltipContent,
+  type SelectedEquipment,
+} from "@sleeved-potential/shared/components";
 
 interface PlayerComposition {
   sleeve: CardDefinition | null;
@@ -204,9 +207,10 @@ function PlayerCardSelector({
                 key={card.id}
                 className={`mini-selection-item ${composition.sleeve?.id === card.id ? "selected" : ""}`}
                 onClick={() => onSleeveSelect(card)}
-                title={formatCardTooltip(card)}
               >
-                <MiniCardDisplay card={card} />
+                <CardTooltip content={<CardTooltipContent card={card} />}>
+                  <MiniCardDisplay card={card} />
+                </CardTooltip>
               </div>
             ))}
           </div>
@@ -220,9 +224,10 @@ function PlayerCardSelector({
                 key={card.id}
                 className={`mini-selection-item ${composition.animal?.id === card.id ? "selected" : ""}`}
                 onClick={() => onAnimalSelect(card)}
-                title={formatCardTooltip(card)}
               >
-                <MiniCardDisplay card={card} />
+                <CardTooltip content={<CardTooltipContent card={card} />}>
+                  <MiniCardDisplay card={card} />
+                </CardTooltip>
               </div>
             ))}
           </div>
@@ -241,9 +246,10 @@ function PlayerCardSelector({
                   onClick={() =>
                     isSelected ? onEquipmentRemove(equipped.order) : onEquipmentAdd(card)
                   }
-                  title={formatCardTooltip(card)}
                 >
-                  <MiniCardDisplay card={card} />
+                  <CardTooltip content={<CardTooltipContent card={card} />}>
+                    <MiniCardDisplay card={card} />
+                  </CardTooltip>
                 </div>
               );
             })}

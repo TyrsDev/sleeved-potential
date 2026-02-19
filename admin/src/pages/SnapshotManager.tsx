@@ -4,9 +4,12 @@ import { seedBotSnapshot, subscribeToSnapshots, deleteSnapshot } from "../fireba
 import { resolveStats, DEFAULT_GAME_RULES } from "@sleeved-potential/shared";
 import type { CardDefinition, SnapshotCommit, GameSnapshot } from "@sleeved-potential/shared";
 import { CompositionPreview } from "../components/CompositionPreview";
-import { MiniCardDisplay } from "../components/MiniCardDisplay";
-import { formatCardTooltip } from "../components/cardUtils";
-import type { SelectedEquipment } from "../components/types";
+import {
+  MiniCardDisplay,
+  CardTooltip,
+  CardTooltipContent,
+  type SelectedEquipment,
+} from "@sleeved-potential/shared/components";
 
 // ============================================================================
 // TYPES
@@ -226,9 +229,10 @@ function StartingHandSetup({
               key={card.id}
               className={`mini-selection-item ${selectedAnimals.has(card.id) ? "selected" : ""}`}
               onClick={() => toggleAnimal(card.id)}
-              title={formatCardTooltip(card)}
             >
-              <MiniCardDisplay card={card} />
+              <CardTooltip content={<CardTooltipContent card={card} />}>
+                <MiniCardDisplay card={card} />
+              </CardTooltip>
             </div>
           ))}
         </div>
@@ -247,9 +251,10 @@ function StartingHandSetup({
               key={card.id}
               className={`mini-selection-item ${selectedEquipment.has(card.id) ? "selected" : ""}`}
               onClick={() => toggleEquipment(card.id)}
-              title={formatCardTooltip(card)}
             >
-              <MiniCardDisplay card={card} />
+              <CardTooltip content={<CardTooltipContent card={card} />}>
+                <MiniCardDisplay card={card} />
+              </CardTooltip>
             </div>
           ))}
         </div>
@@ -351,9 +356,10 @@ function DrawPhase({
                 key={card.id}
                 className={`mini-selection-item ${selectedAnimals.has(card.id) ? "selected" : ""}`}
                 onClick={() => toggleAnimal(card.id)}
-                title={formatCardTooltip(card)}
               >
-                <MiniCardDisplay card={card} />
+                <CardTooltip content={<CardTooltipContent card={card} />}>
+                  <MiniCardDisplay card={card} />
+                </CardTooltip>
               </div>
             ))}
           </div>
@@ -374,9 +380,10 @@ function DrawPhase({
                 key={card.id}
                 className={`mini-selection-item ${selectedEquipment.has(card.id) ? "selected" : ""}`}
                 onClick={() => toggleEquipment(card.id)}
-                title={formatCardTooltip(card)}
               >
-                <MiniCardDisplay card={card} />
+                <CardTooltip content={<CardTooltipContent card={card} />}>
+                  <MiniCardDisplay card={card} />
+                </CardTooltip>
               </div>
             ))}
           </div>
@@ -580,9 +587,10 @@ function RoundComposer({
                           key={card.id}
                           className={`mini-selection-item ${composition.sleeve?.id === card.id ? "selected" : ""} ${!available ? "unavailable" : ""}`}
                           onClick={available ? () => onSleeveSelect(card) : undefined}
-                          title={formatCardTooltip(card)}
                         >
-                          <MiniCardDisplay card={card} />
+                          <CardTooltip content={<CardTooltipContent card={card} />}>
+                            <MiniCardDisplay card={card} />
+                          </CardTooltip>
                           {!available && <span className="unavailable-label">Used</span>}
                         </div>
                       );
@@ -600,9 +608,10 @@ function RoundComposer({
                           key={card.id}
                           className={`mini-selection-item ${composition.animal?.id === card.id ? "selected" : ""} ${!inHand ? "unavailable" : ""}`}
                           onClick={inHand ? () => onAnimalSelect(card) : undefined}
-                          title={formatCardTooltip(card)}
                         >
-                          <MiniCardDisplay card={card} />
+                          <CardTooltip content={<CardTooltipContent card={card} />}>
+                            <MiniCardDisplay card={card} />
+                          </CardTooltip>
                         </div>
                       );
                     })}
@@ -625,9 +634,10 @@ function RoundComposer({
                           key={card.id}
                           className={`mini-selection-item ${isSelected ? "selected" : ""} ${!inHand ? "unavailable" : ""} ${inHand && !canAdd ? "exhausted" : ""}`}
                           onClick={canAdd ? () => onEquipmentAdd(card) : undefined}
-                          title={formatCardTooltip(card)}
                         >
-                          <MiniCardDisplay card={card} />
+                          <CardTooltip content={<CardTooltipContent card={card} />}>
+                            <MiniCardDisplay card={card} />
+                          </CardTooltip>
                           {count > 0 && <span className="selection-count">{count}</span>}
                         </div>
                       );

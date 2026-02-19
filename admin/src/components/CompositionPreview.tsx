@@ -1,9 +1,11 @@
 import { useMemo } from "react";
 import { resolveStats } from "@sleeved-potential/shared";
 import type { CardDefinition } from "@sleeved-potential/shared";
-import { ResolvedStatsOverlay } from "./ResolvedStatsOverlay";
-import { StatAttributionTable } from "./StatAttributionTable";
-import type { SelectedEquipment } from "./types";
+import {
+  StatsOverlay,
+  StatAttributionTable,
+  type SelectedEquipment,
+} from "@sleeved-potential/shared/components";
 
 interface CompositionPreviewProps {
   sleeve: CardDefinition | null;
@@ -75,7 +77,7 @@ export function CompositionPreview({
               />
             ) : null
           )}
-          {hasAnySelection && <ResolvedStatsOverlay stats={resolvedStats} />}
+          {hasAnySelection && <StatsOverlay resolvedStats={resolvedStats} />}
           {!hasAnySelection && (
             <div className="composite-placeholder">{placeholderText}</div>
           )}

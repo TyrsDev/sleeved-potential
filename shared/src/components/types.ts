@@ -1,4 +1,4 @@
-import type { CardDefinition } from "@sleeved-potential/shared";
+import type { CardDefinition } from "../types/index.js";
 
 export interface SelectedEquipment {
   card: CardDefinition;

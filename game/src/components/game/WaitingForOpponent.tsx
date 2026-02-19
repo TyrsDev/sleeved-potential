@@ -1,5 +1,5 @@
 import { useGame } from "../../contexts/GameContext";
-import { CommittedCardPreview } from "./CommittedCardPreview";
+import { CommittedCardPreview } from "@sleeved-potential/shared/components";
 
 export function WaitingForOpponent() {
   const { playerState, getSleeve, getAnimal, getEquipment, isAsync } = useGame();

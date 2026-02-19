@@ -31,6 +31,15 @@ export default [
       "@typescript-eslint/no-explicit-any": "warn",
     },
   },
+  // Browser environment for shared components (React)
+  {
+    files: ["shared/src/components/**/*.tsx"],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+      },
+    },
+  },
   // Node.js environment for functions package
   {
     files: ["functions/**/*.ts"],

@@ -4,8 +4,12 @@ import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase";
 import type { CardDefinition } from "@sleeved-potential/shared";
 import { CompositionPreview } from "../components/CompositionPreview";
-import { MiniCardDisplay } from "../components/MiniCardDisplay";
-import type { SelectedEquipment } from "../components/types";
+import {
+  MiniCardDisplay,
+  CardTooltip,
+  CardTooltipContent,
+  type SelectedEquipment,
+} from "@sleeved-potential/shared/components";
 
 /**
  * Composite Card Viewer
@@ -115,7 +119,9 @@ export function CompositeCardViewer() {
                   className={`mini-selection-item ${selectedSleeve?.id === card.id ? "selected" : ""}`}
                   onClick={() => setSelectedSleeve(card)}
                 >
-                  <MiniCardDisplay card={card} />
+                  <CardTooltip content={<CardTooltipContent card={card} />}>
+                    <MiniCardDisplay card={card} />
+                  </CardTooltip>
                 </div>
               ))}
               {sleeves.length === 0 && (
@@ -134,7 +140,9 @@ export function CompositeCardViewer() {
                   className={`mini-selection-item ${selectedAnimal?.id === card.id ? "selected" : ""}`}
                   onClick={() => setSelectedAnimal(card)}
                 >
-                  <MiniCardDisplay card={card} />
+                  <CardTooltip content={<CardTooltipContent card={card} />}>
+                    <MiniCardDisplay card={card} />
+                  </CardTooltip>
                 </div>
               ))}
               {animals.length === 0 && (
@@ -164,7 +172,9 @@ export function CompositeCardViewer() {
                     className={`mini-selection-item ${isSelected ? "selected" : ""}`}
                     onClick={() => handleAddEquipment(card)}
                   >
-                    <MiniCardDisplay card={card} />
+                    <CardTooltip content={<CardTooltipContent card={card} />}>
+                      <MiniCardDisplay card={card} />
+                    </CardTooltip>
                     {count > 0 && <span className="selection-count">{count}</span>}
                   </div>
                 );

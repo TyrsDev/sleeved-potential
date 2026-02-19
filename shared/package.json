@@ -17,15 +17,27 @@
     "./utils": {
       "types": "./dist/utils/index.d.ts",
       "default": "./dist/utils/index.js"
-    }
+    },
+    "./components": {
+      "types": "./dist/components/index.d.ts",
+      "default": "./dist/components/index.js"
+    },
+    "./components/cards.css": "./dist/components/cards.css"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && cp src/components/cards.css dist/components/cards.css",
     "build:watch": "tsc --watch",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src/"
   },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  },
   "devDependencies": {
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "react": "^19.2.0",
     "typescript": "^5.7.3"
   }
 }
