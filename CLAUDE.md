@@ -20,6 +20,10 @@ pnpm dev:game         # Start game frontend dev server (Vite)
 pnpm dev:admin        # Start admin frontend dev server (Vite)
 ```
 
+**Shared package workflow:** When editing files in `shared/`, Vite HMR does not auto-rebuild the workspace dependency. You must:
+1. Run `pnpm build:shared` to recompile TypeScript and copy CSS
+2. Hard-refresh the browser (`Cmd+Shift+R`) — Vite may cache the old bundle
+
 ## Game Design
 
 For detailed game mechanics, card types, combat rules, and implementation status, see:
@@ -55,10 +59,12 @@ firebase emulators:start           # Start local emulators
 This is a 1v1 card game with real-time Firestore updates. pnpm workspace monorepo with 4 packages:
 
 **`shared/`** - `@sleeved-potential/shared`
-- Pure TypeScript types and utilities (no React)
 - Types: `User`, `Challenge`, `Game`, `Card`, `GameRules`, effects/modifiers
-- Combat logic: `combat.ts` with `resolveStats()`, `resolveCombat()` - used by both backend and frontend
-- Imported by functions, game, and admin via `workspace:*`
+- Combat logic: `combat.ts` with `resolveStats()`, `resolveCombat()` — used by both backend and frontend
+- React components: `MiniCardDisplay`, `ComposedCardPreview`, `CardTooltip`, `StatAttributionTable`, etc. — shared card UI used by both game and admin
+- CSS: `cards.css` with all card component styles using `sp-` prefixed classes and CSS custom properties
+- Four export paths: `.` (types+utils+combat+elo), `./types`, `./components` (React), `./components/cards.css`
+- Imported by game and admin via `workspace:*`
 
 **`game/`** - React + Vite frontend
 - Firebase Auth: Google + Anonymous
@@ -72,6 +78,7 @@ This is a 1v1 card game with real-time Firestore updates. pnpm workspace monorep
 - Builds to `admin/public/` for Firebase Hosting
 
 **`functions/`** - Firebase Cloud Functions (Node.js 22)
+- **Not in the pnpm workspace** — uses `cp -r shared functions/shared` sync (run via `pnpm build:shared` or `pnpm sync:shared`). Uses npm, not pnpm.
 - User: `getOrCreateUser`, `setUsername`
 - Matchmaking: `joinGame`, `challengePlayer`, `challengeByUsername`
 - Challenge: `acceptChallenge`, `declineChallenge`
@@ -238,6 +245,16 @@ Changelogs are managed via the admin panel at `/changelog`. Each entry has:
 2. Review the content and formatting
 3. Click "Publish" to make it visible to players
 4. Published entries cannot be unpublished (only edited or deleted)
+
+## Shared Component CSS Conventions
+
+All shared component styles live in `shared/src/components/cards.css` and use `sp-` prefixed class names to avoid collisions with app-specific styles.
+
+**CSS custom properties** (defined on `:root`) control colors for card types (`--sp-sleeve-gradient`, `--sp-animal-gradient`, `--sp-equipment-gradient`), stat colors (`--sp-damage-color`, `--sp-health-color`, `--sp-initiative-color`), and FG/BG source indicators (`--sp-fg-border`, `--sp-bg-opacity`). Apps can override these variables for different palettes.
+
+**Stat display order** is always DMG, INIT, HP — left to right on cards, top to bottom in tables. This matches the bottom row of `MiniCardDisplay` and the `StatAttributionTable` columns.
+
+**Consumers** import CSS separately: `import "@sleeved-potential/shared/components/cards.css"` alongside the component import from `@sleeved-potential/shared/components`.
 
 ## UI Confirmation Patterns
 
