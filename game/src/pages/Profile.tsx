@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useUser } from "../contexts/UserContext";
 import { setUsername as setUsernameApi } from "../firebase";
-import { DEFAULT_ELO } from "@sleeved-potential/shared";
+import { DEFAULT_ELO, PLACEMENT_GAMES } from "@sleeved-potential/shared";
 
 export function Profile() {
   const { user, firebaseUser, refreshUser, signInWithGoogle } = useUser();
@@ -134,7 +134,18 @@ export function Profile() {
         <div className="stats-grid">
           <div className="stat-card elo-card">
             <h4>Rating</h4>
-            <p className="stat-value elo-value">{user.stats.elo ?? DEFAULT_ELO}</p>
+            {user.stats.gamesPlayed < PLACEMENT_GAMES ? (
+              <div className="profile-placement">
+                <div className="profile-placement-dots">
+                  {Array.from({ length: PLACEMENT_GAMES }, (_, i) => (
+                    <span key={i} className={`placement-dot ${i < user.stats.gamesPlayed ? "filled" : "empty"}`} />
+                  ))}
+                </div>
+                <p className="profile-placement-label">{user.stats.gamesPlayed} / {PLACEMENT_GAMES} games</p>
+              </div>
+            ) : (
+              <p className="stat-value elo-value">{user.stats.elo ?? DEFAULT_ELO}</p>
+            )}
             <Link to="/leaderboard" className="leaderboard-link">
               View Leaderboard
             </Link>

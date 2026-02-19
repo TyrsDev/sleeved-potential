@@ -3265,6 +3265,95 @@ body {
   background: rgba(239, 68, 68, 0.15);
 }
 
+/* Placement period display (game over screen) */
+.placement-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  background: #1a1a2a;
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  border: 1px solid #2a2a3a;
+}
+
+.placement-header {
+  font-size: 0.875rem;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.placement-dots {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.placement-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.placement-dot.filled {
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+}
+
+.placement-dot.empty {
+  background: #333;
+  border: 1px solid #444;
+}
+
+.placement-games-label {
+  font-size: 0.9rem;
+  color: #aaa;
+}
+
+.placement-bonus {
+  font-size: 0.95rem;
+  font-weight: bold;
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.15);
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+}
+
+.placement-rating-reveal {
+  font-size: 0.95rem;
+  color: #aaa;
+}
+
+.placement-rating-value {
+  font-size: 1.4rem;
+  font-weight: bold;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Placement dots on profile page */
+.profile-placement {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0;
+}
+
+.profile-placement-dots {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.profile-placement-label {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #888;
+}
+
 /* Round breakdown table */
 .round-breakdown {
   margin-bottom: 2rem;

@@ -3,6 +3,7 @@ import { useGame } from "../../contexts/GameContext";
 import { useUser } from "../../contexts/UserContext";
 import { useMemo } from "react";
 import type { RoundOutcome } from "@sleeved-potential/shared";
+import { PLACEMENT_GAMES } from "@sleeved-potential/shared";
 
 function RoundScoreCells({ outcome }: { outcome: RoundOutcome }) {
   const tooSlow = !outcome.survived && outcome.damageDealt === 0;
@@ -63,7 +64,13 @@ export function GameOverScreen() {
     : null;
 
   // Get ELO change from game data (if available)
-  const myEloChange = userId && game?.eloChanges?.[userId];
+  const myEloChange = userId ? game?.eloChanges?.[userId] : undefined;
+
+  // Placement progress state (clamped for brief timing window before user doc updates)
+  const gamesCompleted = myEloChange?.inPlacement
+    ? Math.min(user?.stats.gamesPlayed ?? 0, PLACEMENT_GAMES)
+    : 0;
+  const justCompletedPlacement = myEloChange?.inPlacement && gamesCompleted >= PLACEMENT_GAMES;
 
   const totals = useMemo(() => {
     if (!game || !userId || !opponentId) return null;
@@ -201,15 +208,41 @@ export function GameOverScreen() {
 
         {myEloChange && (
           <div className="elo-change-section">
-            <div className="elo-display">
-              <span className="elo-label">Rating</span>
-              <span className="elo-previous">{myEloChange.previousElo}</span>
-              <span className="elo-arrow">→</span>
-              <span className="elo-new">{myEloChange.newElo}</span>
-              <span className={`elo-change ${myEloChange.change >= 0 ? "positive" : "negative"}`}>
-                ({myEloChange.change >= 0 ? "+" : ""}{myEloChange.change})
-              </span>
-            </div>
+            {myEloChange.inPlacement ? (
+              <div className="placement-display">
+                <div className="placement-header">
+                  {justCompletedPlacement ? "Placement Complete!" : "Placement Period"}
+                </div>
+                <div className="placement-dots">
+                  {Array.from({ length: PLACEMENT_GAMES }, (_, i) => (
+                    <span key={i} className={`placement-dot ${i < gamesCompleted ? "filled" : "empty"}`} />
+                  ))}
+                </div>
+                {justCompletedPlacement ? (
+                  <div className="placement-rating-reveal">
+                    Your rating:{" "}
+                    <span className="placement-rating-value">{myEloChange.newElo}</span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="placement-games-label">Game {gamesCompleted} of {PLACEMENT_GAMES}</div>
+                    {myEloChange.change > 0 && (
+                      <div className="placement-bonus">+{myEloChange.change} this game</div>
+                    )}
+                  </>
+                )}
+              </div>
+            ) : (
+              <div className="elo-display">
+                <span className="elo-label">Rating</span>
+                <span className="elo-previous">{myEloChange.previousElo}</span>
+                <span className="elo-arrow">→</span>
+                <span className="elo-new">{myEloChange.newElo}</span>
+                <span className={`elo-change ${myEloChange.change >= 0 ? "positive" : "negative"}`}>
+                  ({myEloChange.change >= 0 ? "+" : ""}{myEloChange.change})
+                </span>
+              </div>
+            )}
           </div>
         )}
 

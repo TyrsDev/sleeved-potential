@@ -20,7 +20,7 @@ import {
   isSnapshotPlayer,
 } from "@sleeved-potential/shared";
 import { resolveStats, findCardOfType, dealCards, shuffleArray, resolveCombat, resolveSnapshotCommit } from "./utils/gameHelpers.js";
-import { calculateEloChange, DEFAULT_ELO } from "@sleeved-potential/shared";
+import { calculateEloChange, calculatePlacementEloChange, isInPlacement, DEFAULT_ELO } from "@sleeved-potential/shared";
 import { getResponseMeta } from "./utils/apiMeta.js";
 
 /**
@@ -497,10 +497,12 @@ async function processGameEnd(
     const liveResult = isDraw ? "draw" : winner === livePlayerId ? "win" : "loss";
     const snapshotResult = isDraw ? "draw" : winner === snapshotPlayerId ? "win" : "loss";
 
-    const liveEloResult = calculateEloChange(liveElo, snapshotElo, liveUser.stats.gamesPlayed, liveResult);
+    const liveEloResult = isInPlacement(liveUser.stats.gamesPlayed)
+      ? calculatePlacementEloChange(liveElo, liveResult)
+      : calculateEloChange(liveElo, snapshotElo, liveUser.stats.gamesPlayed, liveResult);
 
     gameUpdateData.eloChanges = {
-      [livePlayerId]: { previousElo: liveElo, newElo: liveEloResult.newElo, change: liveEloResult.eloChange },
+      [livePlayerId]: { previousElo: liveElo, newElo: liveEloResult.newElo, change: liveEloResult.eloChange, inPlacement: isInPlacement(liveUser.stats.gamesPlayed) },
     };
 
     const liveStatUpdate: Record<string, unknown> = {
@@ -536,12 +538,16 @@ async function processGameEnd(
     const user2Elo = user2.stats.elo ?? DEFAULT_ELO;
 
     if (isDraw) {
-      const user1EloResult = calculateEloChange(user1Elo, user2Elo, user1.stats.gamesPlayed, "draw");
-      const user2EloResult = calculateEloChange(user2Elo, user1Elo, user2.stats.gamesPlayed, "draw");
+      const user1EloResult = isInPlacement(user1.stats.gamesPlayed)
+        ? calculatePlacementEloChange(user1Elo, "draw")
+        : calculateEloChange(user1Elo, user2Elo, user1.stats.gamesPlayed, "draw");
+      const user2EloResult = isInPlacement(user2.stats.gamesPlayed)
+        ? calculatePlacementEloChange(user2Elo, "draw")
+        : calculateEloChange(user2Elo, user1Elo, user2.stats.gamesPlayed, "draw");
 
       gameUpdateData.eloChanges = {
-        [player1Id]: { previousElo: user1Elo, newElo: user1EloResult.newElo, change: user1EloResult.eloChange },
-        [player2Id]: { previousElo: user2Elo, newElo: user2EloResult.newElo, change: user2EloResult.eloChange },
+        [player1Id]: { previousElo: user1Elo, newElo: user1EloResult.newElo, change: user1EloResult.eloChange, inPlacement: isInPlacement(user1.stats.gamesPlayed) },
+        [player2Id]: { previousElo: user2Elo, newElo: user2EloResult.newElo, change: user2EloResult.eloChange, inPlacement: isInPlacement(user2.stats.gamesPlayed) },
       };
 
       batch.update(db.collection("users").doc(player1Id), {
@@ -562,12 +568,16 @@ async function processGameEnd(
       const winnerGamesPlayed = winnerId === player1Id ? user1.stats.gamesPlayed : user2.stats.gamesPlayed;
       const loserGamesPlayed = winnerId === player1Id ? user2.stats.gamesPlayed : user1.stats.gamesPlayed;
 
-      const winnerEloResult = calculateEloChange(winnerElo, loserElo, winnerGamesPlayed, "win");
-      const loserEloResult = calculateEloChange(loserElo, winnerElo, loserGamesPlayed, "loss");
+      const winnerEloResult = isInPlacement(winnerGamesPlayed)
+        ? calculatePlacementEloChange(winnerElo, "win")
+        : calculateEloChange(winnerElo, loserElo, winnerGamesPlayed, "win");
+      const loserEloResult = isInPlacement(loserGamesPlayed)
+        ? calculatePlacementEloChange(loserElo, "loss")
+        : calculateEloChange(loserElo, winnerElo, loserGamesPlayed, "loss");
 
       gameUpdateData.eloChanges = {
-        [winnerId]: { previousElo: winnerElo, newElo: winnerEloResult.newElo, change: winnerEloResult.eloChange },
-        [loserId]: { previousElo: loserElo, newElo: loserEloResult.newElo, change: loserEloResult.eloChange },
+        [winnerId]: { previousElo: winnerElo, newElo: winnerEloResult.newElo, change: winnerEloResult.eloChange, inPlacement: isInPlacement(winnerGamesPlayed) },
+        [loserId]: { previousElo: loserElo, newElo: loserEloResult.newElo, change: loserEloResult.eloChange, inPlacement: isInPlacement(loserGamesPlayed) },
       };
 
       batch.update(db.collection("users").doc(winnerId), {

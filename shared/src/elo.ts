@@ -3,7 +3,22 @@
  */
 
 /** Default ELO rating for new players */
-export const DEFAULT_ELO = 1500;
+export const DEFAULT_ELO = 1000;
+
+/** Number of placement games before entering standard ELO */
+export const PLACEMENT_GAMES = 5;
+
+/** Starting ELO for new players during placement */
+export const PLACEMENT_STARTING_ELO = 1000;
+
+/** ELO bonus per win during placement */
+export const PLACEMENT_WIN_BONUS = 100;
+
+/** ELO bonus per draw during placement */
+export const PLACEMENT_DRAW_BONUS = 50;
+
+/** ELO bonus per loss during placement */
+export const PLACEMENT_LOSS_BONUS = 0;
 
 /** K-factor for players with fewer than GAMES_UNTIL_ESTABLISHED games */
 export const K_FACTOR_NEW = 40;
@@ -83,4 +98,36 @@ export function calculateEloChange(
     newElo,
     eloChange: newElo - playerElo,
   };
+}
+
+/**
+ * Check if a player is still in their placement period.
+ *
+ * @param gamesPlayed - Number of completed games (before the current game)
+ * @returns True if the player has played fewer than PLACEMENT_GAMES
+ */
+export function isInPlacement(gamesPlayed: number): boolean {
+  return gamesPlayed < PLACEMENT_GAMES;
+}
+
+/**
+ * Calculate ELO change during placement period.
+ * Flat bonuses: +100 win, +50 draw, +0 loss.
+ *
+ * @param playerElo - The player's current ELO rating
+ * @param result - The game result from the player's perspective
+ * @returns Object with newElo and eloChange
+ */
+export function calculatePlacementEloChange(
+  playerElo: number,
+  result: GameResult
+): { newElo: number; eloChange: number } {
+  const bonus =
+    result === "win"
+      ? PLACEMENT_WIN_BONUS
+      : result === "draw"
+        ? PLACEMENT_DRAW_BONUS
+        : PLACEMENT_LOSS_BONUS;
+  const newElo = playerElo + bonus;
+  return { newElo, eloChange: bonus };
 }

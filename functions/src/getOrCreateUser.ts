@@ -8,7 +8,7 @@ import type {
 import {
   generateGuestUsername,
   generateGuestDisplayName,
-  DEFAULT_ELO,
+  PLACEMENT_STARTING_ELO,
 } from "@sleeved-potential/shared";
 import { getResponseMeta } from "./utils/apiMeta.js";
 
@@ -43,7 +43,7 @@ export const getOrCreateUser = onCall<GetOrCreateUserInput, Promise<GetOrCreateU
       if (userData.stats.elo === undefined) {
         const updatedStats = {
           ...userData.stats,
-          elo: DEFAULT_ELO,
+          elo: PLACEMENT_STARTING_ELO,
         };
         await userRef.update({ stats: updatedStats });
         userData.stats = updatedStats;
@@ -92,7 +92,7 @@ export const getOrCreateUser = onCall<GetOrCreateUserInput, Promise<GetOrCreateU
         wins: 0,
         losses: 0,
         draws: 0,
-        elo: DEFAULT_ELO,
+        elo: PLACEMENT_STARTING_ELO,
       },
       createdAt: now,
       updatedAt: now,

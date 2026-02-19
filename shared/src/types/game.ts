@@ -74,6 +74,8 @@ export interface EloChange {
   previousElo: number;
   newElo: number;
   change: number;
+  /** True if this change was calculated using placement rules */
+  inPlacement?: boolean;
 }
 
 /**
