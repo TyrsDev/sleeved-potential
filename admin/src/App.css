@@ -305,6 +305,15 @@ body {
   display: flex;
   gap: 0.5rem;
   margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filter-tabs-divider {
+  width: 1px;
+  height: 24px;
+  background: #444;
+  margin: 0 0.25rem;
 }
 
 .tab {
@@ -413,6 +422,24 @@ body {
 
 .type-equipment {
   background: #996633;
+}
+
+.card-info-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.power-badge {
+  display: inline-block;
+  padding: 0.125rem 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: 4px;
+  background: #1a3a4a;
+  color: #60c0e0;
+  white-space: nowrap;
 }
 
 .card-description {
@@ -1858,6 +1885,60 @@ legend {
   font-weight: bold;
   letter-spacing: 0.1em;
   color: #888;
+}
+
+/* Power Level Preview (card form) */
+.power-level-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: #1a2a3a;
+  border: 1px solid #2a4a5a;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #8ac;
+  margin-top: 0.5rem;
+}
+
+.power-level-divider {
+  color: #444;
+}
+
+.power-level-total {
+  font-weight: 600;
+  color: #60c0e0;
+}
+
+/* Card Stats Page */
+.card-stats-page {
+  max-width: 1200px;
+}
+
+.card-stats-name-link {
+  color: #e0e0e0;
+  text-decoration: none;
+  font-family: monospace;
+  font-size: 0.875rem;
+}
+
+.card-stats-name-link:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.card-stats-table-container {
+  overflow-x: auto;
+}
+
+.card-stats-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.card-stats-table th.sortable:hover {
+  color: #fff;
 }
 
 /* Card Form - Enhanced Stats Editor */

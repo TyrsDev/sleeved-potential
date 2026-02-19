@@ -88,5 +88,11 @@ service cloud.firestore {
       );
       allow write: if false;
     }
+
+    // Card usage statistics (admin only)
+    match /cardStats/{cardId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
   }
 }

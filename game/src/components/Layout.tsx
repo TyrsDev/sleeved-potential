@@ -56,7 +56,6 @@ export function Layout() {
               {menuOpen && (
                 <div className="nav-dropdown">
                   <NavLink to="/cards" onClick={() => setMenuOpen(false)}>Cards</NavLink>
-                  <NavLink to="/rules" onClick={() => setMenuOpen(false)}>Rules</NavLink>
                   <NavLink to="/playtest" onClick={() => setMenuOpen(false)}>Theorycraft</NavLink>
                   <NavLink to="/changelog" onClick={() => setMenuOpen(false)}>Changelog</NavLink>
                   <div className="nav-dropdown-divider" />

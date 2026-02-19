@@ -12,6 +12,7 @@ export function PlayerList() {
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const userData = snapshot.docs.map((doc) => doc.data() as User);
+      userData.sort((a, b) => (b.stats.elo ?? 1500) - (a.stats.elo ?? 1500));
       setPlayers(userData);
       setLoading(false);
     });
@@ -37,6 +38,7 @@ export function PlayerList() {
               <th>Username</th>
               <th>Type</th>
               <th>Roles</th>
+              <th>Rating</th>
               <th>Games</th>
               <th>W/L/D</th>
               <th>Joined</th>
@@ -68,6 +70,7 @@ export function PlayerList() {
                     <span className="muted">-</span>
                   )}
                 </td>
+                <td className="player-elo">{player.stats.elo ?? 1500}</td>
                 <td>{player.stats.gamesPlayed}</td>
                 <td>
                   {player.stats.wins}/{player.stats.losses}/{player.stats.draws}

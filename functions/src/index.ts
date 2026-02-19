@@ -41,3 +41,6 @@ export { deleteChangelog } from "./deleteChangelog.js";
 export { seedBotSnapshot } from "./seedBotSnapshot.js";
 export { deleteSnapshot } from "./deleteSnapshot.js";
 export { migrateGames } from "./migrateGames.js";
+
+// Card analytics (ADMIN role required)
+export { computeCardStats } from "./computeCardStats.js";

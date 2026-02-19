@@ -51,6 +51,9 @@ import type {
   DeleteSnapshotInput,
   DeleteSnapshotOutput,
   GameSnapshot,
+  ComputeCardStatsInput,
+  ComputeCardStatsOutput,
+  CardUsageStats,
 } from "@sleeved-potential/shared";
 import type { SnapshotCommit } from "@sleeved-potential/shared";
 import { VERSION } from "@sleeved-potential/shared";
@@ -254,6 +257,31 @@ export function subscribeToSnapshots(
   return onSnapshot(snapshotsQuery, (snapshot) => {
     const snapshots = snapshot.docs.map((doc) => doc.data() as GameSnapshot);
     callback(snapshots);
+  });
+}
+
+// =============================================================================
+// Card Analytics Functions
+// =============================================================================
+
+export async function computeCardStats(): Promise<ComputeCardStatsOutput> {
+  const fn = httpsCallable<ComputeCardStatsInput, ComputeCardStatsOutput>(
+    functions,
+    "computeCardStats"
+  );
+  const result = await fn(withMeta({}));
+  return result.data;
+}
+
+/**
+ * Subscribe to card usage stats collection (real-time)
+ */
+export function subscribeToCardStats(
+  callback: (stats: CardUsageStats[]) => void
+): () => void {
+  return onSnapshot(collection(db, "cardStats"), (snapshot) => {
+    const stats = snapshot.docs.map((doc) => doc.data() as CardUsageStats);
+    callback(stats);
   });
 }
 

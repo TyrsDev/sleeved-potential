@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db, createCard, updateCard, deleteCard, uploadCardImage } from "../firebase";
 import { ImageSelector } from "../components/ImageSelector";
+import { calculateStatsPowerLevel, POWER_LEVEL_WEIGHTS } from "../utils/powerLevel";
 import type {
   CardDefinition,
   CardType,
@@ -854,6 +855,23 @@ export function CardForm() {
                 setEffectStat={setFgEffectStat}
               />
             </fieldset>
+
+            {(() => {
+              const { backgroundStats, foregroundStats } = buildSleeveStats();
+              const bgRaw = backgroundStats ? calculateStatsPowerLevel(backgroundStats) : 0;
+              const fgRaw = foregroundStats ? calculateStatsPowerLevel(foregroundStats) : 0;
+              const bgPower = bgRaw * POWER_LEVEL_WEIGHTS.backgroundMultiplier;
+              const fgPower = fgRaw * POWER_LEVEL_WEIGHTS.foregroundMultiplier;
+              return (
+                <div className="power-level-preview">
+                  <span>BG Power: {bgPower.toFixed(1)}</span>
+                  <span className="power-level-divider">|</span>
+                  <span>FG Power: {fgPower.toFixed(1)}</span>
+                  <span className="power-level-divider">|</span>
+                  <span className="power-level-total">Total: {(bgPower + fgPower).toFixed(1)}</span>
+                </div>
+              );
+            })()}
           </>
         ) : (
           <fieldset>
@@ -883,6 +901,15 @@ export function CardForm() {
               effectStat={effectStat}
               setEffectStat={setEffectStat}
             />
+            {(() => {
+              const stats = buildStats();
+              const power = stats ? calculateStatsPowerLevel(stats) : 0;
+              return (
+                <div className="power-level-preview">
+                  <span className="power-level-total">Power Level: {power.toFixed(1)}</span>
+                </div>
+              );
+            })()}
           </fieldset>
         )}
 

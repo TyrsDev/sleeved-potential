@@ -31,6 +31,8 @@ export function Layout({ user, onLogout }: LayoutProps) {
           <nav className="main-nav">
             <NavLink to="/" end>Dashboard</NavLink>
             <NavLink to="/cards">Cards</NavLink>
+            <NavLink to="/players">Players</NavLink>
+            <NavLink to="/changelog">Changelog</NavLink>
           </nav>
 
           <div className="user-info">
@@ -48,11 +50,10 @@ export function Layout({ user, onLogout }: LayoutProps) {
               </button>
               {menuOpen && (
                 <div className="nav-dropdown">
+                  <NavLink to="/cards/stats" onClick={() => setMenuOpen(false)}>Card Stats</NavLink>
                   <NavLink to="/images" onClick={() => setMenuOpen(false)}>Images</NavLink>
                   <NavLink to="/rules" onClick={() => setMenuOpen(false)}>Rules</NavLink>
-                  <NavLink to="/players" onClick={() => setMenuOpen(false)}>Players</NavLink>
                   <NavLink to="/playtest" onClick={() => setMenuOpen(false)}>Playtest</NavLink>
-                  <NavLink to="/changelog" onClick={() => setMenuOpen(false)}>Changelog</NavLink>
                   <NavLink to="/snapshots" onClick={() => setMenuOpen(false)}>Snapshots</NavLink>
                   <div className="nav-dropdown-divider" />
                   <button onClick={() => { setMenuOpen(false); onLogout(); }}>

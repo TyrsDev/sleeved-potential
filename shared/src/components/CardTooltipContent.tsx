@@ -1,5 +1,4 @@
-import type { CardDefinition, CardStats } from "../types/index.js";
-import { formatTriggerName, formatEffectAction } from "../combat.js";
+import type { CardDefinition } from "../types/index.js";
 import { StatsDisplay } from "./StatsDisplay.js";
 
 interface CardTooltipContentProps {
@@ -8,8 +7,8 @@ interface CardTooltipContentProps {
 
 /**
  * Rich tooltip content for a single card.
- * Shows card name + type badge, stats (with FG/BG sections for sleeves),
- * and description.
+ * Shows card name + type badge, stats, and description.
+ * Sleeves show two StatsDisplay sections (FG and BG).
  */
 export function CardTooltipContent({ card }: CardTooltipContentProps) {
   return (
@@ -21,8 +20,8 @@ export function CardTooltipContent({ card }: CardTooltipContentProps) {
 
       {card.type === "sleeve" ? (
         <div className="sp-sleeve-tooltip-stats">
-          <SleeveSection stats={card.foregroundStats} variant="fg" />
-          <SleeveSection stats={card.backgroundStats} variant="bg" />
+          <StatsDisplay label="Foreground" variant="fg" stats={card.foregroundStats} />
+          <StatsDisplay label="Background" variant="bg" stats={card.backgroundStats} />
         </div>
       ) : (
         <StatsDisplay stats={card.stats} />
@@ -30,65 +29,6 @@ export function CardTooltipContent({ card }: CardTooltipContentProps) {
 
       {card.description && (
         <p className="sp-tooltip-description">{card.description}</p>
-      )}
-    </div>
-  );
-}
-
-function SleeveSection({
-  stats,
-  variant,
-}: {
-  stats: CardStats | undefined;
-  variant: "fg" | "bg";
-}) {
-  const isFg = variant === "fg";
-  const title = isFg ? "Foreground" : "Background";
-  const hint = isFg ? "guaranteed" : "overwritable";
-
-  const hasDamage = (stats?.damage ?? 0) !== 0;
-  const hasHealth = (stats?.health ?? 0) !== 0;
-  const hasInit = (stats?.initiative ?? 0) !== 0;
-  const hasModifier = stats?.modifier !== undefined;
-  const hasEffect = stats?.specialEffect !== undefined;
-  const hasAnything = hasDamage || hasHealth || hasInit || hasModifier || hasEffect;
-
-  return (
-    <div className={`sp-sleeve-section sp-sleeve-section-${variant}`}>
-      <div className="sp-sleeve-section-header">
-        <span className="sp-sleeve-section-title">{title}</span>
-        <span className="sp-sleeve-section-hint">{hint}</span>
-      </div>
-      {hasAnything ? (
-        <div className="sp-sleeve-section-body">
-          {(hasDamage || hasHealth || hasInit) && (
-            <div className="sp-sleeve-combat-row">
-              {hasDamage && (
-                <span className="sp-sleeve-chip damage">{stats!.damage} DMG</span>
-              )}
-              {hasInit && (
-                <span className="sp-sleeve-chip initiative">
-                  {stats!.initiative! > 0 ? "+" : ""}{stats!.initiative} INIT
-                </span>
-              )}
-              {hasHealth && (
-                <span className="sp-sleeve-chip health">{stats!.health} HP</span>
-              )}
-            </div>
-          )}
-          {hasEffect && (
-            <div className="sp-sleeve-effect-row">
-              {formatTriggerName(stats!.specialEffect!.trigger)}: {formatEffectAction(stats!.specialEffect!)}
-            </div>
-          )}
-          {hasModifier && (
-            <div className="sp-sleeve-modifier-row">
-              {stats!.modifier!.amount > 0 ? "+" : ""}{stats!.modifier!.amount} {stats!.modifier!.type}
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="sp-sleeve-section-empty">None</div>
       )}
     </div>
   );

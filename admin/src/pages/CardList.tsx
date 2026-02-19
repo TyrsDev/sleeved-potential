@@ -1,18 +1,28 @@
+import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useData } from "../hooks/useData";
 import { CardStatsFallback, StatsOverlay } from "@sleeved-potential/shared/components";
+import { calculateCardPowerLevel } from "../utils/powerLevel";
 import type { CardType } from "@sleeved-potential/shared";
+
+type SortMode = "default" | "power_asc" | "power_desc";
 
 export function CardList() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { cards, loading } = useData();
+  const [sortMode, setSortMode] = useState<SortMode>("default");
 
   const typeFilter = (searchParams.get("type") as CardType | null) || null;
 
   // Filter cards client-side (avoids needing composite index)
-  const filteredCards = typeFilter
-    ? cards.filter((c) => c.type === typeFilter)
-    : cards;
+  const filteredCards = typeFilter ? cards.filter((c) => c.type === typeFilter) : cards;
+
+  // Sort by power level if requested
+  const sortedCards = [...filteredCards].sort((a, b) => {
+    if (sortMode === "power_asc") return calculateCardPowerLevel(a) - calculateCardPowerLevel(b);
+    if (sortMode === "power_desc") return calculateCardPowerLevel(b) - calculateCardPowerLevel(a);
+    return 0;
+  });
 
   const setTypeFilter = (type: CardType | null) => {
     if (type) {
@@ -37,6 +47,9 @@ export function CardList() {
       <div className="page-header">
         <h2>Cards</h2>
         <div style={{ display: "flex", gap: "0.5rem" }}>
+          <Link to="/cards/stats" className="btn">
+            Card Stats
+          </Link>
           <Link to="/cards/compose" className="btn">
             Compose Preview
           </Link>
@@ -71,9 +84,28 @@ export function CardList() {
         >
           Equipment ({cardsByType.equipment.length})
         </button>
+        <div className="filter-tabs-divider" />
+        <button
+          className={`tab ${sortMode === "default" ? "active" : ""}`}
+          onClick={() => setSortMode("default")}
+        >
+          Default order
+        </button>
+        <button
+          className={`tab ${sortMode === "power_desc" ? "active" : ""}`}
+          onClick={() => setSortMode("power_desc")}
+        >
+          PWR ↓
+        </button>
+        <button
+          className={`tab ${sortMode === "power_asc" ? "active" : ""}`}
+          onClick={() => setSortMode("power_asc")}
+        >
+          PWR ↑
+        </button>
       </div>
 
-      {filteredCards.length === 0 ? (
+      {sortedCards.length === 0 ? (
         <p className="empty-state">
           {typeFilter
             ? `No ${typeFilter}s yet. Create your first ${typeFilter}!`
@@ -81,30 +113,36 @@ export function CardList() {
         </p>
       ) : (
         <div className="card-grid">
-          {filteredCards.map((card) => (
-            <Link
-              key={card.id}
-              to={`/cards/${card.id}`}
-              className={`card-item ${card.active === false ? "card-inactive" : ""}`}
-            >
-              {card.imageUrl ? (
-                <>
-                  <img src={card.imageUrl} alt={card.name} className="card-image" />
-                  <StatsOverlay card={card} showName={true} />
-                </>
-              ) : (
-                <CardStatsFallback card={card} />
-              )}
-              <div className="card-info">
-                <h3>
-                  {card.name}
-                  {card.active === false && <span className="inactive-badge">Inactive</span>}
-                </h3>
-                <span className={`card-type type-${card.type}`}>{card.type}</span>
-                <p className="card-description">{card.description || "No description"}</p>
-              </div>
-            </Link>
-          ))}
+          {sortedCards.map((card) => {
+            const powerLevel = calculateCardPowerLevel(card);
+            return (
+              <Link
+                key={card.id}
+                to={`/cards/${card.id}`}
+                className={`card-item ${card.active === false ? "card-inactive" : ""}`}
+              >
+                {card.imageUrl ? (
+                  <>
+                    <img src={card.imageUrl} alt={card.name} className="card-image" />
+                    <StatsOverlay card={card} showName={true} />
+                  </>
+                ) : (
+                  <CardStatsFallback card={card} />
+                )}
+                <div className="card-info">
+                  <h3>
+                    {card.name}
+                    {card.active === false && <span className="inactive-badge">Inactive</span>}
+                  </h3>
+                  <div className="card-info-row">
+                    <span className={`card-type type-${card.type}`}>{card.type}</span>
+                    <span className="power-badge">PWR {powerLevel.toFixed(1)}</span>
+                  </div>
+                  <p className="card-description">{card.description || "No description"}</p>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>

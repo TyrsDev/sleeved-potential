@@ -376,3 +376,17 @@ export interface DeleteChangelogOutput {
   success: boolean;
   _meta: ApiResponseMeta;
 }
+
+/**
+ * computeCardStats - Aggregate card usage statistics across all completed games (ADMIN)
+ */
+export interface ComputeCardStatsInput {
+  _meta?: ApiMetadata;
+}
+
+export interface ComputeCardStatsOutput {
+  cardsUpdated: number;
+  gamesAnalyzed: number;
+  computedAt: string; // ISO 8601
+  _meta: ApiResponseMeta;
+}

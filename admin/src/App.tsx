@@ -20,6 +20,7 @@ import { PlayerList } from "./pages/PlayerList";
 import { Playtest } from "./pages/Playtest";
 import { ChangelogEditor } from "./pages/ChangelogEditor";
 import { SnapshotManager } from "./pages/SnapshotManager";
+import { CardStats } from "./pages/CardStats";
 import "@sleeved-potential/shared/components/cards.css";
 import "./App.css";
 
@@ -90,6 +91,7 @@ function App() {
             <Route index element={<Dashboard />} />
             <Route path="cards" element={<CardList />} />
             <Route path="cards/compose" element={<CompositeCardViewer />} />
+            <Route path="cards/stats" element={<CardStats />} />
             <Route path="cards/:cardId" element={<CardForm />} />
             <Route path="images" element={<ImageList />} />
             <Route path="rules" element={<RulesEditor />} />
