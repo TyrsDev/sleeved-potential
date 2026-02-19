@@ -144,8 +144,8 @@ export function GameProvider({ gameId, children }: GameProviderProps) {
   const currentPhase: GamePhase = useMemo(() => {
     if (loading) return "loading";
     if (!game) return "loading";
-    if (game.status === "finished") return "finished";
     if (showingResult) return "result";
+    if (game.status === "finished") return "finished";
     if (hasCommitted) return "waiting";
     return "composing";
   }, [loading, game, hasCommitted, showingResult]);

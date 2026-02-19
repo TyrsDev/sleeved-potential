@@ -46,16 +46,6 @@ export const updateChangelog = onCall<UpdateChangelogInput, Promise<UpdateChange
       throw new HttpsError("not-found", "Changelog not found");
     }
 
-    const existingChangelog = changelogDoc.data() as ChangelogEntry;
-
-    // Only allow updates to drafts
-    if (existingChangelog.status !== "draft") {
-      throw new HttpsError(
-        "failed-precondition",
-        "Can only update draft changelogs. Published changelogs cannot be modified."
-      );
-    }
-
     // Validate version format if provided
     if (updates.version !== undefined && !SEMVER_REGEX.test(updates.version)) {
       throw new HttpsError(

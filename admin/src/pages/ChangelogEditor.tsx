@@ -71,10 +71,6 @@ export function ChangelogEditor() {
   };
 
   const startEditing = (entry: ChangelogEntry) => {
-    if (entry.status === "published") {
-      setError("Cannot edit published changelogs");
-      return;
-    }
     setEditingId(entry.id);
     setFormData({
       version: entry.version,
@@ -211,7 +207,7 @@ export function ChangelogEditor() {
 
       <div className="changelog-editor-layout">
         <section className="changelog-form-section">
-          <h3>{editingId ? "Edit Draft" : "Create New Entry"}</h3>
+          <h3>{editingId ? "Edit Entry" : "Create New Entry"}</h3>
           <form onSubmit={handleSubmit}>
             <div className="form-row">
               <div className="form-group">
@@ -284,7 +280,7 @@ export function ChangelogEditor() {
 
             <div className="form-actions">
               <button type="submit" className="btn btn-primary" disabled={saving}>
-                {saving ? "Saving..." : editingId ? "Update Draft" : "Create Draft"}
+                {saving ? "Saving..." : editingId ? "Save Changes" : "Create Draft"}
               </button>
               {editingId && (
                 <button type="button" className="btn" onClick={resetForm} disabled={saving}>
@@ -360,6 +356,15 @@ export function ChangelogEditor() {
                       Published: {new Date(entry.publishedAt).toLocaleString()}
                     </div>
                   )}
+                  <div className="changelog-item-actions">
+                    <button
+                      className={`btn btn-small ${editingId === entry.id ? "" : ""}`}
+                      onClick={() => startEditing(entry)}
+                      disabled={saving}
+                    >
+                      {editingId === entry.id ? "Editing..." : "Edit"}
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

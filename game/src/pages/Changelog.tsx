@@ -1,30 +1,28 @@
 import { useEffect, useState } from "react";
+import Markdown from "react-markdown";
+import remarkBreaks from "remark-breaks";
 import { subscribeToPublishedChangelogs } from "../firebase";
 import type { ChangelogEntry, VersionInfo } from "@sleeved-potential/shared";
 import { parseVersion, VERSION } from "@sleeved-potential/shared";
 
-interface ChangelogGroup {
-  majorVersion: number;
+interface MinorGroup {
+  minorVersion: number;
   label: string;
   entries: ChangelogEntry[];
 }
 
-/**
- * Compare two versions. Returns:
- *  -1 if a < b
- *   0 if a == b
- *   1 if a > b
- */
+interface MajorGroup {
+  majorVersion: number;
+  label: string;
+  minorGroups: MinorGroup[];
+}
+
 function compareVersions(a: VersionInfo, b: VersionInfo): number {
   if (a.major !== b.major) return a.major - b.major;
   if (a.minor !== b.minor) return a.minor - b.minor;
   return a.patch - b.patch;
 }
 
-/**
- * Filter entries to only include versions <= current app version
- * Users shouldn't see changelog for versions they don't have yet
- */
 function filterToCurrentVersion(entries: ChangelogEntry[]): ChangelogEntry[] {
   const currentVersion = parseVersion(VERSION);
   return entries.filter((entry) => {
@@ -33,69 +31,71 @@ function filterToCurrentVersion(entries: ChangelogEntry[]): ChangelogEntry[] {
   });
 }
 
-/**
- * Group changelog entries by major version
- */
-function groupByMajorVersion(entries: ChangelogEntry[]): ChangelogGroup[] {
-  const groups = new Map<number, ChangelogEntry[]>();
+function groupEntries(entries: ChangelogEntry[]): MajorGroup[] {
+  // Map: major -> minor -> entries
+  const majorMap = new Map<number, Map<number, ChangelogEntry[]>>();
 
   for (const entry of entries) {
-    const { major } = parseVersion(entry.version);
-    if (!groups.has(major)) {
-      groups.set(major, []);
-    }
-    groups.get(major)!.push(entry);
+    const { major, minor } = parseVersion(entry.version);
+    if (!majorMap.has(major)) majorMap.set(major, new Map());
+    const minorMap = majorMap.get(major)!;
+    if (!minorMap.has(minor)) minorMap.set(minor, []);
+    minorMap.get(minor)!.push(entry);
   }
 
-  // Convert to array and sort by major version descending
-  const result: ChangelogGroup[] = [];
-  const sortedMajors = Array.from(groups.keys()).sort((a, b) => b - a);
+  const result: MajorGroup[] = [];
 
-  for (const major of sortedMajors) {
-    const groupEntries = groups.get(major)!;
-    // Sort entries within group by version descending
-    groupEntries.sort((a, b) => {
-      const vA = parseVersion(a.version);
-      const vB = parseVersion(b.version);
-      if (vB.major !== vA.major) return vB.major - vA.major;
-      if (vB.minor !== vA.minor) return vB.minor - vA.minor;
-      return vB.patch - vA.patch;
-    });
+  for (const major of Array.from(majorMap.keys()).sort((a, b) => b - a)) {
+    const minorMap = majorMap.get(major)!;
+    const minorGroups: MinorGroup[] = [];
+
+    for (const minor of Array.from(minorMap.keys()).sort((a, b) => b - a)) {
+      const groupEntries = minorMap.get(minor)!;
+      // Sort by patch descending within minor group
+      groupEntries.sort((a, b) =>
+        -compareVersions(parseVersion(a.version), parseVersion(b.version))
+      );
+      minorGroups.push({
+        minorVersion: minor,
+        label: `${major}.${minor}.x`,
+        entries: groupEntries,
+      });
+    }
 
     result.push({
       majorVersion: major,
       label: `Version ${major}.x`,
-      entries: groupEntries,
+      minorGroups,
     });
   }
 
   return result;
 }
 
-function getCategoryBadgeClass(category: ChangelogEntry["category"]): string {
+function getCategoryClass(category: ChangelogEntry["category"]): string {
   switch (category) {
-    case "feature":
-      return "badge-feature";
-    case "balance":
-      return "badge-balance";
-    case "bugfix":
-      return "badge-bugfix";
-    default:
-      return "badge-other";
+    case "feature": return "category-feature";
+    case "balance": return "category-balance";
+    case "bugfix":  return "category-bugfix";
+    default:        return "category-other";
   }
 }
 
 function getCategoryLabel(category: ChangelogEntry["category"]): string {
   switch (category) {
-    case "feature":
-      return "Feature";
-    case "balance":
-      return "Balance";
-    case "bugfix":
-      return "Bug Fix";
-    default:
-      return "Other";
+    case "feature": return "Feature";
+    case "balance": return "Balance";
+    case "bugfix":  return "Bug Fix";
+    default:        return "Other";
   }
+}
+
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 }
 
 export function Changelog() {
@@ -107,6 +107,15 @@ export function Changelog() {
     const unsubscribe = subscribeToPublishedChangelogs((entries) => {
       setChangelogs(entries);
       setLoading(false);
+
+      // Auto-expand the latest entry
+      const visible = filterToCurrentVersion(entries);
+      if (visible.length > 0) {
+        const sorted = [...visible].sort((a, b) =>
+          -compareVersions(parseVersion(a.version), parseVersion(b.version))
+        );
+        setExpandedIds(new Set([sorted[0].id]));
+      }
     });
     return unsubscribe;
   }, []);
@@ -124,57 +133,90 @@ export function Changelog() {
   };
 
   if (loading) {
-    return <div className="loading">Loading changelog...</div>;
+    return (
+      <div className="changelog-page">
+        <h2>Changelog</h2>
+        <div className="loading">Loading changelog...</div>
+      </div>
+    );
   }
 
-  // Only show changelogs for versions <= current app version
   const visibleChangelogs = filterToCurrentVersion(changelogs);
-  const groups = groupByMajorVersion(visibleChangelogs);
+  const groups = groupEntries(visibleChangelogs);
 
   return (
     <div className="changelog-page">
-      <h2>Changelog</h2>
-      <p className="version-info">Current version: {VERSION}</p>
+      <div className="changelog-page-header">
+        <h2>Changelog</h2>
+        <span className="changelog-current-version">v{VERSION}</span>
+      </div>
 
       {groups.length === 0 ? (
         <div className="empty-state">
           <p>No changelog entries yet.</p>
         </div>
       ) : (
-        groups.map((group) => (
-          <section key={group.majorVersion} className="changelog-group">
-            <h3 className="changelog-group-title">{group.label}</h3>
-            <div className="changelog-entries">
-              {group.entries.map((entry) => (
-                <article key={entry.id} className="changelog-entry">
-                  <header
-                    className="changelog-entry-header"
-                    onClick={() => toggleExpanded(entry.id)}
-                  >
-                    <div className="changelog-entry-title-row">
-                      <span className="changelog-version">{entry.version}</span>
-                      <h4 className="changelog-title">{entry.title}</h4>
-                      <span
-                        className={`badge changelog-category ${getCategoryBadgeClass(entry.category)}`}
+        groups.map((majorGroup) => (
+          <section key={majorGroup.majorVersion} className="changelog-major-group">
+            <h3 className="changelog-group-title">
+              <span>{majorGroup.label}</span>
+            </h3>
+
+            {majorGroup.minorGroups.map((minorGroup) => (
+              <div key={minorGroup.minorVersion} className="changelog-minor-group">
+                <h4 className="changelog-minor-title">
+                  <span>{minorGroup.label}</span>
+                </h4>
+
+                <div className="changelog-entries">
+                  {minorGroup.entries.map((entry) => {
+                    const isExpanded = expandedIds.has(entry.id);
+                    const categoryClass = getCategoryClass(entry.category);
+                    return (
+                      <article
+                        key={entry.id}
+                        className={`changelog-entry ${categoryClass}`}
                       >
-                        {getCategoryLabel(entry.category)}
-                      </span>
-                    </div>
-                    <p className="changelog-summary">{entry.summary}</p>
-                    {entry.publishedAt && (
-                      <time className="changelog-date">
-                        {new Date(entry.publishedAt).toLocaleDateString()}
-                      </time>
-                    )}
-                  </header>
-                  {expandedIds.has(entry.id) && entry.details && (
-                    <div className="changelog-details">
-                      <pre className="changelog-details-content">{entry.details}</pre>
-                    </div>
-                  )}
-                </article>
-              ))}
-            </div>
+                        <button
+                          className="changelog-entry-header"
+                          onClick={() => toggleExpanded(entry.id)}
+                          aria-expanded={isExpanded}
+                        >
+                          <div className="changelog-entry-meta">
+                            <span className={`changelog-category-badge ${categoryClass}`}>
+                              {getCategoryLabel(entry.category)}
+                            </span>
+                            <span className="changelog-version">v{entry.version}</span>
+                            {entry.publishedAt && (
+                              <span className="changelog-date">
+                                {formatDate(entry.publishedAt)}
+                              </span>
+                            )}
+                          </div>
+                          <div className="changelog-entry-title-row">
+                            <h5 className="changelog-title">{entry.title}</h5>
+                            <span className={`changelog-chevron ${isExpanded ? "expanded" : ""}`}>
+                              ›
+                            </span>
+                          </div>
+                          <p className="changelog-summary">{entry.summary}</p>
+                        </button>
+
+                        {isExpanded && entry.details && (
+                          <div className="changelog-details">
+                            <div className="changelog-details-content">
+                              <Markdown remarkPlugins={[remarkBreaks]}>
+                                {entry.details}
+                              </Markdown>
+                            </div>
+                          </div>
+                        )}
+                      </article>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </section>
         ))
       )}

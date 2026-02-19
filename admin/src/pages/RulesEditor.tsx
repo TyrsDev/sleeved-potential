@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db, updateRules } from "../firebase";
 import type { GameRules } from "@sleeved-potential/shared";
@@ -59,6 +59,49 @@ export function RulesEditor() {
 
     return unsubscribe;
   }, []);
+
+  const isDirty = useMemo(() => {
+    if (!rules) return false;
+    const saved = {
+      pointsForSurviving: rules.pointsForSurviving,
+      pointsForDefeating: rules.pointsForDefeating,
+      pointsToWin: rules.pointsToWin,
+      startingEquipmentHand: rules.startingEquipmentHand,
+      equipmentDrawPerRound: rules.equipmentDrawPerRound,
+      startingAnimalHand: rules.startingAnimalHand,
+      defaultInitiative: rules.defaultInitiative,
+      maxRounds: rules.maxRounds ?? DEFAULT_GAME_RULES.maxRounds,
+      pointsForKill: rules.pointsForKill ?? DEFAULT_GAME_RULES.pointsForKill,
+      pointsPerOverkill: rules.pointsPerOverkill ?? DEFAULT_GAME_RULES.pointsPerOverkill,
+      pointsPerAbsorbed: rules.pointsPerAbsorbed ?? DEFAULT_GAME_RULES.pointsPerAbsorbed,
+    };
+    return (
+      parseInt(pointsForSurviving, 10) !== saved.pointsForSurviving ||
+      parseInt(pointsForDefeating, 10) !== saved.pointsForDefeating ||
+      parseInt(pointsToWin, 10) !== saved.pointsToWin ||
+      parseInt(startingEquipmentHand, 10) !== saved.startingEquipmentHand ||
+      parseInt(equipmentDrawPerRound, 10) !== saved.equipmentDrawPerRound ||
+      parseInt(startingAnimalHand, 10) !== saved.startingAnimalHand ||
+      parseInt(defaultInitiative, 10) !== saved.defaultInitiative ||
+      parseInt(maxRounds, 10) !== saved.maxRounds ||
+      parseInt(pointsForKill, 10) !== saved.pointsForKill ||
+      parseInt(pointsPerOverkill, 10) !== saved.pointsPerOverkill ||
+      parseInt(pointsPerAbsorbed, 10) !== saved.pointsPerAbsorbed
+    );
+  }, [
+    rules,
+    pointsForSurviving,
+    pointsForDefeating,
+    pointsToWin,
+    startingEquipmentHand,
+    equipmentDrawPerRound,
+    startingAnimalHand,
+    defaultInitiative,
+    maxRounds,
+    pointsForKill,
+    pointsPerOverkill,
+    pointsPerAbsorbed,
+  ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -265,9 +308,12 @@ export function RulesEditor() {
         </fieldset>
 
         <div className="form-actions">
-          <button type="submit" className="btn btn-primary" disabled={saving}>
+          <button type="submit" className="btn btn-primary" disabled={saving || !isDirty}>
             {saving ? "Saving..." : "Save Rules"}
           </button>
+          {!isDirty && !saving && (
+            <span className="form-hint">No changes to save</span>
+          )}
         </div>
       </form>
     </div>

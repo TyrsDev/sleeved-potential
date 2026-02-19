@@ -6,6 +6,7 @@ import {
   subscribeToUserGames,
   subscribeToUserChallenges,
   subscribeToUser,
+  subscribeToLeaderboard,
   acceptChallenge,
   declineChallenge,
 } from "../firebase";
@@ -20,6 +21,7 @@ export function Home() {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [opponentNames, setOpponentNames] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
+  const [userRank, setUserRank] = useState<number>(0);
 
   const userId = auth.currentUser?.uid;
 
@@ -56,6 +58,15 @@ export function Home() {
 
     return () => unsubscribes.forEach((unsub) => unsub());
   }, [userId, activeGames]);
+
+  // Subscribe to leaderboard to compute rank (only for eligible users)
+  useEffect(() => {
+    if (!userId || !user || user.isGuest || user.stats.gamesPlayed < 5) return;
+    return subscribeToLeaderboard((entries) => {
+      const rank = entries.findIndex((u) => u.id === userId) + 1;
+      setUserRank(rank);
+    });
+  }, [userId, user]);
 
   const handleAcceptChallenge = async (challengeId: string) => {
     setLoading((prev) => ({ ...prev, [challengeId]: true }));
@@ -100,6 +111,21 @@ export function Home() {
           Play Now
         </button>
       </div>
+
+      {user?.stats.gamesPlayed === 0 && (
+        <div className="home-onboarding">
+          <h3>New here?</h3>
+          <p>Learn the rules or try building card combos before your first match.</p>
+          <div className="home-onboarding-actions">
+            <button className="btn" onClick={() => navigate("/rules")}>
+              Read the Rules
+            </button>
+            <button className="btn" onClick={() => navigate("/playtest")}>
+              Try Theorycraft
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Active Games Section */}
       {activeGames.length > 0 && (
@@ -213,6 +239,18 @@ export function Home() {
             %
           </p>
         </div>
+        {userRank > 0 && (
+          <div
+            className="stat-card rank-stat-card"
+            onClick={() => navigate("/leaderboard")}
+            role="link"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === "Enter" && navigate("/leaderboard")}
+          >
+            <h3>Rank</h3>
+            <p className="stat-value">#{userRank}</p>
+          </div>
+        )}
       </div>
 
       {user?.isGuest && (

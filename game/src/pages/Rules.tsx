@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { subscribeToRules } from "../firebase";
 import type { GameRules } from "@sleeved-potential/shared";
+import { DEFAULT_GAME_RULES } from "@sleeved-potential/shared";
 
 export function Rules() {
   const [rules, setRules] = useState<GameRules | null>(null);
@@ -27,6 +28,11 @@ export function Rules() {
     );
   }
 
+  const maxRounds = rules.maxRounds ?? DEFAULT_GAME_RULES.maxRounds;
+  const pointsForKill = rules.pointsForKill ?? DEFAULT_GAME_RULES.pointsForKill;
+  const pointsPerOverkill = rules.pointsPerOverkill ?? DEFAULT_GAME_RULES.pointsPerOverkill;
+  const pointsPerAbsorbed = rules.pointsPerAbsorbed ?? DEFAULT_GAME_RULES.pointsPerAbsorbed;
+
   return (
     <div className="rules-page">
       <h2>Game Rules</h2>
@@ -36,7 +42,7 @@ export function Rules() {
         <p>
           Sleeved Potential is a 1v1 composite card game where you "build" cards by layering
           transparent components inside sleeves. Each round, both players commit a composed card
-          (Sleeve + Animal + optional Equipment), then cards fight. After {rules.maxRounds} rounds,
+          (Sleeve + Animal + optional Equipment), then cards fight. After {maxRounds} rounds,
           the player with more points wins.
         </p>
       </section>
@@ -46,29 +52,25 @@ export function Rules() {
         <div className="rules-grid">
           <div className="rule-item">
             <span className="rule-label">Rounds per Game</span>
-            <span className="rule-value">{rules.maxRounds}</span>
+            <span className="rule-value">{maxRounds}</span>
           </div>
           <div className="rule-item">
             <span className="rule-label">Kill Bonus</span>
-            <span className="rule-value">+{rules.pointsForKill}</span>
-          </div>
-          <div className="rule-item">
-            <span className="rule-label">Per Overkill HP</span>
-            <span className="rule-value">+{rules.pointsPerOverkill}</span>
-          </div>
-          <div className="rule-item">
-            <span className="rule-label">Per Damage Absorbed</span>
-            <span className="rule-value">+{rules.pointsPerAbsorbed}</span>
+            <span className="rule-value">+{pointsForKill}</span>
           </div>
         </div>
-        <div className="rules-explanation">
-          <p>If your card is destroyed, you score 0 points for that round. If you survive, you earn
-            points for damage absorbed plus kill/overkill bonuses.</p>
+        <p className="rules-explanation-text">
+          Score points by defeating your opponent's card (kill bonus + overkill damage dealt) and by
+          absorbing damage while your card survives.
+        </p>
+        <div className="rules-detail-row">
+          <span>+{pointsPerAbsorbed} pt per HP absorbed (damage taken while surviving)</span>
+          <span>+{pointsPerOverkill} pt per HP of overkill dealt</span>
         </div>
       </section>
 
       <section className="rules-section">
-        <h3>Starting Hands</h3>
+        <h3>Card Draw</h3>
         <div className="rules-grid">
           <div className="rule-item">
             <span className="rule-label">Starting Animals</span>
@@ -79,31 +81,27 @@ export function Rules() {
             <span className="rule-value">{rules.startingEquipmentHand}</span>
           </div>
           <div className="rule-item">
-            <span className="rule-label">Equipment Draw per Round</span>
-            <span className="rule-value">{rules.equipmentDrawPerRound}</span>
+            <span className="rule-label">Equipment Draw / Round</span>
+            <span className="rule-value">+{rules.equipmentDrawPerRound}</span>
           </div>
         </div>
       </section>
 
       <section className="rules-section">
         <h3>Combat</h3>
-        <div className="rules-grid">
-          <div className="rule-item">
-            <span className="rule-label">Default Initiative</span>
-            <span className="rule-value">{rules.defaultInitiative}</span>
-          </div>
-        </div>
         <div className="rules-explanation">
-          <h4>Combat Resolution</h4>
           <ul>
             <li>
-              <strong>Equal Initiative:</strong> Both cards attack simultaneously (1 attack round)
+              <strong>Equal Initiative:</strong> Both cards attack simultaneously
             </li>
             <li>
-              <strong>Different Initiative:</strong> Higher initiative attacks first, then defender
-              attacks back if they survive (2 attack rounds)
+              <strong>Different Initiative:</strong> Higher initiative attacks first; defender
+              counterattacks only if they survive
             </li>
           </ul>
+          <p className="rules-detail-text">
+            Default initiative for all cards: {rules.defaultInitiative}
+          </p>
         </div>
       </section>
 
@@ -113,16 +111,16 @@ export function Rules() {
           <p>Cards are composed by stacking transparent components in order:</p>
           <ol>
             <li>
-              <strong>Sleeve Background</strong> (bottom layer) - easily overwritten
+              <strong>Sleeve Background</strong> (bottom layer) — easily overwritten
             </li>
             <li>
-              <strong>Animal</strong> - the "champion"
+              <strong>Animal</strong> — the champion
             </li>
             <li>
-              <strong>Equipment</strong> (0+) - stacked in player-chosen order
+              <strong>Equipment</strong> (0 or more) — stacked in player-chosen order
             </li>
             <li>
-              <strong>Sleeve Foreground</strong> (top layer) - guaranteed stat
+              <strong>Sleeve Foreground</strong> (top layer) — guaranteed stat
             </li>
           </ol>
           <p>
@@ -134,24 +132,21 @@ export function Rules() {
       <section className="rules-section">
         <h3>Card Types</h3>
         <div className="rules-explanation">
-          <h4>Sleeves (5 total)</h4>
+          <h4>Sleeves</h4>
           <ul>
-            <li>Both players have copies of all sleeves</li>
-            <li>All available each round; used sleeves go to graveyard</li>
-            <li>When all used, graveyard returns</li>
+            <li>Both players share the same sleeve pool</li>
+            <li>All sleeves available each round; used sleeves go to graveyard and return when all are used</li>
           </ul>
 
-          <h4>Animals (per-player deck)</h4>
+          <h4>Animals</h4>
           <ul>
-            <li>Each player gets their own shuffled copy of all animals</li>
-            <li>Hand: Always hold {rules.startingAnimalHand} Animals</li>
-            <li>Used Animals go to your own discard pile</li>
+            <li>Each player gets their own shuffled deck</li>
+            <li>Always hold {rules.startingAnimalHand} animals; used ones go to your discard pile</li>
           </ul>
 
-          <h4>Equipment (20 total, per-player deck)</h4>
+          <h4>Equipment</h4>
           <ul>
-            <li>Starting hand: {rules.startingEquipmentHand} cards</li>
-            <li>Per-round draw: {rules.equipmentDrawPerRound} card(s)</li>
+            <li>Starting hand: {rules.startingEquipmentHand} cards; draw {rules.equipmentDrawPerRound} per round</li>
             <li>No hand limit; unlimited stacking per composed card</li>
           </ul>
         </div>
