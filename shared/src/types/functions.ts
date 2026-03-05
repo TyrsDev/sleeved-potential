@@ -340,14 +340,15 @@ export interface SeedBotSnapshotOutput {
 }
 
 /**
- * migrateGames - Delete old format games (ADMIN)
+ * migrateElo - Replay all ranked games to recalculate ELO from scratch (ADMIN)
  */
-export interface MigrateGamesInput {
+export interface MigrateEloInput {
   _meta?: ApiMetadata;
 }
 
-export interface MigrateGamesOutput {
-  deletedCount: number;
+export interface MigrateEloOutput {
+  usersUpdated: number;
+  gamesProcessed: number;
   _meta: ApiResponseMeta;
 }
 

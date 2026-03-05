@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase";
 import type { User } from "@sleeved-potential/shared";
+import { DEFAULT_ELO } from "@sleeved-potential/shared";
 
 export function PlayerList() {
   const [players, setPlayers] = useState<User[]>([]);
@@ -12,7 +13,7 @@ export function PlayerList() {
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const userData = snapshot.docs.map((doc) => doc.data() as User);
-      userData.sort((a, b) => (b.stats.elo ?? 1500) - (a.stats.elo ?? 1500));
+      userData.sort((a, b) => (b.stats.elo ?? DEFAULT_ELO) - (a.stats.elo ?? DEFAULT_ELO));
       setPlayers(userData);
       setLoading(false);
     });
@@ -70,7 +71,7 @@ export function PlayerList() {
                     <span className="muted">-</span>
                   )}
                 </td>
-                <td className="player-elo">{player.stats.elo ?? 1500}</td>
+                <td className="player-elo">{player.stats.elo ?? DEFAULT_ELO}</td>
                 <td>{player.stats.gamesPlayed}</td>
                 <td>
                   {player.stats.wins}/{player.stats.losses}/{player.stats.draws}

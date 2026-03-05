@@ -205,6 +205,8 @@ Every complete feature or set of bug fixes should result in a version bump. Use 
 2. Create a changelog entry (draft) in the admin panel describing the changes
 3. Publish the changelog entry when deploying
 
+**IMPORTANT:** Always bump the version and create a changelog entry in the admin panel when completing a feature or fix. Do not skip this step.
+
 ## Writing Changelogs
 
 Changelogs are managed via the admin panel at `/changelog`. Each entry has:

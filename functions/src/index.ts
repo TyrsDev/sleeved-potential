@@ -40,7 +40,7 @@ export { deleteChangelog } from "./deleteChangelog.js";
 // Snapshot/Migration functions (ADMIN role required)
 export { seedBotSnapshot } from "./seedBotSnapshot.js";
 export { deleteSnapshot } from "./deleteSnapshot.js";
-export { migrateGames } from "./migrateGames.js";
+export { migrateElo } from "./migrateElo.js";
 
 // Card analytics (ADMIN role required)
 export { computeCardStats } from "./computeCardStats.js";
